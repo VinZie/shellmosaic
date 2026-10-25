@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.3.0 — unreleased
+
+### Added
+- **Optional modules** (Settings → Optional modules): extra modules published in this
+  repository's `modules/` folder, installed, updated and removed from the app. Downloads are
+  checked against a catalog signed with the release key. Installs and removals apply at the next
+  start: queue as many as you like, then restart once.
+- **Process Inspector** (optional module): one process in depth: overview with signature,
+  integrity, protection (PPL), mitigations and command line; loaded modules; threads with start
+  addresses and wait reasons; handles with decoded access rights; token groups and privileges;
+  the memory map with executable private memory highlighted. Suspend/resume, priority,
+  affinity and thread actions. Tabs and columns are customizable. Processes and Ports panes get
+  an **Inspect** item.
+- **Event Viewer** (optional module): every Windows event log with level, event ID, source,
+  time and text filters (or raw XPath), live tail, and a Sysmon view with per-event columns.
+- **SQLite Browser** (optional module): browse tables, structure and run SQL. Databases open
+  read-only; changes need an explicit switch; locked databases (a running browser's history)
+  open from a copy. Files gets **Open in SQLite Browser**.
+- **Update channel** (Settings → About): Stable, or Test for pre-release builds and the test
+  branch's optional modules (with a warning that they may be unstable).
+- **Restart as administrator** for modules that need it (asked first); while elevated the title
+  bar says so, and the inspector reads protected details with SeDebugPrivilege on its own
+  threads only.
+- Ctrl+V with a picture on the clipboard sends the program's image-paste key (Alt+V by default,
+  which Claude Code uses on Windows), configurable in Settings → Terminal.
+- Plugin SDK v2: `process`, `thread`, `eventlog`, `sqlite`, `ui.confirm/pickFile/openModule/
+  reveal/setState`, `app.info/restartAsAdmin`, pane arguments and saved pane state.
+
+### Changed
+- **Claude Usage** is an optional module now instead of being installed with the app (existing
+  installs keep it and get its updates from Settings → Optional modules). It refreshes at most
+  once a minute, and Shellmosaic shares one answer per minute between all panes and backs off
+  when Claude says it's asking too often.
+- **Sysinfo, redesigned**: clearer cards with big numbers, a layout that follows the pane
+  (one to three columns, or a strip), charts with a hover readout, CPU clock and busiest core,
+  memory available, network peaks and totals, disks colored by fullness, and a new icon.
+
+### Fixed
+- Sysinfo showed 0 processes unless a Processes or Ports pane was open.
+
 ## 0.2.1 — 2026-10-25
 
 ### Added

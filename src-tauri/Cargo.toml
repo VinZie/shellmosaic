@@ -1,6 +1,6 @@
 [package]
 name = "shellmosaic"
-version = "0.2.1"
+version = "0.3.0"
 description = "A modular, workspace-based terminal for Windows"
 edition = "2021"
 rust-version = "1.80"
@@ -43,13 +43,37 @@ zeroize = "1"
 # HTTPS for the Claude usage check: the same reqwest + rustls (ring) build the updater already uses
 reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "system-proxy"] }
 rustls = { version = "0.23", default-features = false, features = ["ring"] }
+# optional modules: the catalog is signed with the updater's key (same minisign check as the updater)
+minisign-verify = "0.3"
+sha2 = "0.10"
+semver = "1"
+# SQLite Browser module (bundled: no system SQLite on Windows; column_decltype for result
+# column types, hooks for the authorizer that keeps ATTACH to local files)
+rusqlite = { version = "0.41", features = ["bundled", "column_decltype", "hooks"] }
 
 [target.'cfg(windows)'.dependencies]
+# ntdll functions windows-sys doesn't cover (thread states, handle tables, suspend/resume)
+windows-link = "0.2"
 windows-sys = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_Security",
+  "Win32_Security_Authorization",
+  "Win32_Security_Cryptography",
+  "Win32_Security_Cryptography_Catalog",
+  "Win32_Security_WinTrust",
+  "Win32_Storage_FileSystem",
+  "Win32_Storage_Packaging_Appx",
+  "Win32_System_Diagnostics_Debug",
+  "Win32_System_Diagnostics_ToolHelp",
   "Win32_System_Environment",
+  "Win32_System_EventLog",
+  "Win32_System_Memory",
+  "Win32_System_ProcessStatus",
+  "Win32_System_Registry",
+  "Win32_System_SystemInformation",
   "Win32_System_Threading",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
 ] }
 
 # Unoptimized key derivation takes seconds (vault unlock, encrypted SSH keys) and

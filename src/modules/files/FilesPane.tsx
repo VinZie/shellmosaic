@@ -12,11 +12,15 @@ import type { Pane } from "../../state/model";
 import { findProfile } from "../../state/profiles";
 import { settings, useSettings } from "../../state/settings";
 import { getState } from "../../state/store";
+import { hasOptional, openOptional } from "../../state/moduleStore";
 import { ui, type MenuItem } from "../../state/ui";
 import { ModuleMessage, SearchBox, useInterval, useModuleDir } from "../common";
 import { handleMarkdownClick, renderMarkdown } from "../notes/markdown";
 import type { ModuleDef, ModuleProps } from "../registry";
 import "./files.css";
+
+/** File names the SQLite Browser module opens. */
+const SQLITE_FILE = /\.(db|sqlite|sqlite3|db3|s3db|sdb)$/i;
 
 const ROW_H = 26;
 const HEADER_H = 28;
@@ -584,6 +588,16 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
         : [
             { label: "Open with default app", icon: "external-link", shortcut: "Ctrl+Enter", onSelect: () => openPath(e.path).catch(toastErr) },
             { label: "Preview", icon: "eye", shortcut: "Enter", onSelect: () => setPreview(e.path, true) },
+            // databases (and, with the module installed, extensionless files like a browser's History)
+            ...(SQLITE_FILE.test(e.name) || (hasOptional("sqlite-browser") && !/\.[^.\\]+$/.test(e.name))
+              ? [
+                  {
+                    label: "Open in SQLite Browser",
+                    icon: "database",
+                    onSelect: () => openOptional("sqlite-browser", "SQLite Browser", { path: e.path }, { tabId, paneId: pane.id }),
+                  },
+                ]
+              : []),
           ]),
       { label: "Reveal in Explorer", icon: "folder", onSelect: () => revealItemInDir(e.path).catch(toastErr) },
       { type: "separator" },

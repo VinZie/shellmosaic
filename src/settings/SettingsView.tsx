@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
 import { Icon } from "../lib/icons";
 import { cx } from "../lib/util";
+import { availableUpdates, useModuleStore } from "../state/moduleStore";
 import { ui, useUi } from "../state/ui";
 import { AboutSection } from "./sections/About";
 import { AppearanceSection } from "./sections/Appearance";
@@ -10,6 +11,7 @@ import { NavCtx, SearchCtx } from "./sections/controls";
 import { DataSection } from "./sections/Data";
 import { KeybindingsSection } from "./sections/Keybindings";
 import { ModulesSection } from "./sections/Modules";
+import { OptionalModulesSection } from "./sections/OptionalModules";
 import { PluginsSection } from "./sections/Plugins";
 import { ProfilesSection } from "./sections/Profiles";
 import { TerminalSection } from "./sections/Terminal";
@@ -30,6 +32,7 @@ const SECTIONS: SectionDef[] = [
   { id: "terminal", title: "Terminal", icon: "square-terminal", C: TerminalSection },
   { id: "profiles", title: "Profiles", icon: "layers", C: ProfilesSection },
   { id: "modules", title: "Modules", icon: "layout-grid", C: ModulesSection },
+  { id: "optional-modules", title: "Optional modules", icon: "blocks", C: OptionalModulesSection },
   { id: "keybindings", title: "Keybindings", icon: "keyboard", C: KeybindingsSection },
   { id: "plugins", title: "Plugins", icon: "puzzle", C: PluginsSection },
   { id: "data", title: "Data & restore", icon: "database", C: DataSection },
@@ -129,6 +132,8 @@ export function SettingsView() {
   }, [q]);
 
   const total = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : 0;
+  // queued changes and available updates of optional modules
+  const moduleNotes = useModuleStore((s) => (s.state?.pending.length ?? 0) + availableUpdates(s.state, s.catalog).length);
 
   return (
     <NavCtx.Provider value={go}>
@@ -176,6 +181,9 @@ export function SettingsView() {
                   <Icon name={s.icon} size={16} />
                   <span className="grow">{s.title}</span>
                   {q && n > 0 && <span className="settings-nav-count">{n}</span>}
+                  {!q && s.id === "optional-modules" && moduleNotes > 0 && (
+                    <span className="settings-nav-count" title="Changes waiting for a restart, and updates">{moduleNotes}</span>
+                  )}
                 </button>
               );
             })}

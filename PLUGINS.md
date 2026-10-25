@@ -48,6 +48,10 @@ permissions that the user approves.
 | `clipboard` | `shellmosaic.clipboard.readText()` / `writeText(text)` |
 | `net` | `fetch`/WebSocket to `https:`/`wss:` URLs, and remote images |
 | `claude.usage` | `shellmosaic.claude.usage()`: Claude plan limits of the account Claude Code is signed in with |
+| `process.inspect` | `shellmosaic.process.*`: a process's overview, modules, threads, handles, token, memory map; file signatures |
+| `process.control` | `process.suspend/resume/setPriority/setAffinity`, `thread.suspend/resume/terminate` |
+| `eventlog.read` | `shellmosaic.eventlog.*`: Windows event logs (queries, paging, live subscriptions) |
+| `sqlite` | `shellmosaic.sqlite.*`: open local SQLite databases, read-only unless the plugin asks to write |
 
 Without `net`, a plugin can't use `fetch`, XHR or WebSockets (the CSP sets `connect-src 'none'`)
 and can't load remote images. That is not a complete offline sandbox, though: a page can still
@@ -78,7 +82,14 @@ Include it from your HTML (it's served by Shellmosaic):
 | `shellmosaic.storage.get(key)` / `.set(key, value)` / `.all()` | Per-plugin JSON storage (5 MB), no permission needed |
 | `shellmosaic.ui.notify(message, kind)` | Toast: `info`, `success`, `warning`, `error` |
 | `shellmosaic.ui.setTitle(title)` | Sets the pane header text |
-
+| `shellmosaic.ui.setState(obj)` | Saved with the pane (64 KB of JSON) and handed back as `context().state`, also after a restart |
+| `shellmosaic.ui.confirm(title, message, {okLabel, danger})` | The app's confirmation dialog → `true`/`false` |
+| `shellmosaic.ui.pickFile({title, filters})` | The Open dialog → a path or `null` |
+| `shellmosaic.ui.openModule(target)` | Open `{module: "processes"\|"ports", filter}`, `{module: "files", path}` or `{module: "plugin:<id>", args}` next to the pane |
+| `shellmosaic.ui.reveal(path)` | Show a local file selected in Explorer |
+| `shellmosaic.app.info()` | `{version, elevated}` |
+| `shellmosaic.app.restartAsAdmin()` | Asks the user, then relaunches Shellmosaic as administrator (`false` when declined) |
+| `shellmosaic.ready` | A Promise of the same info as the `shellmosaic:ready` event |
 All calls return Promises and reject with an `Error` when not permitted.
 
 ### Claude usage
@@ -92,6 +103,28 @@ resets_at, scope}`. Answers are shared between panes for 25 seconds. When the si
 expired the call rejects with a message saying so; running `claude` once refreshes it.
 The bundled **Claude Usage** plugin uses it.
 
+### Arguments and pane state
+
+A pane opened by another module carries arguments: Processes → **Inspect** opens the Process
+Inspector with `context().args = {pid}`, Files → **Open in SQLite Browser** with `{path}`. Anything
+a plugin saves with `ui.setState` comes back as `context().state` when the layout is restored.
+
+### Processes, event logs and SQLite
+
+The exact result types are in [`modules/shared/api.ts`](modules/shared/api.ts). In short:
+
+- `process.list()`, `process.overview(pid)`, `.modules(pid)`, `.threads(pid)`, `.handles(pid)`,
+  `.token(pid)`, `.memory(pid)`, `.signature(path)`. Addresses are hex strings. Fields that need
+  more rights are listed in `overview().denied`; errors for lack of rights say "access denied".
+- `eventlog.channels()`, `.info(channel)`, `.query({channel, xpath, reverse, text, max})` →
+  `{cursor, events, done, scanned}` where `events` are event XML strings; `.more(cursor)`,
+  `.close(cursor)`, `.subscribe({channel, xpath, text})` + `.poll(id)` for new events.
+- `sqlite.open(path, {writable, copy})` (local paths only; a locked file opens from a copy),
+  `.schema(db)`, `.count(db, table)`, `.query(db, sql, params, {maxRows})`, `.setWritable(db, on)`,
+  `.interrupt(db)`, `.close(db)`.
+
+Queries and databases belong to the pane: they're closed when it's closed or reloaded.
+
 ### Matching the user's theme
 
 The SDK sets CSS variables on your `<html>` and keeps them updated: `--sm-bg`, `--sm-surface`,
@@ -99,6 +132,12 @@ The SDK sets CSS variables on your `<html>` and keeps them updated: `--sm-bg`, `
 `--sm-danger`, `--sm-warning`, `--sm-success`, `--sm-radius`, `--sm-font`, `--sm-font-size`,
 `--sm-mono`. It also injects light base styles for `body`, `button` and `input`. Opt out with
 `<html data-sm-nostyle>`.
+
+## Optional modules
+
+The modules in [`modules/`](modules) (Process Inspector, Event Viewer, SQLite Browser, Claude
+Usage) are plugins too, built with React and a shared kit, and installed from Settings →
+Optional modules. See [modules/README.md](modules/README.md).
 
 ## Sandbox rules
 

@@ -6,7 +6,7 @@ import { setSetting } from "../../state/settings";
 import { BUILTIN_THEMES } from "../../state/themes";
 import { ui } from "../../state/ui";
 import { checkForUpdates } from "../../state/updater";
-import { Group, Keys, NavCtx, Searchable, Section, ToggleSetting, useSetting } from "./controls";
+import { Group, Keys, NavCtx, Row, Searchable, Section, Segmented, ToggleSetting, useSetting } from "./controls";
 import { openInDataDir } from "./helpers";
 
 function useVersion(): string {
@@ -43,6 +43,52 @@ function UpdateControls() {
         desc="Looks for new releases on GitHub at start and every few hours. You're always asked before anything is installed."
         keywords="update upgrade release github version auto"
       />
+      <UpdateChannel />
+    </>
+  );
+}
+
+function UpdateChannel() {
+  const channel = useSetting<"stable" | "test">("updates.channel");
+  const choose = async (next: "stable" | "test") => {
+    if (next === channel) return;
+    if (next === "test") {
+      const ok = await ui.confirm(
+        "Switch to test builds?",
+        "Test builds come from the test branch: new features arrive there first, but they may be unstable, lose settings or break things. Optional modules also come from the test branch. You can switch back at any time.",
+        { okLabel: "Use test builds", danger: true },
+      );
+      if (!ok) return;
+    }
+    setSetting("updates.channel", next);
+    // the Updates check below and Optional modules now read the other channel
+    if (next === "test") checkForUpdates({ manual: true });
+  };
+  return (
+    <>
+      <Row
+        label="Update channel"
+        desc="Stable gets releases from the main branch. Test gets pre-release builds and optional modules from the test branch."
+        keywords="beta test branch main stable preview insider pre-release channel unstable"
+      >
+        <Segmented
+          value={channel}
+          options={[
+            { value: "stable", label: "Stable" },
+            { value: "test", label: "Test" },
+          ]}
+          onChange={choose}
+        />
+      </Row>
+      {channel === "test" && (
+        <div className="update-channel-warning">
+          <Icon name="warning" size={14} />
+          <span>
+            You're on the test channel. Test builds can be unstable or have bugs that cost you data. Switch back to Stable any time; you return to stable versions
+            with the next stable release newer than the build you have.
+          </span>
+        </div>
+      )}
     </>
   );
 }

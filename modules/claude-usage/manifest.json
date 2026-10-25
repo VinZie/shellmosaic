@@ -1,7 +1,8 @@
 {
   "id": "claude-usage",
   "name": "Claude Usage",
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "minAppVersion": "0.2.1",
   "author": "Shellmosaic",
   "description": "Your Claude plan limits (session and weekly) with reset countdowns, refreshed on an interval you choose",
   "icon": "gauge",

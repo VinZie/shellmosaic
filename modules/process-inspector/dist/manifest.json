@@ -1,0 +1,11 @@
+{
+  "id": "process-inspector",
+  "name": "Process Inspector",
+  "version": "1.0.0",
+  "minAppVersion": "0.3.0",
+  "author": "Shellmosaic",
+  "description": "Look inside a running process: modules, threads, handles, token and memory map, with suspend, priority and thread controls",
+  "icon": "microscope",
+  "entry": "index.html",
+  "permissions": ["process.inspect", "process.control", "clipboard"]
+}

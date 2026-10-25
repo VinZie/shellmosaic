@@ -1,23 +1,29 @@
 mod claude;
 mod config;
 mod env;
+mod eventlog;
 mod fsops;
 mod git;
 mod logs;
 mod paths;
 mod plugins;
+mod procinfo;
 mod pty;
 mod sanitize;
 mod sftp;
 mod shells;
+mod sqlite;
 mod ssh;
 mod state;
+mod store;
 mod sysmon;
 mod tasks;
+mod updates;
 mod vault;
 mod vt;
 mod web;
 mod windows;
+mod winutil;
 
 use std::time::Duration;
 
@@ -46,6 +52,7 @@ fn persist_all(app: &tauri::AppHandle) {
 }
 
 pub fn run() {
+    wait_for_previous_instance();
     tauri::Builder::default()
         // first: a second launch would start the same panes' shells again and both
         // instances would overwrite each other's state.json — bring this one forward instead
@@ -76,7 +83,10 @@ pub fn run() {
             if let Some(live) = store.pane_ids() {
                 ptys.gc(&live);
             }
+            // optional modules queued for install/removal before the last exit, before anything reads plugins/
+            store::apply_pending(&paths);
             plugins::install_examples(&paths);
+            std::thread::spawn(sqlite::sweep_temp);
             let effect = startup_effect(&paths);
 
             app.manage(config::ConfigWatch::new(&paths));
@@ -92,6 +102,9 @@ pub fn run() {
             app.manage(sysmon::SysMon::new());
             app.manage(logs::LogTails::default());
             app.manage(claude::ClaudeUsage::default());
+            app.manage(eventlog::EventLogs::default());
+            app.manage(sqlite::Sqlite::default());
+            app.manage(store::Store::default());
 
             // Debounced persistence: model every second, scrollback every 30 s.
             let h = handle.clone();
@@ -187,6 +200,38 @@ pub fn run() {
             plugins::plugin_install_folder,
             plugins::plugin_remove,
             claude::claude_usage,
+            plugin_release,
+            procinfo::process_overview,
+            procinfo::process_modules,
+            procinfo::process_threads,
+            procinfo::process_handles,
+            procinfo::process_token,
+            procinfo::process_memory,
+            procinfo::process_signature,
+            procinfo::process_control,
+            procinfo::thread_control,
+            eventlog::eventlog_channels,
+            eventlog::eventlog_info,
+            eventlog::eventlog_query,
+            eventlog::eventlog_more,
+            eventlog::eventlog_close,
+            eventlog::eventlog_subscribe,
+            eventlog::eventlog_poll,
+            eventlog::eventlog_unsubscribe,
+            sqlite::sqlite_open,
+            sqlite::sqlite_schema,
+            sqlite::sqlite_count,
+            sqlite::sqlite_query,
+            sqlite::sqlite_set_writable,
+            sqlite::sqlite_interrupt,
+            sqlite::sqlite_close,
+            store::store_state,
+            store::store_catalog,
+            store::store_queue_install,
+            store::store_queue_remove,
+            store::store_cancel,
+            store::store_ack,
+            updates::update_check,
             vault::vault_status,
             vault::vault_create,
             vault::vault_unlock,
@@ -210,6 +255,8 @@ pub fn run() {
             sftp::sftp_cancel,
             run_command,
             app_persist,
+            app_restart,
+            app_elevated,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Shellmosaic")
@@ -218,6 +265,61 @@ pub fn run() {
                 persist_all(app);
             }
         });
+}
+
+/// `--after-pid N`: this instance was started by `app_restart`; wait for the old one to
+/// exit first (it holds the single-instance lock and is still saving its state).
+fn wait_for_previous_instance() {
+    let mut args = std::env::args().skip(1);
+    while let Some(a) = args.next() {
+        if a == "--after-pid" {
+            if let Some(pid) = args.next().and_then(|p| p.parse::<u32>().ok()) {
+                winutil::wait_for_exit(pid, Duration::from_secs(20));
+            }
+        }
+    }
+}
+
+/// Save everything, start a new Shellmosaic (as administrator when `elevated`) and exit.
+/// Optional-module installs and removals queued meanwhile are applied as it starts.
+#[tauri::command]
+async fn app_restart(app: tauri::AppHandle, elevated: Option<bool>) -> Result<(), String> {
+    let a = app.clone();
+    paths::blocking(move || -> Result<(), String> {
+        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        let pid = std::process::id().to_string();
+        if elevated.unwrap_or(false) {
+            // asks first (UAC): when the user says no, nothing has happened yet
+            persist_all(&a);
+            winutil::run_elevated(&exe, &format!("--after-pid {pid}"))?;
+        } else {
+            persist_all(&a);
+            std::process::Command::new(&exe)
+                .args(["--after-pid", &pid])
+                .spawn()
+                .map_err(|e| format!("Couldn't start Shellmosaic again: {e}"))?;
+        }
+        Ok(())
+    })
+    .await??;
+    app.exit(0);
+    Ok(())
+}
+
+/// Whether Shellmosaic runs as administrator.
+#[tauri::command]
+fn app_elevated() -> bool {
+    winutil::is_elevated()
+}
+
+/// A plugin pane closed or reloaded: close the event-log queries and databases it had open.
+#[tauri::command]
+async fn plugin_release(app: tauri::AppHandle, owner: String) -> Result<(), String> {
+    paths::blocking(move || {
+        app.state::<eventlog::EventLogs>().release(&owner);
+        app.state::<sqlite::Sqlite>().release(&owner);
+    })
+    .await
 }
 
 /// Save the layout and scrollback now: the updater's installer ends the app without

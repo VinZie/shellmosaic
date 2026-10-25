@@ -25,7 +25,7 @@ export function pluginModuleDef(m: PluginManifest): ModuleDef {
     description: str(m.description, 300) ?? (author ? `Plugin by ${author}` : "Plugin"),
     component: PluginPane,
     headerActions: PluginHeaderActions,
-    menu: (pane) => pluginMenu(pane.id),
+    menu: (pane) => pluginMenu(pane.id, m.id),
     title: (_pane, rt) => rt.title || name,
     // ui.setTitle from the plugin would otherwise stick to the pane after "change module"
     onRemove: (paneId) => ui.setTitle(paneId, ""),

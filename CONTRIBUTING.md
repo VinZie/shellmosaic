@@ -80,3 +80,21 @@ installs can't accept new updates.
 
 The updater reads `https://github.com/VinZie/shellmosaic/releases/latest/download/latest.json`,
 so it only works while releases are publicly downloadable.
+
+### Test builds
+
+`main` is what Stable users get; `test` is where new work lands first. Users who pick the
+**Test** update channel (Settings → About) also check the rolling `test-build` pre-release.
+
+- `pwsh scripts/release.ps1 -Channel test` builds `<version>-test.N` from the current commit
+  and replaces the `test-build` pre-release (installer, signature, `latest.json`). Push the commit
+  first: the release points at it.
+- `-test.N` sorts before the plain version, so testers are offered the stable release once it's
+  published.
+
+### Optional modules
+
+The modules in `modules/` are published by committing their build and a signed catalog; the app
+downloads them from the branch of the user's channel. See [modules/README.md](modules/README.md#publishing):
+`node modules/build.mjs --sign`, then commit `modules/` (with `dist/`, `index.json`,
+`index.json.sig`) and push.

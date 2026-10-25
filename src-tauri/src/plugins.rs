@@ -18,7 +18,8 @@ use crate::vt::percent_decode;
 
 const SDK: &str = include_str!("../plugin-sdk/shellmosaic.js");
 
-/// Bundled plugins, by id: (file name, contents).
+/// Bundled plugins, by id: (file name, contents). Claude Usage, bundled in 0.2.1, is an optional
+/// module now (modules/claude-usage): existing installs keep it, new ones get it from the store.
 const EXAMPLES: &[(&str, &[(&str, &str)])] = &[
     (
         "command-board",
@@ -27,13 +28,7 @@ const EXAMPLES: &[(&str, &[(&str, &str)])] = &[
             ("index.html", include_str!("../plugin-sdk/examples/command-board/index.html")),
         ],
     ),
-    (
-        "claude-usage",
-        &[
-            ("manifest.json", include_str!("../plugin-sdk/examples/claude-usage/manifest.json")),
-            ("index.html", include_str!("../plugin-sdk/examples/claude-usage/index.html")),
-        ],
-    ),
+
 ];
 
 pub const KNOWN_PERMISSIONS: &[&str] = &[
@@ -47,6 +42,10 @@ pub const KNOWN_PERMISSIONS: &[&str] = &[
     "clipboard",
     "net",
     "claude.usage",
+    "process.inspect",
+    "process.control",
+    "eventlog.read",
+    "sqlite",
 ];
 
 #[derive(Serialize)]
@@ -89,6 +88,11 @@ fn read_manifest(dir: &Path, id: &str) -> Result<Value, String> {
         Some(_) => return Err("\"permissions\" must be a list".into()),
     }
     Ok(v)
+}
+
+/// The checks a plugin folder must pass to load (for the module store's downloads).
+pub fn check_manifest(dir: &Path, id: &str) -> Result<(), String> {
+    read_manifest(dir, id).map(|_| ())
 }
 
 #[tauri::command]
@@ -153,13 +157,20 @@ fn install_folder(paths: &Paths, src: PathBuf) -> Result<String, String> {
         trash::delete(&dest).s()?;
     }
     copy_dir(&src, &dest, 0).s()?;
+    crate::store::forget(paths, &id);
     Ok(id)
 }
 
 #[tauri::command]
 pub async fn plugin_remove(app: AppHandle, id: String) -> Result<(), String> {
-    let dir = app.state::<Paths>().plugins().join(safe_key(&id)?);
-    blocking(move || trash::delete(dir).s()).await?
+    let id = safe_key(&id)?;
+    let paths = app.state::<Paths>().inner().clone();
+    blocking(move || {
+        trash::delete(paths.plugins().join(&id)).s()?;
+        crate::store::forget(&paths, &id);
+        Ok(())
+    })
+    .await?
 }
 
 /// Drop in the bundled plugins, each one once: one the user removed stays removed, and one

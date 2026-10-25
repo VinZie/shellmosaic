@@ -120,7 +120,8 @@ Release builds are signed for the updater; see [CONTRIBUTING.md](CONTRIBUTING.md
 | **Notes** | Markdown notes with live preview, task lists and runnable code blocks |
 | **System** | CPU, memory, network and disks at a glance |
 | **Web** | A browser pane for docs and dashboards |
-| **Plugins** | Your own modules: sandboxed web pages with a small SDK ([PLUGINS.md](PLUGINS.md)). Ships with **Claude Usage** (your Claude plan's session and weekly limits with reset countdowns, on a refresh interval you pick) and the **Command Board** example |
+| **Optional modules** | Installed from Settings → Optional modules ([modules/](modules)): **Process Inspector** (modules, threads, handles, token and memory map of a process, with suspend, priority and thread control), **Event Viewer** (event logs with filters, live tail and a Sysmon view), **SQLite Browser** (read-only unless you allow changes) and **Claude Usage** (your Claude plan's limits with reset countdowns) |
+| **Plugins** | Your own modules: sandboxed web pages with a small SDK ([PLUGINS.md](PLUGINS.md)). Ships with the **Command Board** example |
 
 ## Shortcuts
 
@@ -186,7 +187,8 @@ Everything is stored in `%APPDATA%\com.shellmosaic.app\`:
 | `settings.json` | Only the settings you changed (edit by hand; changes apply live) |
 | `vault.json` | Saved SSH hosts and secrets, encrypted with your master password |
 | `themes\*.json` | Your themes |
-| `plugins\<id>\` | Installed plugins |
+| `plugins\<id>\` | Installed plugins and optional modules |
+| `store\` | Optional modules: what's installed, downloads waiting for a restart |
 | `state.json` | Workspaces, tabs and layouts |
 | `sessions\` | Saved scrollback and folder per terminal |
 | `trusted-repos.json` | Repositories you trusted in the Git pane |
@@ -197,7 +199,7 @@ Everything is stored in `%APPDATA%\com.shellmosaic.app\`:
 - Port forwarding and jump hosts for saved SSH hosts, import from `~/.ssh/config`
 - SSH agent and Pageant support
 - Split a remote session into another pane on the same connection
-- More plugin APIs and a plugin gallery
+- More optional modules (registry, services, packet capture …)
 - Code-signed releases
 
 ## FAQ

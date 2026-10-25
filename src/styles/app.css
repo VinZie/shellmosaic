@@ -1771,3 +1771,12 @@ body.dragging .rail-item:hover .rail-tip {
   outline: none;
   user-select: text;
 }
+
+/* Shellmosaic runs elevated */
+.titlebar-admin {
+  margin-right: 6px;
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 45%, transparent);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  flex: none;
+}

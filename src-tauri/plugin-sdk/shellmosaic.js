@@ -1,5 +1,5 @@
 /*
- * Shellmosaic plugin SDK (v1)
+ * Shellmosaic plugin SDK (v2)
  *
  * Include from your plugin's HTML:
  *   <script src="/__sdk/shellmosaic.js"></script>
@@ -100,9 +100,14 @@
     document.head.appendChild(style);
   }
 
+  let markReady;
+  const ready = new Promise((resolve) => (markReady = resolve));
+
   window.shellmosaic = {
-    version: 1,
-    /** { pluginId, paneId, tabId, workspaceId, cwd, grantedPermissions } */
+    version: 2,
+    /** Resolves with the context (and theme) once the host answered (permissions asked). */
+    ready,
+    /** { pluginId, paneId, tabId, workspaceId, cwd, visible, grantedPermissions, args, state, appVersion, elevated } */
     context: () => call("context"),
     /** Subscribe to host events: "theme", "cwd", "visible". Returns an unsubscribe fn. */
     on(event, fn) {
@@ -147,11 +152,70 @@
     ui: {
       notify: (message, kind = "info") => call("ui.notify", { message, kind }),
       setTitle: (title) => call("ui.setTitle", { title }),
+      /** Saved with the pane (max 64 KB of JSON); context().state after a restart. */
+      setState: (state) => call("ui.setState", { state }),
+      /** The app's confirmation dialog → true / false. */
+      confirm: (title, message, opts = {}) => call("ui.confirm", { title, message, ...opts }),
+      /** The Open dialog → a path or null. filters: [{ name, extensions: ["db"] }] */
+      pickFile: (opts = {}) => call("ui.pickFile", opts),
+      /** Open a module next to this pane: { module: "processes" | "ports", filter } | { module: "files", path } | { module: "plugin:<id>", args } */
+      openModule: (target) => call("ui.openModule", target),
+      /** Show a local file selected in Explorer. */
+      reveal: (path) => call("ui.reveal", { path }),
+    },
+    app: {
+      /** { version, elevated } */
+      info: () => call("app.info"),
+      /** Ask the user, then relaunch Shellmosaic as administrator. false when declined. */
+      restartAsAdmin: () => call("app.restartAsAdmin"),
+    },
+    /** process.inspect (inspection) and process.control (suspend, priority, affinity, threads) */
+    process: {
+      list: () => call("process.list"),
+      overview: (pid) => call("process.overview", { pid }),
+      modules: (pid) => call("process.modules", { pid }),
+      threads: (pid) => call("process.threads", { pid }),
+      handles: (pid) => call("process.handles", { pid }),
+      token: (pid) => call("process.token", { pid }),
+      memory: (pid) => call("process.memory", { pid }),
+      signature: (path) => call("process.signature", { path }),
+      suspend: (pid) => call("process.suspend", { pid }),
+      resume: (pid) => call("process.resume", { pid }),
+      setPriority: (pid, priority) => call("process.setPriority", { pid, priority }),
+      setAffinity: (pid, mask) => call("process.setAffinity", { pid, mask: String(mask) }),
+    },
+    thread: {
+      suspend: (pid, tid) => call("thread.suspend", { pid, tid }),
+      resume: (pid, tid) => call("thread.resume", { pid, tid }),
+      terminate: (pid, tid) => call("thread.terminate", { pid, tid }),
+    },
+    /** eventlog.read */
+    eventlog: {
+      channels: () => call("eventlog.channels"),
+      info: (channel) => call("eventlog.info", { channel }),
+      /** { channel, xpath?, reverse? (default true), text?, max? } → { cursor, events (XML), done, scanned } */
+      query: (q) => call("eventlog.query", q),
+      more: (cursor, max) => call("eventlog.more", { cursor, max }),
+      close: (cursor) => call("eventlog.close", { cursor }),
+      subscribe: (q) => call("eventlog.subscribe", q),
+      poll: (subscription, max) => call("eventlog.poll", { subscription, max }),
+      unsubscribe: (subscription) => call("eventlog.unsubscribe", { subscription }),
+    },
+    /** sqlite: databases open read-only unless writable is asked for */
+    sqlite: {
+      open: (path, opts = {}) => call("sqlite.open", { path, ...opts }),
+      schema: (db) => call("sqlite.schema", { db }),
+      count: (db, table) => call("sqlite.count", { db, table }),
+      query: (db, sql, params = [], opts = {}) => call("sqlite.query", { db, sql, params, ...opts }),
+      setWritable: (db, writable) => call("sqlite.setWritable", { db, writable }),
+      interrupt: (db) => call("sqlite.interrupt", { db }),
+      close: (db) => call("sqlite.close", { db }),
     },
   };
 
   call("ready").then((info) => {
     applyTheme(info && info.theme);
+    markReady(info);
     window.dispatchEvent(new CustomEvent("shellmosaic:ready", { detail: info }));
   });
 })();

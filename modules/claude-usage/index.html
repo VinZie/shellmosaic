@@ -62,7 +62,6 @@
       <label>
         Refresh every
         <select id="interval">
-          <option value="30">30 s</option>
           <option value="60">1 min</option>
           <option value="120">2 min</option>
           <option value="300">5 min</option>
@@ -73,12 +72,14 @@
           <option value="custom">Custom…</option>
         </select>
       </label>
-      <label id="custom-wrap" hidden><input id="custom" type="number" min="30" max="86400" step="1" aria-label="Seconds between refreshes" /> s</label>
+      <label id="custom-wrap" hidden><input id="custom" type="number" min="60" max="86400" step="1" aria-label="Seconds between refreshes" /> s</label>
     </footer>
 
     <script>
       const sm = window.shellmosaic;
-      const MIN_INTERVAL = 30; // seconds; Shellmosaic shares answers for 25 s anyway
+      // seconds. Claude rate-limits this endpoint, so never more often than once a minute
+      // (Shellmosaic also shares one answer per minute between every pane and window)
+      const MIN_INTERVAL = 60;
       const MAX_INTERVAL = 86400;
       const $ = (id) => document.getElementById(id);
 
@@ -398,6 +399,9 @@
         if (typeof savedInterval === "number" && Number.isFinite(savedInterval)) intervalSec = Math.min(MAX_INTERVAL, Math.max(MIN_INTERVAL, savedInterval));
         // show the last answer right away, while the first check runs
         if (last && typeof last === "object" && last.usage && typeof last.fetchedAt === "number") data = last;
+        // an answer from the last interval is still good: reloading the pane (or opening a
+        // second one) must not ask Claude again
+        if (data && Date.now() - data.fetchedAt < intervalSec * 1000) lastAttempt = Math.min(Date.now(), data.fetchedAt);
         showInterval();
         render();
         sm.on("visible", (v) => {
@@ -405,7 +409,7 @@
           if (visible) render();
           schedule();
         });
-        if (visible) refresh();
+        if (visible) schedule();
       });
     </script>
   </body>

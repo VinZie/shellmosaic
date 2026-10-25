@@ -6,6 +6,7 @@ import { errorText, ipc, type SocketInfo } from "../../lib/ipc";
 import { cx } from "../../lib/util";
 import { addModule, openWebPane, setPaneMeta } from "../../state/actions";
 import type { Pane } from "../../state/model";
+import { openOptional } from "../../state/moduleStore";
 import { settings, useSettings } from "../../state/settings";
 import { ui, type MenuItem } from "../../state/ui";
 import { DataTable, ModuleMessage, SearchBox, useInterval, type Column } from "../common";
@@ -156,6 +157,12 @@ function PortsPane({ pane, tabId, visible }: ModuleProps) {
         icon: "list-tree",
         disabled: !r.pid,
         onSelect: () => addModule("processes", { tabId, target: pane.id, side: "right", meta: { filter: `pid:${r.pid}` } }),
+      },
+      {
+        label: "Inspect process",
+        icon: "microscope",
+        disabled: !r.pid,
+        onSelect: () => r.pid && openOptional("process-inspector", "Process Inspector", { pid: r.pid }, { tabId, paneId: pane.id }),
       },
       {
         label: "Kill owning process",

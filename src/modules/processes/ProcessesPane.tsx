@@ -4,6 +4,7 @@ import { Icon } from "../../lib/icons";
 import { errorText, ipc, type ProcInfo } from "../../lib/ipc";
 import { clamp, cx, formatBytes, formatDuration } from "../../lib/util";
 import { addModule, setPaneMeta } from "../../state/actions";
+import { openOptional } from "../../state/moduleStore";
 import { useSettings } from "../../state/settings";
 import { ui, type MenuItem } from "../../state/ui";
 import { DataTable, ModuleMessage, SearchBox, useInterval, type Column } from "../common";
@@ -176,6 +177,12 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
 
   const rowMenu = (p: Row, e: React.MouseEvent) => {
     const items: MenuItem[] = [
+      {
+        label: "Inspect",
+        icon: "microscope",
+        onSelect: () => openOptional("process-inspector", "Process Inspector", { pid: p.pid }, { tabId, paneId: pane.id }),
+      },
+      { type: "separator" },
       { label: "End process", icon: "x", danger: true, shortcut: "Del", onSelect: () => end(p) },
       { label: "End process tree", icon: "skull", danger: true, onSelect: () => end(p, true) },
       { type: "separator" },

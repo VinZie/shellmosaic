@@ -28,6 +28,12 @@ const MONO_FONTS = [
   { label: "Courier New", value: '"Courier New", monospace' },
 ];
 
+const IMAGE_PASTE: Opt<string>[] = [
+  { value: "altV", label: "Alt+V (Claude Code's image paste)" },
+  { value: "ctrlV", label: "Ctrl+V, to the program" },
+  { value: "none", label: "Nothing" },
+];
+
 const WEIGHTS: Opt<string>[] = [
   { value: "100", label: "Thin (100)" },
   { value: "200", label: "Extra light (200)" },
@@ -180,6 +186,13 @@ export function TerminalSection() {
           keywords="clipboard interrupt shortcut"
         />
         <ToggleSetting path="terminal.ctrlVPastes" label="Ctrl+V pastes" desc="Turn off to send Ctrl+V to the program instead. The Paste shortcut (Keybindings) keeps working." keywords="clipboard shortcut" />
+        <SelectSetting
+          path="terminal.imagePaste"
+          label="Ctrl+V with an image"
+          desc="When the clipboard holds a picture instead of text, Ctrl+V sends this key so the program in the terminal can paste the image itself. Claude Code on Windows uses Alt+V."
+          options={IMAGE_PASTE}
+          keywords="picture screenshot claude clipboard paste image"
+        />
         <SegmentedSetting
           path="terminal.rightClick"
           label="Right-click"

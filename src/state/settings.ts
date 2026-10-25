@@ -50,6 +50,8 @@ export interface Settings {
     trimSelection: boolean;
     ctrlCCopies: boolean;
     ctrlVPastes: boolean;
+    /** what Ctrl+V sends when the clipboard holds an image instead of text (programs like Claude Code paste it themselves) */
+    imagePaste: "altV" | "ctrlV" | "none";
     rightClick: "menu" | "paste" | "copyPaste";
     confirmMultilinePaste: boolean;
     bell: "none" | "visual" | "sound" | "both";
@@ -84,8 +86,11 @@ export interface Settings {
   keybindings: Record<string, string>;
   restore: { session: boolean; scrollback: boolean; scrollbackMB: number };
   plugins: { grants: Record<string, string[]>; disabled: string[] };
-  /** checks GitHub releases; `skipped` is a version the user chose to skip */
-  updates: { autoCheck: boolean; skipped: string | null };
+  /**
+   * checks GitHub releases; `skipped` is a version the user chose to skip. `channel`: Stable
+   * (main) or Test (pre-release builds and the test branch's optional modules)
+   */
+  updates: { autoCheck: boolean; skipped: string | null; channel: "stable" | "test" };
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -126,6 +131,7 @@ export const DEFAULT_SETTINGS: Settings = {
     trimSelection: true,
     ctrlCCopies: true,
     ctrlVPastes: true,
+    imagePaste: "altV",
     rightClick: "menu",
     confirmMultilinePaste: true,
     bell: "visual",
@@ -163,7 +169,7 @@ export const DEFAULT_SETTINGS: Settings = {
   keybindings: {},
   restore: { session: true, scrollback: true, scrollbackMB: 2 },
   plugins: { grants: {}, disabled: [] },
-  updates: { autoCheck: true, skipped: null },
+  updates: { autoCheck: true, skipped: null, channel: "stable" },
 };
 
 interface SettingsState {
@@ -253,4 +259,10 @@ export function resetSettings(section?: keyof Settings) {
 
 export function flushSettings() {
   save.flush();
+}
+
+/** Write settings.json now and wait for it (before the app restarts). */
+export async function saveSettingsNow() {
+  const diff = deepDiff(DEFAULT_SETTINGS, useSettings.getState().settings) ?? {};
+  await ipc.settingsWrite(diff);
 }

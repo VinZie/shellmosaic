@@ -1,24 +1,33 @@
-/* Sysinfo module */
+/* Sysinfo module
+   Layout follows the pane, not the window: one column when narrow, two from
+   620px (CPU across the top), three from 1000px, and a single row of cards in a
+   short, wide strip. Cards are containers too, so their insides adapt to the
+   width they end up with. */
 
 .sysinfo {
-  container-type: inline-size;
-  container-name: sysinfo;
+  container: sysinfo / size;
 }
 
 .sysinfo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
-  gap: 10px;
-  padding: 10px;
-  align-content: start;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  /* the first row takes any spare height, so a big pane gets bigger graphs */
+  grid-template-rows: minmax(min-content, 1fr);
+  gap: 8px;
+  padding: 8px;
+  min-height: 100%;
 }
 
 .sysinfo-card {
+  container: sysinfo-card / inline-size;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
+  padding: 12px 14px 14px;
+}
+.sysinfo-card > * {
+  flex: none;
 }
 
 .sysinfo-card-head {
@@ -26,7 +35,7 @@
   align-items: center;
   gap: 7px;
   min-width: 0;
-  min-height: 26px;
+  min-height: 16px;
 }
 .sysinfo-card-icon {
   flex: none;
@@ -34,32 +43,73 @@
 }
 .sysinfo-card-title {
   flex: none;
+  font-size: 11px;
   font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.sysinfo-card-sub {
-  flex: 1;
+.sysinfo-card-meta {
+  flex: 0 1 auto;
   min-width: 0;
-  font-size: 11px;
-}
-.sysinfo-big {
   margin-left: auto;
-  flex: none;
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
+  font-size: 11px;
+  color: var(--text-dim);
 }
 
+/* headline numbers */
+.sysinfo-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 24px;
+}
+.sysinfo-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.sysinfo-stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.sysinfo-stat.big .sysinfo-stat-value {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+.sysinfo-stat-unit {
+  margin-left: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-dim);
+}
+.sysinfo-stat.big .sysinfo-stat-unit {
+  margin-left: 3px;
+  font-size: 13px;
+}
+.sysinfo-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* charts */
 .sysinfo-chart {
   position: relative;
-  height: 72px;
+  flex: 1 0 64px;
+  min-height: 64px;
   border-radius: calc(var(--radius) - 3px);
-  background: color-mix(in srgb, var(--bg) 45%, transparent);
+  background: color-mix(in srgb, var(--bg) 40%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 45%, transparent);
   overflow: hidden;
+  cursor: crosshair;
 }
 .sysinfo-chart canvas {
   position: absolute;
@@ -70,62 +120,91 @@
 }
 .sysinfo-axis {
   position: absolute;
-  top: 3px;
-  left: 6px;
+  top: 4px;
+  left: 4px;
+  padding: 0 4px;
+  border-radius: 4px;
   font-size: 10px;
+  line-height: 15px;
   color: var(--text-dim);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
   font-variant-numeric: tabular-nums;
   pointer-events: none;
 }
+.sysinfo-tip {
+  position: absolute;
+  top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 94%, transparent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(8px);
+  pointer-events: none;
+  z-index: 1;
+}
+.sysinfo-tip.flip {
+  transform: translateX(calc(-100% - 8px));
+}
+.sysinfo-tip-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
 
+/* per-core bars */
 .sysinfo-cores {
   display: grid;
-  gap: 2px;
-  grid-auto-rows: 22px;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-auto-rows: 18px;
+  gap: 3px;
 }
 .sysinfo-core {
   position: relative;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--text) 8%, transparent);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
   overflow: hidden;
 }
 .sysinfo-core-fill {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: var(--accent);
-  transition: height 0.35s var(--ease);
+  transform-origin: bottom;
+  transition: transform 0.3s var(--ease);
 }
 
+/* meters */
 .sysinfo-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 12px;
   min-width: 0;
 }
 .sysinfo-label {
   flex: none;
   color: var(--text-dim);
-  min-width: 34px;
 }
 .sysinfo-num {
   flex: none;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.sysinfo-push {
-  margin-left: auto;
-}
-
 .sysinfo-meter {
   position: relative;
   flex: 1;
   min-width: 40px;
   height: 6px;
   border-radius: 3px;
-  background: color-mix(in srgb, var(--text) 10%, transparent);
+  background: color-mix(in srgb, var(--text) 9%, transparent);
   overflow: hidden;
 }
 .sysinfo-meter-fill {
@@ -133,32 +212,20 @@
   inset: 0 auto 0 0;
   border-radius: 3px;
   background: var(--accent);
-  transition: width 0.35s var(--ease);
+  transition: width 0.4s var(--ease);
 }
 .sysinfo-meter-fill.warning,
 .sysinfo-core-fill.warning {
   background: var(--warning);
 }
-.sysinfo-meter-fill.danger,
-.sysinfo-core-fill.danger {
+.sysinfo-meter-fill.danger {
   background: var(--danger);
 }
 
-.sysinfo-net-rates {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  font-size: 15px;
-  font-weight: 600;
-}
-.sysinfo-net-rate {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
+/* network */
 .sysinfo-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex: none;
 }
@@ -168,22 +235,48 @@
 .sysinfo-dot.tx {
   background: var(--success);
 }
+.sysinfo-net-table {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  gap: 5px 14px;
+  margin: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.sysinfo-net-table dt {
+  color: var(--text-dim);
+}
+.sysinfo-net-table dd {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sysinfo-arrow {
+  margin-right: 4px;
+  font-weight: 600;
+}
+.sysinfo-arrow.rx {
+  color: var(--accent);
+}
+.sysinfo-arrow.tx {
+  color: var(--success);
+}
 
+/* disks */
 .sysinfo-disks {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px 24px;
 }
 .sysinfo-disk {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
 }
 .sysinfo-disk .sysinfo-meter {
   flex: none;
-  height: 8px;
-  border-radius: 4px;
 }
 .sysinfo-disk-head {
   display: flex;
@@ -196,59 +289,180 @@
   flex: none;
   font-weight: 600;
 }
+.sysinfo-disk-fs {
+  flex: none;
+  padding: 0 4px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 14px;
+}
+.sysinfo-disk-pct {
+  flex: none;
+  margin-left: auto;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.sysinfo-disk-pct.warning {
+  color: var(--warning);
+}
+.sysinfo-disk-pct.danger {
+  color: var(--danger);
+}
 .sysinfo-disk-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 11px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
 }
 
+/* system */
 .sysinfo-kv {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
   margin: 0;
   font-size: 12px;
 }
 .sysinfo-kv > div {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: 14px 70px minmax(0, 1fr);
+  align-items: center;
   gap: 8px;
+  min-height: 27px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
 }
-.sysinfo-kv dt,
+.sysinfo-kv > div:first-child {
+  border-top: 0;
+}
+.sysinfo-kv svg {
+  color: var(--text-dim);
+}
+.sysinfo-kv dt {
+  color: var(--text-dim);
+}
 .sysinfo-kv dd {
   margin: 0;
 }
 
 .sysinfo-error {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 10px 10px;
+  min-width: 0;
+  margin: 8px 8px 0;
+  padding: 4px 10px;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
   color: var(--danger);
   font-size: 11px;
 }
+.sysinfo-error svg {
+  flex: none;
+}
+.sysinfo-error .ellipsis {
+  min-width: 0;
+}
+.sysinfo-error-note {
+  flex: none;
+  margin-left: auto;
+  color: var(--text-dim);
+}
 
-/* narrow pane: one compact column */
+/* narrow card: fewer bars per row, smaller headline */
+@container sysinfo-card (max-width: 420px) {
+  .sysinfo-cores {
+    grid-template-columns: repeat(var(--cols-narrow), minmax(0, 1fr));
+    grid-auto-rows: 15px;
+  }
+  .sysinfo-stats {
+    column-gap: 18px;
+  }
+  .sysinfo-stat.big .sysinfo-stat-value {
+    font-size: 24px;
+  }
+}
+/* wide card: disks side by side, taller bars */
+@container sysinfo-card (min-width: 560px) {
+  .sysinfo-disks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sysinfo-cores {
+    grid-auto-rows: 22px;
+  }
+}
+
 @container sysinfo (max-width: 440px) {
   .sysinfo-grid {
-    grid-template-columns: minmax(0, 1fr);
     gap: 6px;
     padding: 6px;
   }
   .sysinfo-card {
-    padding: 8px 10px;
-    gap: 7px;
+    gap: 10px;
+    padding: 10px 12px 12px;
   }
-  .sysinfo-big {
-    font-size: 18px;
+  .sysinfo-error {
+    margin: 6px 6px 0;
+  }
+  .sysinfo-error-note {
+    display: none;
+  }
+}
+@container sysinfo (min-width: 620px) {
+  .sysinfo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 10px;
+  }
+  .sysinfo-wide {
+    grid-column: span 2;
+  }
+}
+@container sysinfo (min-width: 1000px) {
+  .sysinfo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* short, wide strip: one row of cards, scrolling sideways */
+@container sysinfo (max-height: 300px) and (min-width: 600px) {
+  .sysinfo-grid {
+    grid-template-columns: none;
+    grid-template-rows: minmax(0, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(230px, 1fr);
+    height: 100%;
+    min-height: 0;
+    gap: 8px;
+    padding: 8px;
+  }
+  .sysinfo-wide {
+    grid-column: auto;
+  }
+  .sysinfo-card {
+    min-height: 0;
+    gap: 8px;
+    padding: 10px 12px;
+    overflow: hidden;
+  }
+  .sysinfo-stat.big .sysinfo-stat-value {
+    font-size: 22px;
   }
   .sysinfo-chart {
-    height: 52px;
+    flex-basis: 0;
+    min-height: 24px;
   }
   .sysinfo-cores {
-    grid-auto-rows: 14px;
+    grid-auto-rows: 10px;
   }
-  .sysinfo-net-rates {
-    font-size: 13px;
-  }
-  .sysinfo-disks {
-    gap: 8px;
+  .sysinfo-disks,
+  .sysinfo-kv {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
   }
 }

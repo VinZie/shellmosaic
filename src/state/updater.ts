@@ -1,9 +1,9 @@
-// Updates from the GitHub releases (tauri-plugin-updater: packages are signed with the
-// release key and verified before anything is installed). The user is always asked
+// Updates from the GitHub releases on the chosen channel (Stable or Test; tauri-plugin-updater:
+// packages are signed with the release key and verified before anything is installed). The user is always asked
 // first: update now, skip this version, or decide later.
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { check, type Update } from "@tauri-apps/plugin-updater";
+import { Update } from "@tauri-apps/plugin-updater";
 import { errorText, ipc } from "../lib/ipc";
 import { flushSettings, setSetting, settings } from "./settings";
 import { ui } from "./ui";
@@ -14,7 +14,9 @@ export async function checkForUpdates(opts: { manual?: boolean } = {}): Promise<
   if (busy) return;
   busy = true;
   try {
-    const update = await check({ timeout: 30_000 });
+    // the channel's feed is read by the backend (see updates.rs); the plugin installs it as usual
+    const meta = await ipc.updateCheck(settings().updates.channel);
+    const update = meta ? new Update(meta) : null;
     if (!update) {
       if (opts.manual) ui.toast("Shellmosaic is up to date", "success");
       return;

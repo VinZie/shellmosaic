@@ -11,6 +11,7 @@ import { loadProfiles } from "./state/profiles";
 import { loadSettings, settings } from "./state/settings";
 import { getState, initModel, onPanesRemoved, useModel } from "./state/store";
 import { activeTheme, applyTheme, loadThemes } from "./state/themes";
+import { startModuleStore } from "./state/moduleStore";
 import { startUpdateChecks } from "./state/updater";
 import { getModule } from "./modules/registry";
 import "./styles/app.css";
@@ -63,6 +64,8 @@ async function boot() {
       getCurrentWindow().close().catch(console.error);
     });
   }
+  // (first: installs applied at this start get their permissions before their panes load)
+  await startModuleStore();
   loadPlugins().catch(console.error);
   startUpdateChecks();
   // last resort: a render error outside any pane would otherwise leave a blank window.

@@ -225,12 +225,26 @@ export function ensureTerm(paneId: string): TermEntry {
     (ev) => {
       ev.preventDefault();
       ev.stopImmediatePropagation();
-      pasteInto(entry, ev.clipboardData?.getData("text/plain") ?? "");
+      const data = ev.clipboardData;
+      const text = data?.getData("text/plain") ?? "";
+      if (!text && data && [...data.items].some((i) => i.kind === "file" && i.type.startsWith("image/"))) pasteImage(entry);
+      else pasteInto(entry, text);
     },
     true,
   );
 
   return entry;
+}
+
+/**
+ * The clipboard holds a picture, not text: send the key the program uses to paste an
+ * image itself (Claude Code on Windows: Alt+V, which it reads as ESC v).
+ */
+function pasteImage(e: TermEntry) {
+  const mode = settings().terminal.imagePaste;
+  if (mode === "none" || !e.alive) return;
+  sendInput(e.paneId, mode === "ctrlV" ? "\x16" : "\x1bv");
+  e.term.focus();
 }
 
 function linkHandler(uri: string, paneId: string) {

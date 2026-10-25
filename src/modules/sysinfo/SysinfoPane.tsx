@@ -1,5 +1,5 @@
 // System overview: CPU, memory, network, disks and host info as live cards.
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Icon } from "../../lib/icons";
 import { errorText, ipc, type SysSnapshot } from "../../lib/ipc";
 import { clamp, cx, formatBytes, formatDuration } from "../../lib/util";
@@ -77,6 +77,14 @@ function niceRate(v: number): number {
 
 const pct = (v: number) => `${Math.round(clamp(v, 0, 100))}%`;
 const rate = (v: number) => `${formatBytes(v)}/s`;
+/** sizes read better without a trailing ".0" ("32 GB", "14.6 GB") */
+const size = (v: number) => formatBytes(v).replace(".0 ", " ");
+
+/** "14.6 GB" → value and unit, so the unit can be set smaller than the number. */
+function split(text: string): { value: string; unit: string } {
+  const i = text.lastIndexOf(" ");
+  return i < 0 ? { value: text, unit: "" } : { value: text.slice(0, i), unit: text.slice(i + 1) };
+}
 
 function usageLevel(p: number): string | undefined {
   if (p >= 90) return "danger";
@@ -84,17 +92,41 @@ function usageLevel(p: number): string | undefined {
   return undefined;
 }
 
-function Card({ icon, title, value, sub, children }: { icon: string; title: string; value?: ReactNode; sub?: ReactNode; children?: ReactNode }) {
+function coresText(s: SysSnapshot): string {
+  const n = s.cores.length;
+  return s.physicalCores ? `${s.physicalCores} cores · ${n} logical` : `${n} logical cores`;
+}
+
+function Card({ icon, title, meta, className, children }: { icon: string; title: string; meta?: string; className?: string; children?: ReactNode }) {
   return (
-    <section className="card sysinfo-card">
+    <section className={cx("card sysinfo-card", className)}>
       <header className="sysinfo-card-head">
         <Icon name={icon} size={14} className="sysinfo-card-icon" />
         <span className="sysinfo-card-title">{title}</span>
-        {sub && <span className="sysinfo-card-sub dim ellipsis">{sub}</span>}
-        {value !== undefined && <span className="sysinfo-big">{value}</span>}
+        {meta && (
+          <span className="sysinfo-card-meta ellipsis" title={meta}>
+            {meta}
+          </span>
+        )}
       </header>
       {children}
     </section>
+  );
+}
+
+/** A number with a small unit over a dim label; `big` for the card's headline figure. */
+function Stat({ value, unit, label, big, dot }: { value: ReactNode; unit?: string; label: string; big?: boolean; dot?: string }) {
+  return (
+    <div className={cx("sysinfo-stat", big && "big")}>
+      <span className="sysinfo-stat-value">
+        {value}
+        {unit && <span className="sysinfo-stat-unit">{unit}</span>}
+      </span>
+      <span className="sysinfo-stat-label">
+        {dot && <span className={cx("sysinfo-dot", dot)} />}
+        {label}
+      </span>
+    </div>
   );
 }
 
@@ -106,33 +138,63 @@ function Meter({ value, level }: { value: number; level?: string }) {
   );
 }
 
-function CpuCard({ h, perCore }: { h: History; perCore: boolean }) {
-  const s = h.snap!;
+/**
+ * One bar per logical processor, in even rows of at most 32 (16 in a narrow card).
+ * Only saturated cores stand out: one busy thread is normal, not an alarm.
+ */
+function Cores({ cores }: { cores: number[] }) {
+  const n = cores.length;
+  const cols = (max: number) => Math.ceil(n / Math.ceil(n / max));
   return (
-    <Card icon="cpu" title="CPU" sub={`${s.cores.length} logical cores`} value={pct(s.cpu)}>
-      <Chart series={[{ data: h.cpu, color: "--accent" }]} max={100} capacity={HISTORY}>
+    <div className="sysinfo-cores" style={{ "--cols": cols(32), "--cols-narrow": cols(16) } as CSSProperties}>
+      {cores.map((c, i) => {
+        const v = clamp(c, 0, 100);
+        return (
+          <div key={i} className="sysinfo-core" title={`CPU ${i}: ${Math.round(v)}%`}>
+            <div className={cx("sysinfo-core-fill", v >= 90 && "warning")} style={{ transform: `scaleY(${v / 100})` }} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CpuCard({ h, perCore, stepMs }: { h: History; perCore: boolean; stepMs: number }) {
+  const s = h.snap!;
+  const busiest = s.cores.length ? Math.max(...s.cores) : 0;
+  return (
+    <Card icon="cpu" title="CPU" meta={coresText(s)} className="sysinfo-wide">
+      <div className="sysinfo-stats">
+        <Stat big value={Math.round(clamp(s.cpu, 0, 100))} unit="%" label="Utilization" />
+        {!!s.cpuFreq && <Stat value={(s.cpuFreq / 1000).toFixed(2)} unit="GHz" label="Clock" />}
+        {s.cores.length > 1 && <Stat value={Math.round(clamp(busiest, 0, 100))} unit="%" label="Busiest core" />}
+      </div>
+      <Chart series={[{ data: h.cpu, color: "--accent" }]} max={100} capacity={HISTORY} stepMs={stepMs} format={pct}>
         <span className="sysinfo-axis">100%</span>
       </Chart>
-      {perCore && s.cores.length > 0 && (
-        <div className="sysinfo-cores" style={{ gridTemplateColumns: `repeat(${Math.min(s.cores.length, 32)}, minmax(0, 1fr))` }}>
-          {s.cores.map((c, i) => (
-            <div key={i} className="sysinfo-core" title={`Core ${i}: ${c.toFixed(0)}%`}>
-              <div className={cx("sysinfo-core-fill", usageLevel(c))} style={{ height: `${clamp(c, 0, 100)}%` }} />
-            </div>
-          ))}
-        </div>
-      )}
+      {perCore && s.cores.length > 0 && <Cores cores={s.cores} />}
     </Card>
   );
 }
 
-function MemoryCard({ h }: { h: History }) {
+function MemoryCard({ h, stepMs }: { h: History; stepMs: number }) {
   const s = h.snap!;
   const memPct = s.memTotal ? (s.memUsed / s.memTotal) * 100 : 0;
   const swapPct = s.swapTotal ? (s.swapUsed / s.swapTotal) * 100 : 0;
   return (
-    <Card icon="memory" title="Memory" sub={`${formatBytes(s.memUsed)} of ${formatBytes(s.memTotal)}`} value={pct(memPct)}>
-      <Chart series={[{ data: h.mem, color: "--accent" }]} max={100} capacity={HISTORY}>
+    <Card icon="memory" title="Memory" meta={`${size(s.memTotal)} total`}>
+      <div className="sysinfo-stats">
+        <Stat big value={Math.round(clamp(memPct, 0, 100))} unit="%" label="In use" />
+        <Stat {...split(size(s.memUsed))} label="Used" />
+        <Stat {...split(size(Math.max(0, s.memTotal - s.memUsed)))} label="Available" />
+      </div>
+      <Chart
+        series={[{ data: h.mem, color: "--accent" }]}
+        max={100}
+        capacity={HISTORY}
+        stepMs={stepMs}
+        format={(v) => `${pct(v)} · ${size((v / 100) * s.memTotal)}`}
+      >
         <span className="sysinfo-axis">100%</span>
       </Chart>
       <div className="sysinfo-row">
@@ -141,7 +203,7 @@ function MemoryCard({ h }: { h: History }) {
           <>
             <Meter value={swapPct} level={usageLevel(swapPct)} />
             <span className="sysinfo-num">
-              {formatBytes(s.swapUsed)} / {formatBytes(s.swapTotal)}
+              {size(s.swapUsed)} <span className="dim">/ {size(s.swapTotal)}</span>
             </span>
           </>
         ) : (
@@ -152,22 +214,17 @@ function MemoryCard({ h }: { h: History }) {
   );
 }
 
-function NetworkCard({ h }: { h: History }) {
+function NetworkCard({ h, stepMs }: { h: History; stepMs: number }) {
   const s = h.snap!;
-  const top = niceRate(Math.max(0, ...h.rx, ...h.tx) * 1.1);
+  const peakRx = Math.max(0, ...h.rx);
+  const peakTx = Math.max(0, ...h.tx);
+  const top = niceRate(Math.max(peakRx, peakTx) * 1.1);
+  const hasTotals = s.netRxTotal != null && s.netTxTotal != null;
   return (
     <Card icon="network" title="Network">
-      <div className="sysinfo-net-rates">
-        <span className="sysinfo-net-rate">
-          <span className="sysinfo-dot rx" />
-          <Icon name="download" size={12} className="dim" />
-          <span className="sysinfo-num">{rate(s.netRx)}</span>
-        </span>
-        <span className="sysinfo-net-rate">
-          <span className="sysinfo-dot tx" />
-          <Icon name="upload" size={12} className="dim" />
-          <span className="sysinfo-num">{rate(s.netTx)}</span>
-        </span>
+      <div className="sysinfo-stats">
+        <Stat big {...split(rate(s.netRx))} label="Download" dot="rx" />
+        <Stat big {...split(rate(s.netTx))} label="Upload" dot="tx" />
       </div>
       <Chart
         series={[
@@ -176,18 +233,47 @@ function NetworkCard({ h }: { h: History }) {
         ]}
         max={top}
         capacity={HISTORY}
-        fillAlpha={0.24}
+        stepMs={stepMs}
+        format={rate}
+        fillAlpha={0.22}
       >
         <span className="sysinfo-axis">{formatBytes(top, 0)}/s</span>
       </Chart>
+      <dl className="sysinfo-net-table">
+        <dt title="Highest rate in the graph">Peak</dt>
+        <dd>
+          <span className="sysinfo-arrow rx">↓</span>
+          {rate(peakRx)}
+        </dd>
+        <dd>
+          <span className="sysinfo-arrow tx">↑</span>
+          {rate(peakTx)}
+        </dd>
+        {hasTotals && (
+          <>
+            <dt title="Since the network adapters came up">Total</dt>
+            <dd>
+              <span className="sysinfo-arrow rx">↓</span>
+              {size(s.netRxTotal!)}
+            </dd>
+            <dd>
+              <span className="sysinfo-arrow tx">↑</span>
+              {size(s.netTxTotal!)}
+            </dd>
+          </>
+        )}
+      </dl>
     </Card>
   );
 }
 
+/** "C:\" → "C:" (other mount points stay as they are) */
+const driveLabel = (mount: string) => mount.replace(/^([a-z]:)\\$/i, "$1");
+
 function DisksCard({ h }: { h: History }) {
   const disks = h.disks;
   return (
-    <Card icon="hard-drive" title="Disks" sub={disks ? `${disks.length} volume${disks.length === 1 ? "" : "s"}` : undefined}>
+    <Card icon="hard-drive" title="Disks" meta={disks ? `${disks.length} volume${disks.length === 1 ? "" : "s"}` : undefined}>
       {!disks ? (
         <div className="dim">Reading drives…</div>
       ) : !disks.length ? (
@@ -197,17 +283,19 @@ function DisksCard({ h }: { h: History }) {
           {disks.map((d) => {
             const used = d.total - d.available;
             const p = d.total ? (used / d.total) * 100 : 0;
+            const level = usageLevel(p);
             return (
-              <div key={d.mount + d.name} className="sysinfo-disk" title={`${d.name || d.mount} — ${formatBytes(used)} used`}>
+              <div key={d.mount + d.name} className="sysinfo-disk" title={`${d.name || d.mount} — ${size(used)} used of ${size(d.total)}`}>
                 <div className="sysinfo-disk-head">
-                  <span className="sysinfo-disk-mount">{d.mount}</span>
+                  <span className="sysinfo-disk-mount">{driveLabel(d.mount)}</span>
                   {d.name && <span className="dim ellipsis">{d.name}</span>}
-                  {d.fs && <span className="chip">{d.fs}</span>}
-                  <span className="sysinfo-num sysinfo-push">{pct(p)}</span>
+                  {d.fs && <span className="sysinfo-disk-fs">{d.fs}</span>}
+                  <span className={cx("sysinfo-disk-pct", level)}>{pct(p)}</span>
                 </div>
-                <Meter value={p} level={usageLevel(p)} />
-                <div className="sysinfo-disk-foot dim">
-                  {formatBytes(d.available)} free of {formatBytes(d.total)}
+                <Meter value={p} level={level} />
+                <div className="sysinfo-disk-foot">
+                  <span>{size(d.available)} free</span>
+                  <span>{size(d.total)}</span>
                 </div>
               </div>
             );
@@ -220,22 +308,30 @@ function DisksCard({ h }: { h: History }) {
 
 function SystemCard({ h }: { h: History }) {
   const s = h.snap!;
-  const rows: [string, string][] = [
-    ["Host", s.host || "—"],
-    ["OS", s.os || "—"],
-    ["CPU", s.cpuBrand || "—"],
-    ["Cores", String(s.cores.length)],
-    ["Uptime", formatDuration(s.uptime)],
-    ["Processes", String(s.processCount)],
+  const booted = new Date(Date.now() - s.uptime * 1000).toLocaleString();
+  const rows: { icon: string; label: string; value: string; title?: string; extra?: string }[] = [
+    { icon: "server", label: "Host", value: s.host || "—" },
+    { icon: "app-window", label: "OS", value: s.os || "—" },
+    { icon: "cpu", label: "CPU", value: s.cpuBrand || "—" },
+    { icon: "layers", label: "Cores", value: coresText(s) },
+    { icon: "clock", label: "Uptime", value: formatDuration(s.uptime), title: `Booted ${booted}` },
+    {
+      icon: "list-tree",
+      label: "Processes",
+      value: s.processCount.toLocaleString(),
+      extra: s.threadCount ? `${s.threadCount.toLocaleString()} threads` : undefined,
+    },
   ];
   return (
     <Card icon="monitor" title="System">
       <dl className="sysinfo-kv">
-        {rows.map(([k, v]) => (
-          <div key={k}>
-            <dt className="dim">{k}</dt>
-            <dd className="ellipsis selectable" title={v}>
-              {v}
+        {rows.map((r) => (
+          <div key={r.label}>
+            <Icon name={r.icon} size={13} />
+            <dt>{r.label}</dt>
+            <dd className="ellipsis selectable" title={r.title ?? r.value}>
+              {r.value}
+              {r.extra && <span className="dim"> · {r.extra}</span>}
             </dd>
           </div>
         ))}
@@ -274,6 +370,8 @@ function SysinfoPane({ pane, visible }: ModuleProps) {
   const hidden: string[] = Array.isArray(pane.meta.hidden) ? pane.meta.hidden : [];
   const perCore = pane.meta.perCore !== false;
   const show = (id: string) => !hidden.includes(id);
+  // (useInterval never ticks faster than 250 ms)
+  const stepMs = Math.max(250, intervalMs);
 
   const onContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -300,20 +398,24 @@ function SysinfoPane({ pane, visible }: ModuleProps) {
     );
   } else {
     body = (
-      <div className="module-scroll">
-        <div className="sysinfo-grid">
-          {show("cpu") && <CpuCard h={h} perCore={perCore} />}
-          {show("memory") && <MemoryCard h={h} />}
-          {show("network") && <NetworkCard h={h} />}
-          {show("disks") && <DisksCard h={h} />}
-          {show("system") && <SystemCard h={h} />}
-        </div>
+      <>
         {error && (
-          <div className="sysinfo-error">
-            <Icon name="warning" size={12} /> {error}
+          <div className="sysinfo-error" title={error}>
+            <Icon name="warning" size={12} />
+            <span className="ellipsis">{error}</span>
+            <span className="sysinfo-error-note">showing the last reading</span>
           </div>
         )}
-      </div>
+        <div className="module-scroll">
+          <div className="sysinfo-grid">
+            {show("cpu") && <CpuCard h={h} perCore={perCore} stepMs={stepMs} />}
+            {show("memory") && <MemoryCard h={h} stepMs={stepMs} />}
+            {show("network") && <NetworkCard h={h} stepMs={stepMs} />}
+            {show("disks") && <DisksCard h={h} />}
+            {show("system") && <SystemCard h={h} />}
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -349,7 +451,7 @@ function sysinfoMenu(pane: Pane): MenuItem[] {
 export const sysinfoModule: ModuleDef = {
   id: "sysinfo",
   name: "Sysinfo",
-  icon: "chart-line",
+  icon: "activity",
   description: "CPU, memory, network and disk",
   component: SysinfoPane,
   menu: (pane) => sysinfoMenu(pane),
