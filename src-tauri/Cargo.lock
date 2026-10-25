@@ -5014,7 +5014,7 @@ name = "shellmosaic"
 version = "0.2.1"
 dependencies = [
  "argon2 0.5.3",
- "base64 0.22.1",
+ "base64 0.23.1",
  "chacha20poly1305",
  "netstat2",
  "parking_lot",
