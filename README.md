@@ -22,6 +22,7 @@ files, git, processes, ports, logs, notes, saved SSH hosts and SFTP.
   <a href="#screenshots">Screenshots</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#modules">Modules</a> ·
+  <a href="#optional-modules">Optional modules</a> ·
   <a href="#security-and-privacy">Security</a> ·
   <a href="#faq">FAQ</a> ·
   <a href="PLUGINS.md">Plugins</a> ·
@@ -33,7 +34,7 @@ files, git, processes, ports, logs, notes, saved SSH hosts and SFTP.
 </div>
 
 > [!NOTE]
-> Shellmosaic 0.2 is an early release for Windows 10 and 11 (64-bit). The installer is not
+> Shellmosaic 0.3 is an early release for Windows 10 and 11 (64-bit). The installer is not
 > code-signed yet, so SmartScreen may warn the first time you run it.
 
 Shellmosaic puts real ConPTY shells (PowerShell, cmd, Git Bash, WSL, your own profiles) and
@@ -54,6 +55,8 @@ a restart, scrollback included.
 - **Restores everything.** Workspaces, layouts, each shell's folder and recent scrollback.
 - **Customize nearly everything.** Themes and a visual theme editor, Mica and Acrylic, background
   images per workspace or tab, fonts, cursor, density, rebindable shortcuts and shell profiles.
+- **Add tools when you need them.** [Optional modules](#optional-modules) such as a process
+  inspector, an event log viewer with Sysmon support and a SQLite browser install from the app.
 - **Extend it.** Plugins are sandboxed web pages with a permission-checked API ([PLUGINS.md](PLUGINS.md)).
 
 ## Screenshots
@@ -72,6 +75,34 @@ a restart, scrollback included.
     <td width="50%"></td>
   </tr>
 </table>
+
+## Optional modules
+
+Bigger tools you add when you want them: **Settings → Optional modules** lists them, installs
+and updates them from this repository's [`modules/`](modules) folder, and removes them again.
+Every download is checked against a catalog signed with the release key. Installs apply at the
+next start, so queue as many as you like and restart once.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/07-process-inspector.png" alt="Process Inspector showing explorer.exe: image path, command line and signature, security details such as user, integrity and elevation, performance counters, and a list of mitigations with DEP, ASLR, Control Flow Guard and strict handle checks turned on"><br><sub><b>Process Inspector</b> — one process in depth: signature, integrity, token, mitigations</sub></td>
+    <td width="50%"><img src="docs/assets/08-process-modules.png" alt="Process Inspector's Modules tab listing the DLLs loaded in explorer.exe with base address, size, signature status, description, company and path"><br><sub><b>Modules, threads, handles, memory</b> — every tab sortable, with columns you choose</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/09-event-viewer.png" alt="Event Viewer showing the Sysmon operational log with per-event columns for process creation, network connections, DNS queries, registry changes and process access, and the details of a registry event below"><br><sub><b>Event Viewer</b> — every event log, filters, live tail and a Sysmon view</sub></td>
+    <td width="50%"><img src="docs/assets/10-sqlite-browser.png" alt="SQLite Browser with a chat database open read-only, the table list on the left and an attachments table with file names, MIME types, sizes and BLOB previews"><br><sub><b>SQLite Browser</b> — browse and query, read-only unless you allow changes</sub></td>
+  </tr>
+</table>
+
+| Module | What it does |
+|---|---|
+| **Process Inspector** | Overview with signature, integrity, protection (PPL), mitigations and command line; loaded modules; threads with start addresses and wait reasons; handles with decoded access rights; token groups and privileges; the memory map with executable private memory highlighted. Suspend and resume, priority, affinity and thread control. Open it from **Inspect** in the Processes and Ports panes |
+| **Event Viewer** | Every Windows event log with level, event ID, source, time and text filters (or raw XPath), live tail, and a Sysmon view with columns per event type |
+| **SQLite Browser** | Tables, structure and SQL. Databases open read-only and changes need an explicit switch; locked databases, such as a running browser's history, open from a copy |
+| **Claude Usage** | Your Claude plan's session and weekly limits with reset countdowns |
+
+Modules that need administrator rights to read protected processes or the Security log explain
+why and offer **Restart as administrator**. The screenshots above use sample data.
 
 ## Quick start
 
@@ -120,7 +151,7 @@ Release builds are signed for the updater; see [CONTRIBUTING.md](CONTRIBUTING.md
 | **Notes** | Markdown notes with live preview, task lists and runnable code blocks |
 | **System** | CPU, memory, network and disks at a glance |
 | **Web** | A browser pane for docs and dashboards |
-| **Optional modules** | Installed from Settings → Optional modules ([modules/](modules)): **Process Inspector** (modules, threads, handles, token and memory map of a process, with suspend, priority and thread control), **Event Viewer** (event logs with filters, live tail and a Sysmon view), **SQLite Browser** (read-only unless you allow changes) and **Claude Usage** (your Claude plan's limits with reset countdowns) |
+| **Optional modules** | Process Inspector, Event Viewer, SQLite Browser and Claude Usage, installed from Settings → Optional modules ([see below](#optional-modules)) |
 | **Plugins** | Your own modules: sandboxed web pages with a small SDK ([PLUGINS.md](PLUGINS.md)). Ships with the **Command Board** example |
 
 ## Shortcuts

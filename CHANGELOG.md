@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 — unreleased
+## 0.3.0 — 2026-10-25
 
 ### Added
 - **Optional modules** (Settings → Optional modules): extra modules published in this
@@ -25,6 +25,9 @@
   threads only.
 - Ctrl+V with a picture on the clipboard sends the program's image-paste key (Alt+V by default,
   which Claude Code uses on Windows), configurable in Settings → Terminal.
+- Shift+Enter starts a new line in Claude Code instead of sending the message (it sends what
+  Claude Code reads as Alt+Enter). Settings → Terminal → Keyboard switches it back to a plain
+  Enter.
 - Plugin SDK v2: `process`, `thread`, `eventlog`, `sqlite`, `ui.confirm/pickFile/openModule/
   reveal/setState`, `app.info/restartAsAdmin`, pane arguments and saved pane state.
 

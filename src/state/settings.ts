@@ -52,6 +52,8 @@ export interface Settings {
     ctrlVPastes: boolean;
     /** what Ctrl+V sends when the clipboard holds an image instead of text (programs like Claude Code paste it themselves) */
     imagePaste: "altV" | "ctrlV" | "none";
+    /** what Shift+Enter sends: "newline" = ESC CR, which Claude Code reads as a new line; "enter" = a plain Enter */
+    shiftEnter: "newline" | "enter";
     rightClick: "menu" | "paste" | "copyPaste";
     confirmMultilinePaste: boolean;
     bell: "none" | "visual" | "sound" | "both";
@@ -132,6 +134,7 @@ export const DEFAULT_SETTINGS: Settings = {
     ctrlCCopies: true,
     ctrlVPastes: true,
     imagePaste: "altV",
+    shiftEnter: "newline",
     rightClick: "menu",
     confirmMultilinePaste: true,
     bell: "visual",

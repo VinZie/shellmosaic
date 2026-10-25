@@ -208,6 +208,15 @@ export function ensureTerm(paneId: string): TermEntry {
   });
 
   term.attachCustomKeyEventHandler((ev) => {
+    // Shift+Enter → ESC CR, which Claude Code reads as a new line. preventDefault stops the
+    // keypress that would otherwise make xterm send a plain Enter right after it.
+    if (ev.key === "Enter" && ev.shiftKey && !ev.ctrlKey && !ev.altKey && !ev.metaKey && !ev.isComposing && settings().terminal.shiftEnter === "newline") {
+      if (ev.type === "keydown") {
+        ev.preventDefault();
+        term.input("\x1b\r", true);
+      }
+      return false;
+    }
     if (ev.type !== "keydown") return true;
     const t = settings().terminal;
     if (ev.ctrlKey && !ev.shiftKey && !ev.altKey && ev.key.toLowerCase() === "c" && t.ctrlCCopies && term.hasSelection()) {

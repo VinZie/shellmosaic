@@ -207,6 +207,19 @@ export function TerminalSection() {
         <ToggleSetting path="terminal.confirmMultilinePaste" label="Confirm multi-line pastes" desc="Ask before pasting text with line breaks, which may run several commands at once." keywords="paste safety newline" />
       </Group>
 
+      <Group title="Keyboard">
+        <SegmentedSetting
+          path="terminal.shiftEnter"
+          label="Shift+Enter"
+          desc="“New line” sends what Claude Code reads as a line break (the same as Alt+Enter). “Enter” sends a plain Enter, like the Enter key."
+          keywords="newline multiline claude keyboard enter"
+          options={[
+            { value: "newline", label: "New line" },
+            { value: "enter", label: "Enter" },
+          ]}
+        />
+      </Group>
+
       <Group title="Bell">
         <SegmentedSetting
           path="terminal.bell"
