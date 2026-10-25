@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 — 2026-10-25
 
 ### Added
 - **Claude Usage plugin** (bundled): your Claude plan's session and weekly limits, per-model
