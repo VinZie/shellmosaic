@@ -1,0 +1,52 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a terminal with the PowerShell profile
+        2. ...
+  - type: input
+    id: version
+    attributes:
+      label: Shellmosaic version
+      placeholder: "0.2.0 (Settings → About)"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+  - type: dropdown
+    id: part
+    attributes:
+      label: Which part?
+      options:
+        - Terminal / shells
+        - SSH hosts / vault
+        - SFTP
+        - Workspaces, tabs and panes
+        - Files / Git / Tasks
+        - Processes / Ports / System / Logs
+        - Notes / Web
+        - Plugins
+        - Settings / themes
+        - Updater / installer
+        - Other
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output or screenshots
+      description: Remove anything private first, such as host names, user names, paths or tokens.
+      render: text

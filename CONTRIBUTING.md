@@ -75,7 +75,8 @@ installs can't accept new updates.
    and add a section to `CHANGELOG.md`.
 2. Commit and push.
 3. Run `pwsh scripts/release.ps1`. It builds the signed installer, writes the updater's
-   `latest.json` and publishes a GitHub release with both (add `-Draft` to review first).
+   `latest.json`, regenerates `THIRD-PARTY-LICENSES.txt` and publishes a GitHub release with
+   all of them (add `-Draft` to review first). Commit the regenerated license file if it changed.
 
 The updater reads `https://github.com/VinZie/shellmosaic/releases/latest/download/latest.json`,
 so it only works while releases are publicly downloadable.

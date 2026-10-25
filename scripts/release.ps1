@@ -34,11 +34,15 @@ try {
   Remove-Item Env:CARGO_TARGET_DIR, Env:TAURI_SIGNING_PRIVATE_KEY, Env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD -ErrorAction SilentlyContinue
 }
 
+# the license notices of everything shipped inside, attached to the release
+pwsh -NoProfile -File "$root\scripts\third-party-licenses.ps1"
+if ($LASTEXITCODE) { throw "collecting third-party licenses failed" }
+
 $setup = Get-Item "$root\src-tauri\target-dist\release\bundle\nsis\Shellmosaic_${version}_x64-setup.exe"
 $signature = (Get-Content "$($setup.FullName).sig" -Raw).Trim()
 $out = "$root\release\$tag"
 New-Item -ItemType Directory -Force $out | Out-Null
-Copy-Item $setup.FullName, "$($setup.FullName).sig" $out -Force
+Copy-Item $setup.FullName, "$($setup.FullName).sig", "$root\THIRD-PARTY-LICENSES.txt" $out -Force
 
 $url = "https://github.com/$Repo/releases/download/$tag/$($setup.Name)"
 $latest = [ordered]@{
@@ -50,9 +54,9 @@ $latest = [ordered]@{
     "windows-x86_64-nsis" = [ordered]@{ signature = $signature; url = $url }
   }
 }
-$latest | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8NoBOM "$out\latest.json"
+[IO.File]::WriteAllText("$out\latest.json", ($latest | ConvertTo-Json -Depth 5))
 
-$ghArgs = @("release", "create", $tag, "$out\$($setup.Name)", "$out\$($setup.Name).sig", "$out\latest.json",
+$ghArgs = @("release", "create", $tag, "$out\$($setup.Name)", "$out\$($setup.Name).sig", "$out\latest.json", "$out\THIRD-PARTY-LICENSES.txt",
   "-R", $Repo, "--title", "Shellmosaic $version", "--notes", $notes)
 if ($Draft) { $ghArgs += "--draft" }
 gh @ghArgs

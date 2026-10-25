@@ -19,6 +19,7 @@ files, git, processes, ports, logs, notes, saved SSH hosts and SFTP.
 
 <p>
   <a href="https://github.com/VinZie/shellmosaic/releases/latest"><b>Download</b></a> ·
+  <a href="#screenshots">Screenshots</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#modules">Modules</a> ·
   <a href="#security-and-privacy">Security</a> ·
@@ -26,6 +27,8 @@ files, git, processes, ports, logs, notes, saved SSH hosts and SFTP.
   <a href="PLUGINS.md">Plugins</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
+
+<img src="docs/assets/01-workspace.png" width="880" alt="Shellmosaic: a PowerShell terminal showing git status next to a Files pane previewing CHANGELOG.md and a Git pane with staged and unstaged changes, with the workspace rail on the left and the module bar on the right">
 
 </div>
 
@@ -52,6 +55,23 @@ a restart, scrollback included.
 - **Customize nearly everything.** Themes and a visual theme editor, Mica and Acrylic, background
   images per workspace or tab, fonts, cursor, density, rebindable shortcuts and shell profiles.
 - **Extend it.** Plugins are sandboxed web pages with a permission-checked API ([PLUGINS.md](PLUGINS.md)).
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/02-hosts.png" alt="The Hosts module listing saved SSH hosts grouped into Build, Lab, Production and Staging with tags, next to a terminal"><br><sub><b>Hosts</b> — saved SSH hosts in an encrypted vault, grouped and tagged</sub></td>
+    <td width="50%"><img src="docs/assets/03-notes-tasks.png" alt="A markdown note with a checklist and a runnable code block in split view, next to the Tasks module listing pnpm scripts"><br><sub><b>Notes and Tasks</b> — markdown with runnable code blocks, one-click scripts</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/04-palette.png" alt="The command palette open over the workspace, listing commands with their shortcuts"><br><sub><b>Command palette</b> — every action, tab, module and theme by name</sub></td>
+    <td width="50%"><img src="docs/assets/05-settings.png" alt="Settings showing the Appearance section with a grid of theme previews"><br><sub><b>Themes</b> — 11 built in, a visual editor, import and export</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/06-light.png" alt="The same workspace in the light Mosaic Day theme"><br><sub><b>Light or dark</b> — the Mosaic Day theme</sub></td>
+    <td width="50%"></td>
+  </tr>
+</table>
 
 ## Quick start
 
@@ -229,4 +249,5 @@ and open an issue first for anything large.
 
 Shellmosaic is released under the [MIT License](LICENSE). Built-in themes Dracula, Nord,
 Catppuccin, Tokyo Night, Gruvbox and Solarized are adapted from their MIT-licensed originals;
-the libraries it is built on keep their own licenses.
+the libraries it is built on keep their own licenses, collected in
+[`THIRD-PARTY-LICENSES.txt`](THIRD-PARTY-LICENSES.txt) (also attached to every release).
