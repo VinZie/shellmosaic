@@ -340,6 +340,9 @@ export const ipc = {
   pluginRemove: (id: string) => invoke<void>("plugin_remove", { id }),
   runCommand: (program: string, args: string[], cwd?: string, timeoutMs?: number) =>
     invoke<ExecResult>("run_command", { program, args, cwd, timeoutMs }),
+  /** Claude plan usage for plugins with `claude.usage`; `usage` is Anthropic's answer as is. */
+  claudeUsage: () =>
+    invoke<{ fetchedAt: number; plan: { subscription: string | null; tier: string | null }; usage: Record<string, unknown> }>("claude_usage"),
 
   // saved SSH hosts (secrets go in, never come back out)
   vaultStatus: () => invoke<VaultStatus>("vault_status"),

@@ -59,6 +59,7 @@ const METHOD_PERMISSION: Record<string, string | null> = {
   "system.stats": "system.read",
   "clipboard.readText": "clipboard",
   "clipboard.writeText": "clipboard",
+  "claude.usage": "claude.usage",
   "storage.get": null,
   "storage.set": null,
   "storage.all": null,
@@ -499,6 +500,10 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
     case "clipboard.writeText":
       await writeText(reqStr(p, "text"));
       return true;
+
+    case "claude.usage":
+      // the backend reads Claude Code's token and keeps it: only the numbers come back
+      return ipc.claudeUsage();
 
     case "storage.get": {
       const key = storageKey(p);

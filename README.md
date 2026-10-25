@@ -120,7 +120,7 @@ Release builds are signed for the updater; see [CONTRIBUTING.md](CONTRIBUTING.md
 | **Notes** | Markdown notes with live preview, task lists and runnable code blocks |
 | **System** | CPU, memory, network and disks at a glance |
 | **Web** | A browser pane for docs and dashboards |
-| **Plugins** | Your own modules: sandboxed web pages with a small SDK ([PLUGINS.md](PLUGINS.md)) |
+| **Plugins** | Your own modules: sandboxed web pages with a small SDK ([PLUGINS.md](PLUGINS.md)). Ships with **Claude Usage** (your Claude plan's session and weekly limits with reset countdowns, on a refresh interval you pick) and the **Command Board** example |
 
 ## Shortcuts
 

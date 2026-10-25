@@ -21,6 +21,7 @@ const PERMISSIONS: { id: string; icon: string; text: string; risky?: boolean }[]
   { id: "system.read", icon: "gauge", text: "Read CPU, memory and network statistics" },
   { id: "clipboard", icon: "clipboard-paste", text: "Read and write the clipboard" },
   { id: "net", icon: "globe", text: "Connect to the internet (HTTPS)" },
+  { id: "claude.usage", icon: "gauge", text: "Read your Claude plan usage limits (never your sign-in token)" },
 ];
 const permInfo = (id: string) => PERMISSIONS.find((p) => p.id === id);
 const plainText = (v: unknown) => (typeof v === "string" || typeof v === "number" ? String(v) : undefined);
@@ -190,6 +191,7 @@ const API: [string, string, string?][] = [
   ["shell.exec(program, args)", "Run a program and get its output", "shell.exec"],
   ["system.stats()", "CPU, memory and network numbers", "system.read"],
   ["clipboard.readText / writeText", "Use the clipboard", "clipboard"],
+  ["claude.usage()", "Claude plan limits of the signed-in Claude Code account", "claude.usage"],
   ["storage.get / set / all", "Save the plugin's own data"],
   ["ui.notify(message, kind)", "Show a toast"],
   ["ui.setTitle(title)", "Set the pane title"],

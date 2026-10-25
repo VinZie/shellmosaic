@@ -253,6 +253,7 @@ const PERMISSION_TEXT: Record<string, string> = {
   "system.read": "Read CPU, memory and network statistics",
   clipboard: "Read and write the clipboard",
   net: "Connect to the internet (HTTPS)",
+  "claude.usage": "Read your Claude plan usage (not your sign-in)",
 };
 
 function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissions" }> }) {
@@ -276,7 +277,7 @@ function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissio
       <ul className="perm-list">
         {d.permissions.map((p) => (
           <li key={p}>
-            <Icon name={p.startsWith("fs") ? "folder" : p.startsWith("terminal") ? "terminal" : p === "net" ? "globe" : p === "shell.exec" ? "zap" : "shield"} size={14} />
+            <Icon name={p.startsWith("fs") ? "folder" : p.startsWith("terminal") ? "terminal" : p === "net" ? "globe" : p === "shell.exec" ? "zap" : p === "claude.usage" ? "gauge" : "shield"} size={14} />
             <span>{PERMISSION_TEXT[p] ?? p}</span>
             <code>{p}</code>
           </li>

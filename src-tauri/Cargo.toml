@@ -40,6 +40,9 @@ russh-sftp = "3"
 argon2 = "0.5"
 chacha20poly1305 = "0.10"
 zeroize = "1"
+# HTTPS for the Claude usage check: the same reqwest + rustls (ring) build the updater already uses
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "system-proxy"] }
+rustls = { version = "0.23", default-features = false, features = ["ring"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [

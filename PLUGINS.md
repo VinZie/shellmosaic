@@ -47,6 +47,7 @@ permissions that the user approves.
 | `system.read` | `shellmosaic.system.stats()`: CPU, memory, network, uptime |
 | `clipboard` | `shellmosaic.clipboard.readText()` / `writeText(text)` |
 | `net` | `fetch`/WebSocket to `https:`/`wss:` URLs, and remote images |
+| `claude.usage` | `shellmosaic.claude.usage()`: Claude plan limits of the account Claude Code is signed in with |
 
 Without `net`, a plugin can't use `fetch`, XHR or WebSockets (the CSP sets `connect-src 'none'`)
 and can't load remote images. That is not a complete offline sandbox, though: a page can still
@@ -79,6 +80,17 @@ Include it from your HTML (it's served by Shellmosaic):
 | `shellmosaic.ui.setTitle(title)` | Sets the pane header text |
 
 All calls return Promises and reject with an `Error` when not permitted.
+
+### Claude usage
+
+`shellmosaic.claude.usage()` resolves to `{fetchedAt, plan: {subscription, tier}, usage}`.
+Shellmosaic reads the sign-in Claude Code saved (`~/.claude/.credentials.json`, or
+`%CLAUDE_CONFIG_DIR%`) and asks Anthropic for the numbers `/usage` shows; the token never
+reaches the plugin. `usage` is Anthropic's answer as is. It's undocumented and can change, so
+read it leniently: `usage.limits` lists each limit as `{kind, group, percent, severity,
+resets_at, scope}`. Answers are shared between panes for 25 seconds. When the sign-in has
+expired the call rejects with a message saying so; running `claude` once refreshes it.
+The bundled **Claude Usage** plugin uses it.
 
 ### Matching the user's theme
 

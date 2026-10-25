@@ -1,3 +1,4 @@
+mod claude;
 mod config;
 mod env;
 mod fsops;
@@ -90,6 +91,7 @@ pub fn run() {
             app.manage(ptys);
             app.manage(sysmon::SysMon::new());
             app.manage(logs::LogTails::default());
+            app.manage(claude::ClaudeUsage::default());
 
             // Debounced persistence: model every second, scrollback every 30 s.
             let h = handle.clone();
@@ -184,6 +186,7 @@ pub fn run() {
             plugins::plugins_list,
             plugins::plugin_install_folder,
             plugins::plugin_remove,
+            claude::claude_usage,
             vault::vault_status,
             vault::vault_create,
             vault::vault_unlock,

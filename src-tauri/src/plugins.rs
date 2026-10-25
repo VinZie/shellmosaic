@@ -18,9 +18,22 @@ use crate::vt::percent_decode;
 
 const SDK: &str = include_str!("../plugin-sdk/shellmosaic.js");
 
-const EXAMPLES: &[(&str, &str, &str)] = &[
-    ("command-board", "manifest.json", include_str!("../plugin-sdk/examples/command-board/manifest.json")),
-    ("command-board", "index.html", include_str!("../plugin-sdk/examples/command-board/index.html")),
+/// Bundled plugins, by id: (file name, contents).
+const EXAMPLES: &[(&str, &[(&str, &str)])] = &[
+    (
+        "command-board",
+        &[
+            ("manifest.json", include_str!("../plugin-sdk/examples/command-board/manifest.json")),
+            ("index.html", include_str!("../plugin-sdk/examples/command-board/index.html")),
+        ],
+    ),
+    (
+        "claude-usage",
+        &[
+            ("manifest.json", include_str!("../plugin-sdk/examples/claude-usage/manifest.json")),
+            ("index.html", include_str!("../plugin-sdk/examples/claude-usage/index.html")),
+        ],
+    ),
 ];
 
 pub const KNOWN_PERMISSIONS: &[&str] = &[
@@ -33,6 +46,7 @@ pub const KNOWN_PERMISSIONS: &[&str] = &[
     "system.read",
     "clipboard",
     "net",
+    "claude.usage",
 ];
 
 #[derive(Serialize)]
@@ -148,18 +162,34 @@ pub async fn plugin_remove(app: AppHandle, id: String) -> Result<(), String> {
     blocking(move || trash::delete(dir).s()).await?
 }
 
-/// First run: drop the example plugins in so users have something to copy from.
+/// Drop in the bundled plugins, each one once: one the user removed stays removed, and one
+/// added in a later version still arrives. The marker lists the ids already installed.
 pub fn install_examples(paths: &Paths) {
+    const HEADER: &str = "# Bundled plugins already installed. To get one back, delete its folder and its line here.\n";
     let marker = paths.plugins().join(".examples-installed");
-    if marker.exists() {
-        return;
-    }
-    for (id, file, body) in EXAMPLES {
+    let mut done: Vec<String> = match fs::read_to_string(&marker) {
+        Ok(text) if text.starts_with('#') => text.lines().map(str::trim).filter(|l| safe_key(l).is_ok()).map(String::from).collect(),
+        // 0.2's marker had no list: it only ever installed the command board
+        Ok(_) => vec!["command-board".into()],
+        Err(_) => Vec::new(),
+    };
+    let before = done.len();
+    for (id, files) in EXAMPLES {
+        if done.iter().any(|d| d == id) {
+            continue;
+        }
         let dir = paths.plugins().join(id);
-        let _ = fs::create_dir_all(&dir);
-        let _ = fs::write(dir.join(file), body);
+        // a folder of that name is the user's own plugin: leave it alone
+        if !dir.exists() && fs::create_dir_all(&dir).is_ok() {
+            for (file, body) in *files {
+                let _ = fs::write(dir.join(file), body);
+            }
+        }
+        done.push(id.to_string());
     }
-    let _ = fs::write(marker, "delete this file to reinstall the example plugins\n");
+    if done.len() != before || !marker.exists() {
+        let _ = fs::write(marker, format!("{HEADER}{}\n", done.join("\n")));
+    }
 }
 
 fn mime(path: &Path) -> &'static str {

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **Claude Usage plugin** (bundled): your Claude plan's session and weekly limits, per-model
+  weekly limits and reset countdowns, refreshed on an interval you pick (30 s to a day; paused
+  while the pane is hidden).
+- Plugin permission `claude.usage` and `shellmosaic.claude.usage()`: Shellmosaic reads Claude
+  Code's sign-in and fetches the usage itself, so plugins never see the token.
+- Bundled plugins added in later versions are installed on existing setups too (each once;
+  one you removed stays removed).
+
 ## 0.2.0 — 2026-10-24
 
 ### Added

@@ -134,6 +134,10 @@
       readText: () => call("clipboard.readText"), // clipboard
       writeText: (text) => call("clipboard.writeText", { text }), // clipboard
     },
+    claude: {
+      /** Claude plan limits of the account Claude Code is signed in with. Needs claude.usage */
+      usage: () => call("claude.usage"),
+    },
     /** Per-plugin key/value storage (no permission needed). */
     storage: {
       get: (key) => call("storage.get", { key }),
