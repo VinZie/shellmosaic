@@ -43,8 +43,12 @@ $env:TAURI_SIGNING_PRIVATE_KEY = $Key
 $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ""
 Push-Location $root
 try {
-  if ($Channel -eq "test") { pnpm tauri build --bundles nsis --config "{`"version`":`"$version`"}" }
-  else { pnpm tauri build --bundles nsis }
+  if ($Channel -eq "test") {
+    # the test version goes in through a config file: JSON on the command line loses its quotes in pnpm's shim
+    $cfg = Join-Path ([IO.Path]::GetTempPath()) "shellmosaic-release-$version.json"
+    [IO.File]::WriteAllText($cfg, (@{ version = $version } | ConvertTo-Json -Compress))
+    pnpm tauri build --bundles nsis --config $cfg
+  } else { pnpm tauri build --bundles nsis }
   if ($LASTEXITCODE) { throw "build failed" }
 } finally {
   Pop-Location
