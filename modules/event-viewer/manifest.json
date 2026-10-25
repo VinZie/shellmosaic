@@ -1,0 +1,11 @@
+{
+  "id": "event-viewer",
+  "name": "Event Viewer",
+  "version": "1.0.0",
+  "minAppVersion": "0.3.0",
+  "author": "Shellmosaic",
+  "description": "Windows event logs with filters, live tail and Sysmon-aware columns",
+  "icon": "logs",
+  "entry": "index.html",
+  "permissions": ["eventlog.read", "clipboard"]
+}

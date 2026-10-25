@@ -1,0 +1,416 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Claude Usage</title>
+    <script src="/__sdk/shellmosaic.js"></script>
+    <style>
+      body { padding: 12px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; min-height: 100%; }
+      header { display: flex; align-items: center; gap: 8px; min-height: 24px; }
+      .plan { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--sm-border); color: var(--sm-text-dim); white-space: nowrap; }
+      .spacer { flex: 1; }
+      .icon-btn { background: none; border: 1px solid transparent; padding: 3px; line-height: 0; color: var(--sm-text-dim); }
+      .icon-btn:hover { color: var(--sm-text); border-color: var(--sm-border); }
+      .icon-btn:disabled { cursor: default; opacity: 0.6; }
+      .busy svg { animation: spin 0.9s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      #banner { font-size: 12px; padding: 6px 9px; border-radius: var(--sm-radius); border: 1px solid color-mix(in srgb, var(--sm-warning) 45%, transparent);
+                background: color-mix(in srgb, var(--sm-warning) 10%, transparent); }
+      #limits { display: flex; flex-direction: column; gap: 14px; transition: opacity 0.2s; }
+      .stale #limits { opacity: 0.55; }
+      .limit .row { display: flex; align-items: baseline; gap: 8px; }
+      .limit .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .limit .pct { font-weight: 600; font-variant-numeric: tabular-nums; }
+      .bar { height: 6px; border-radius: 3px; background: var(--sm-surface-2); overflow: hidden; margin: 6px 0 5px; }
+      .bar > i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--sm-accent); transition: width 0.4s ease; }
+      .limit.warning .bar > i { background: var(--sm-warning); }
+      .limit.critical .bar > i { background: var(--sm-danger); }
+      .limit.critical .pct { color: var(--sm-danger); }
+      .meta, .share { font-size: 11px; color: var(--sm-text-dim); font-variant-numeric: tabular-nums; }
+      .share { margin-top: 2px; }
+      #banner code, .message code { font-size: 0.95em; padding: 0 4px; border-radius: 4px; background: var(--sm-surface-2); }
+
+      .message { margin: auto; max-width: 320px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+      .message b { font-size: 13px; }
+      .message p { margin: 0; font-size: 12px; }
+
+      footer { margin-top: auto; display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; font-size: 11px; color: var(--sm-text-dim);
+               border-top: 1px solid var(--sm-border); padding-top: 9px; }
+      footer label { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+      footer select, footer input { font-size: 11px; padding: 2px 6px; }
+      #custom { width: 70px; }
+      [hidden] { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span id="plan" class="plan" hidden></span>
+      <span class="spacer"></span>
+      <button id="refresh" class="icon-btn" title="Refresh now" aria-label="Refresh now">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" /><path d="M21 3v5h-5" />
+        </svg>
+      </button>
+    </header>
+    <div id="banner" hidden></div>
+    <div id="limits"></div>
+    <div id="message" class="message" hidden></div>
+    <footer>
+      <span id="updated"></span>
+      <span class="spacer"></span>
+      <label>
+        Refresh every
+        <select id="interval">
+          <option value="60">1 min</option>
+          <option value="120">2 min</option>
+          <option value="300">5 min</option>
+          <option value="600">10 min</option>
+          <option value="900">15 min</option>
+          <option value="1800">30 min</option>
+          <option value="3600">1 hour</option>
+          <option value="custom">Custom…</option>
+        </select>
+      </label>
+      <label id="custom-wrap" hidden><input id="custom" type="number" min="60" max="86400" step="1" aria-label="Seconds between refreshes" /> s</label>
+    </footer>
+
+    <script>
+      const sm = window.shellmosaic;
+      // seconds. Claude rate-limits this endpoint, so never more often than once a minute
+      // (Shellmosaic also shares one answer per minute between every pane and window)
+      const MIN_INTERVAL = 60;
+      const MAX_INTERVAL = 86400;
+      const $ = (id) => document.getElementById(id);
+
+      let intervalSec = 60;
+      let data = null; // last good answer: { fetchedAt, plan, usage }
+      let error = null; // why the last check failed (data, if any, is then stale)
+      let loading = false;
+      let visible = true;
+      let lastAttempt = 0;
+      let pollTimer = 0;
+      let tickTimer = 0;
+      /** fetchedAt of the answer whose passed reset already triggered a refresh */
+      let resetHandledFor = 0;
+
+      // ── reading the answer (undocumented, so leniently) ──────────────────
+
+      const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+      const date = (v) => {
+        const t = typeof v === "string" ? Date.parse(v) : NaN;
+        return Number.isNaN(t) ? null : new Date(t);
+      };
+      const words = (s) => String(s).replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+
+      function planLabel(plan) {
+        if (!plan) return "";
+        const tier = /max_(\d+x)/i.exec(plan.tier || "");
+        if (tier) return `Max ${tier[1]}`;
+        return plan.subscription ? words(plan.subscription) : "";
+      }
+
+      function limitName(l) {
+        const model = l.scope && l.scope.model && l.scope.model.display_name;
+        if (l.kind === "session") return "Current session";
+        if (l.kind === "weekly_all") return "Current week (all models)";
+        if (model) return l.group === "weekly" ? `Current week (${model})` : `${words(l.group || l.kind)} (${model})`;
+        return words(l.kind || l.group || "Limit");
+      }
+
+      function level(percent, severity) {
+        const s = String(severity || "").toLowerCase();
+        if (percent >= 100 || /critical|exceeded|blocked|rejected|reached/.test(s)) return "critical";
+        if (s ? s === "warning" : percent >= 80) return "warning";
+        return "";
+      }
+
+      function limitsOf(u) {
+        if (Array.isArray(u.limits) && u.limits.some((l) => l && num(l.percent) !== null)) {
+          return u.limits
+            .filter((l) => l && typeof l === "object" && num(l.percent) !== null)
+            .map((l) => ({
+              key: [l.kind, l.group, l.scope && l.scope.model && l.scope.model.display_name].join("|"),
+              kind: l.kind,
+              name: limitName(l),
+              percent: l.percent,
+              level: level(l.percent, l.severity),
+              resetsAt: date(l.resets_at),
+            }));
+        }
+        // older answers: one object per window
+        const windows = [
+          ["five_hour", "Current session"],
+          ["seven_day", "Current week (all models)"],
+          ["seven_day_opus", "Current week (Opus)"],
+          ["seven_day_sonnet", "Current week (Sonnet)"],
+        ];
+        return windows
+          .filter(([k]) => u[k] && num(u[k].utilization) !== null)
+          .map(([k, name]) => ({
+            key: k,
+            kind: k === "seven_day" ? "weekly_all" : k,
+            name,
+            percent: u[k].utilization,
+            level: level(u[k].utilization),
+            resetsAt: date(u[k].resets_at),
+          }));
+      }
+
+      /** What this week's usage went to: Claude Code, chats, … */
+      function shareOf(u) {
+        const rows = u.seven_day_breakdown && Array.isArray(u.seven_day_breakdown.rows) ? u.seven_day_breakdown.rows : [];
+        const used = rows.filter((r) => r && num(r.percent) > 0 && typeof r.display_name === "string");
+        return used.length ? "Of this week: " + used.map((r) => `${r.display_name} ${Math.round(r.percent)}%`).join(" · ") : "";
+      }
+
+      function extraOf(u) {
+        const x = u.extra_usage;
+        if (!x || x.is_enabled !== true) return null;
+        const dp = num(x.decimal_places) ?? 2;
+        const currency = /^[A-Za-z]{3}$/.test(x.currency || "") ? x.currency.toUpperCase() : "USD";
+        const money = (minor) => new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 10 ** dp);
+        const used = num(x.used_credits);
+        const limit = num(x.monthly_limit);
+        const percent = num(x.utilization) ?? (used !== null && limit ? (used / limit) * 100 : null);
+        const text = used === null ? "" : limit === null ? `${money(used)} spent` : `${money(used)} of ${money(limit)}`;
+        return { key: "extra", name: "Extra usage", percent, level: percent === null ? "" : level(percent), text };
+      }
+
+      // ── formatting ────────────────────────────────────────────────────────
+
+      function until(d, now) {
+        const s = Math.max(0, Math.round((d - now) / 1000));
+        const days = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+        if (days) return `${days}d ${h}h`;
+        if (h) return `${h}h ${m}m`;
+        if (m) return `${m}m ${s % 60}s`;
+        return `${s}s`;
+      }
+
+      function when(d, now) {
+        const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+        const days = Math.round((day(d) - day(new Date(now))) / 864e5);
+        if (days === 0) return time;
+        if (days === 1) return `tomorrow ${time}`;
+        if (days > 1 && days < 7) return `${d.toLocaleDateString([], { weekday: "short" })} ${time}`;
+        return `${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${time}`;
+      }
+
+      function ago(ms) {
+        const s = Math.round(ms / 1000);
+        if (s < 5) return "just now";
+        if (s < 60) return `${s} s ago`;
+        const m = Math.floor(s / 60);
+        if (m < 60) return `${m} min ago`;
+        return `${Math.floor(m / 60)} h ${m % 60} min ago`;
+      }
+
+      // ── rendering ─────────────────────────────────────────────────────────
+
+      const rows = new Map(); // key → elements, updated in place so hover titles survive the ticks
+
+      function rowFor(key) {
+        let r = rows.get(key);
+        if (r) return r;
+        const el = document.createElement("div");
+        el.className = "limit";
+        el.innerHTML = '<div class="row"><span class="name"></span><span class="pct"></span></div>' +
+          '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i></i></div>' +
+          '<div class="meta"></div><div class="share" hidden></div>';
+        r = { el, name: el.querySelector(".name"), pct: el.querySelector(".pct"), bar: el.querySelector(".bar"),
+              fill: el.querySelector(".bar > i"), meta: el.querySelector(".meta"), share: el.querySelector(".share"), item: null };
+        rows.set(key, r);
+        return r;
+      }
+
+      /** Error text with `commands` shown as code. */
+      function setMessage(el, text) {
+        el.textContent = "";
+        String(text).split("`").forEach((part, i) => {
+          if (!part) return;
+          if (i % 2) {
+            const code = document.createElement("code");
+            code.textContent = part;
+            el.append(code);
+          } else el.append(part);
+        });
+      }
+
+      function resetText(item, now) {
+        if (item.text !== undefined) return item.text;
+        if (!item.resetsAt) return item.percent === 0 ? "Not started" : "";
+        if (item.resetsAt <= now) return "Resetting…";
+        return `Resets in ${until(item.resetsAt, now)} · ${when(item.resetsAt, now)}`;
+      }
+
+      function render() {
+        const now = Date.now();
+        const list = $("limits");
+        $("refresh").disabled = loading;
+        $("refresh").classList.toggle("busy", loading);
+        document.body.classList.toggle("stale", !!(data && error));
+
+        const plan = data ? planLabel(data.plan) : "";
+        $("plan").hidden = !plan;
+        $("plan").textContent = plan ? `${plan} plan` : "";
+
+        $("banner").hidden = !(data && error);
+        if (data && error) setMessage($("banner"), `Couldn't refresh: ${error}`);
+
+        const msg = $("message");
+        msg.hidden = !!data;
+        if (!data) {
+          msg.textContent = "";
+          const title = document.createElement("b");
+          const text = document.createElement("p");
+          text.className = "dim";
+          if (error) {
+            title.textContent = "Couldn't load your Claude usage";
+            setMessage(text, error);
+            const retry = document.createElement("button");
+            retry.textContent = "Try again";
+            retry.disabled = loading;
+            retry.onclick = () => refresh();
+            msg.append(title, text, retry);
+          } else {
+            title.textContent = "Checking your Claude usage…";
+            msg.append(title);
+          }
+        }
+
+        const items = [];
+        if (data) {
+          const u = data.usage || {};
+          const share = shareOf(u);
+          for (const l of limitsOf(u)) items.push({ ...l, share: l.kind === "weekly_all" ? share : "" });
+          const extra = extraOf(u);
+          if (extra) items.push(extra);
+        }
+        const keep = new Set(items.map((i) => i.key));
+        for (const [key, r] of rows) if (!keep.has(key)) (r.el.remove(), rows.delete(key));
+        items.forEach((item, i) => {
+          const r = rowFor(item.key);
+          r.item = item;
+          r.el.className = `limit ${item.level}`;
+          r.name.textContent = item.name;
+          r.name.title = item.name;
+          const pct = item.percent === null ? null : Math.round(item.percent);
+          r.pct.textContent = pct === null ? "" : `${pct}%`;
+          r.bar.hidden = pct === null;
+          r.bar.setAttribute("aria-valuenow", String(pct ?? 0));
+          r.bar.setAttribute("aria-label", item.name);
+          r.fill.style.width = `${Math.min(100, Math.max(0, item.percent ?? 0))}%`;
+          r.meta.title = item.resetsAt ? item.resetsAt.toLocaleString() : "";
+          r.share.textContent = item.share || "";
+          r.share.hidden = !item.share;
+          if (list.children[i] !== r.el) list.insertBefore(r.el, list.children[i] || null);
+        });
+        if (data && !items.length && !error) {
+          $("banner").hidden = false;
+          $("banner").textContent = "Claude didn't report any limits for this account.";
+        }
+        tick();
+      }
+
+      /** The parts that change with the clock alone. */
+      function tick() {
+        const now = Date.now();
+        for (const r of rows.values()) if (r.item) r.meta.textContent = resetText(r.item, now);
+        $("updated").textContent = data ? `Updated ${ago(now - data.fetchedAt)}` : "";
+        $("updated").title = data ? new Date(data.fetchedAt).toLocaleString() : "";
+        // a window just reset: fetch the new numbers once, a few seconds after
+        if (data && !loading && resetHandledFor !== data.fetchedAt) {
+          const passed = [...rows.values()].some((r) => r.item && r.item.resetsAt && r.item.resetsAt <= now && r.item.resetsAt > data.fetchedAt);
+          if (passed) {
+            resetHandledFor = data.fetchedAt;
+            setTimeout(refresh, 5000);
+          }
+        }
+      }
+
+      // ── polling ───────────────────────────────────────────────────────────
+
+      async function refresh() {
+        if (loading) return;
+        clearTimeout(pollTimer);
+        loading = true;
+        lastAttempt = Date.now();
+        render();
+        try {
+          const r = await sm.claude.usage();
+          if (!r || typeof r !== "object" || !r.usage || typeof r.usage !== "object") throw new Error("Claude's answer wasn't in the expected format.");
+          data = r;
+          error = null;
+          sm.storage.set("last", r).catch(() => {});
+        } catch (e) {
+          error = String((e && e.message) || e);
+        } finally {
+          loading = false;
+          render();
+          schedule();
+        }
+      }
+
+      /** Next check `intervalSec` after the last one; nothing while the pane is hidden. */
+      function schedule() {
+        clearTimeout(pollTimer);
+        clearInterval(tickTimer);
+        if (!visible) return;
+        tickTimer = setInterval(tick, 1000);
+        if (loading) return;
+        pollTimer = setTimeout(refresh, Math.max(0, lastAttempt + intervalSec * 1000 - Date.now()));
+      }
+
+      function showInterval() {
+        const preset = [...$("interval").options].some((o) => o.value === String(intervalSec));
+        $("interval").value = preset ? String(intervalSec) : "custom";
+        $("custom-wrap").hidden = preset;
+        $("custom").value = String(intervalSec);
+      }
+
+      function chooseInterval(sec) {
+        intervalSec = Math.round(Math.min(MAX_INTERVAL, Math.max(MIN_INTERVAL, sec)));
+        sm.storage.set("intervalSec", intervalSec).catch(() => {});
+        schedule();
+      }
+
+      $("interval").onchange = (e) => {
+        if (e.target.value === "custom") {
+          $("custom-wrap").hidden = false;
+          $("custom").focus();
+          $("custom").select();
+          return;
+        }
+        chooseInterval(Number(e.target.value));
+        showInterval();
+      };
+      $("custom").onchange = (e) => {
+        const v = Number(e.target.value);
+        if (Number.isFinite(v) && v > 0) chooseInterval(v);
+        showInterval();
+      };
+      $("refresh").onclick = () => refresh();
+
+      window.addEventListener("shellmosaic:ready", async (e) => {
+        visible = !(e.detail && e.detail.visible === false);
+        const [savedInterval, last] = await Promise.all([sm.storage.get("intervalSec"), sm.storage.get("last")]).catch(() => [null, null]);
+        if (typeof savedInterval === "number" && Number.isFinite(savedInterval)) intervalSec = Math.min(MAX_INTERVAL, Math.max(MIN_INTERVAL, savedInterval));
+        // show the last answer right away, while the first check runs
+        if (last && typeof last === "object" && last.usage && typeof last.fetchedAt === "number") data = last;
+        // an answer from the last interval is still good: reloading the pane (or opening a
+        // second one) must not ask Claude again
+        if (data && Date.now() - data.fetchedAt < intervalSec * 1000) lastAttempt = Math.min(Date.now(), data.fetchedAt);
+        showInterval();
+        render();
+        sm.on("visible", (v) => {
+          visible = !!v;
+          if (visible) render();
+          schedule();
+        });
+        if (visible) schedule();
+      });
+    </script>
+  </body>
+</html>

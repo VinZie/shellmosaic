@@ -1,0 +1,11 @@
+{
+  "id": "sqlite-browser",
+  "name": "SQLite Browser",
+  "version": "1.0.0",
+  "minAppVersion": "0.3.0",
+  "author": "Shellmosaic",
+  "description": "Browse and query SQLite databases. Opens them read-only; changes only after you allow them",
+  "icon": "database",
+  "entry": "index.html",
+  "permissions": ["sqlite", "clipboard"]
+}

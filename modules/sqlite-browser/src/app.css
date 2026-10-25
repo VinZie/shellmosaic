@@ -1,0 +1,1342 @@
+/* SQLite Browser: module-specific styles on top of the kit (ui.css). Theme colors only. */
+
+.sqlb {
+  --side-bg: color-mix(in srgb, var(--base) 45%, var(--bg));
+  --code-bg: color-mix(in srgb, var(--base) 55%, var(--bg));
+}
+.sqlb-dim {
+  color: var(--dim);
+}
+.sqlb-ok {
+  color: var(--success);
+}
+.sqlb-key {
+  color: var(--warning);
+  flex: none;
+}
+.sqlb-col {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sqlb-note {
+  color: var(--dim);
+  font-size: 12px;
+}
+.sqlb-hint {
+  color: var(--dim);
+  font-size: 11.5px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+.sqlb-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.sqlb-link:hover {
+  text-decoration: underline;
+}
+.sqlb-path {
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+/* code shows exact characters: no programming-font ligatures (>= stays >=) */
+.sqlb-sqled,
+.sqlb-sqlblock,
+.sqlb-json,
+.sqlb-hex,
+.sqlb-where-input,
+.sqlb-editor-input,
+.sqlb-value-text,
+.sqlb-error-sql,
+.sqlb-hist-sql {
+  font-variant-ligatures: none;
+}
+
+/* SQL / JSON tokens */
+.tk-kw {
+  color: var(--accent);
+}
+.tk-str {
+  color: var(--success);
+}
+.tk-num {
+  color: var(--warning);
+}
+.tk-com {
+  color: var(--dim);
+  font-style: italic;
+}
+.tk-id {
+  color: color-mix(in srgb, var(--danger) 45%, var(--text));
+}
+.tk-param {
+  color: var(--danger);
+}
+.tk-key {
+  color: color-mix(in srgb, var(--accent) 55%, var(--text));
+}
+
+/* ── start screen ─────────────────────────────────────────────────────── */
+
+.sqlb-start {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 40px 16px 24px;
+}
+.sqlb-start-card {
+  max-width: 540px;
+  margin: 0 auto;
+}
+.sqlb-hero {
+  text-align: center;
+  margin-bottom: 22px;
+}
+.sqlb-hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  margin-bottom: 10px;
+}
+.sqlb-hero h1 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.sqlb-hero p {
+  margin: 2px 0;
+  color: var(--dim);
+}
+.sqlb-hero-safe {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px !important;
+  font-size: 12px;
+}
+.sqlb-hero-safe svg {
+  color: var(--success);
+}
+.sqlb-start-error {
+  margin-bottom: 18px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--border));
+  background: color-mix(in srgb, var(--danger) 7%, transparent);
+}
+.sqlb-start-error .sm-message {
+  height: auto;
+  padding: 16px;
+}
+.sqlb-start-error .sm-message-body {
+  max-width: 100%;
+}
+.sqlb-start-error .sqlb-path {
+  color: var(--text);
+}
+.sqlb-start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+}
+.sqlb-start-actions .sm-btn.primary {
+  height: 32px;
+  padding: 0 16px;
+}
+.sqlb-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 12.5px;
+}
+.sqlb-checkbox:hover {
+  color: var(--text);
+}
+.sqlb-start-path {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 26px;
+}
+.sqlb-recent {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.sqlb-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px 7px 12px;
+  cursor: pointer;
+  outline: none;
+}
+.sqlb-recent-item + .sqlb-recent-item {
+  border-top: 1px solid var(--line);
+}
+.sqlb-recent-item:hover,
+.sqlb-recent-item:focus-visible {
+  background: var(--hover);
+}
+.sqlb-recent-item:focus-visible {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.sqlb-recent-icon {
+  color: var(--dim);
+  flex: none;
+}
+.sqlb-recent-text {
+  flex: 1;
+  min-width: 0;
+}
+.sqlb-recent-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sqlb-recent-dir {
+  color: var(--dim);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+.sqlb-recent-when {
+  color: var(--dim);
+  font-size: 11.5px;
+  white-space: nowrap;
+  flex: none;
+}
+.sqlb-recent-x {
+  opacity: 0;
+  flex: none;
+}
+.sqlb-recent-item:hover .sqlb-recent-x,
+.sqlb-recent-item:focus-within .sqlb-recent-x {
+  opacity: 1;
+}
+.sqlb-open-error p {
+  margin: 8px 0 0;
+}
+
+/* ── header ───────────────────────────────────────────────────────────── */
+
+.sqlb-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 8px 0 6px;
+  border-bottom: 1px solid var(--border);
+  flex: none;
+  overflow: hidden;
+}
+.sqlb-header.writable {
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--warning) 75%, transparent);
+}
+.sqlb-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  flex: none;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+.sqlb-header-icon.writable {
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+}
+.sqlb-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+}
+.sqlb-file {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: none;
+  max-width: 100%;
+}
+.sqlb-dir {
+  color: var(--dim);
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  direction: rtl;
+  text-align: left;
+}
+.sqlb-allow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 12.5px;
+  flex: none;
+}
+.sqlb-allow:hover {
+  color: var(--text);
+}
+.sqlb-allow .sm-switch.on {
+  background: var(--warning);
+}
+
+/* ── layout ───────────────────────────────────────────────────────────── */
+
+.sqlb-main {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sqlb-panels {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sqlb-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sqlb-panel.off {
+  display: none;
+}
+
+/* ── schema sidebar ───────────────────────────────────────────────────── */
+
+.sqlb-side {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--side-bg);
+}
+.sqlb-side-search {
+  padding: 7px 7px 5px;
+  flex: none;
+}
+.sqlb-side-search .sm-search {
+  min-width: 0;
+}
+.sqlb-tree {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 2px 4px 10px;
+  outline: none;
+  font-size: 12.5px;
+}
+.sqlb-tree-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  margin-top: 4px;
+  padding: 0 6px 0 4px;
+  border-radius: 5px;
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.sqlb-tree-group:hover {
+  color: var(--text);
+}
+.sqlb-tree-n {
+  margin-left: auto;
+  font-weight: 500;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.sqlb-tree-item,
+.sqlb-tree-col {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 6px 0 2px;
+  border-radius: 5px;
+  cursor: default;
+  white-space: nowrap;
+}
+.sqlb-tree-item:hover,
+.sqlb-tree-col:hover {
+  background: var(--hover);
+}
+.sqlb-tree-item.selected {
+  background: var(--selected);
+}
+.sqlb-tree:focus .cursor {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+.sqlb-tree-item.system .sqlb-tree-name {
+  color: var(--dim);
+}
+.sqlb-tree-twisty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--dim);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.sqlb-tree-twisty:hover:not(.none) {
+  color: var(--text);
+  background: var(--hover-strong);
+}
+.sqlb-tree-twisty.none {
+  cursor: default;
+}
+.sqlb-tree-icon {
+  color: var(--dim);
+  flex: none;
+}
+.sqlb-tree-item.selected .sqlb-tree-icon {
+  color: var(--accent);
+}
+.sqlb-tree-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sqlb-tree-on {
+  color: var(--dim);
+  font-size: 11px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sqlb-tree-count {
+  margin-left: auto;
+  padding-left: 8px;
+  color: var(--dim);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+.sqlb-tree-col {
+  padding-left: 24px;
+  height: 22px;
+  font-size: 12px;
+}
+.sqlb-tree-col.hit .sqlb-tree-name {
+  color: var(--accent);
+}
+.sqlb-tree-pk {
+  display: inline-flex;
+  width: 12px;
+  flex: none;
+  color: var(--warning);
+}
+.sqlb-tree-type {
+  margin-left: auto;
+  padding-left: 8px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sqlb-nn {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 2px;
+  line-height: 12px;
+  flex: none;
+}
+.sqlb-tree-empty {
+  padding: 18px 10px;
+  color: var(--dim);
+  text-align: center;
+}
+
+/* ── data grid ────────────────────────────────────────────────────────── */
+
+.sqlb-data-toolbar {
+  gap: 6px;
+}
+.sqlb-objtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 34%;
+  margin: 0 4px 0 2px;
+  color: var(--dim);
+  flex: 0 1 auto;
+}
+.sqlb-objtitle-name {
+  color: var(--text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sqlb-search {
+  flex: 0 1 240px;
+  min-width: 110px;
+}
+.sqlb-search .sm-search {
+  min-width: 0;
+}
+.sqlb-picker {
+  height: 26px;
+  min-width: 90px;
+  max-width: 46%;
+  flex: 0 1 auto;
+  font-weight: 500;
+}
+.sqlb-readonly-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--dim);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.sqlb-wherebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 10px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  flex: none;
+}
+.sqlb-where-kw {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.sqlb-where-input {
+  flex: 1;
+  height: 26px;
+}
+.sqlb-where-input.dirty {
+  border-color: color-mix(in srgb, var(--warning) 60%, var(--border));
+}
+
+.sqlb-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+.sqlb-progress::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30%;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: sqlb-slide 1s ease-in-out infinite;
+  animation-delay: 0.15s;
+  opacity: 0;
+}
+@keyframes sqlb-slide {
+  0% {
+    left: -30%;
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 1;
+  }
+}
+.sqlb-grid.loading .sm-tbody,
+.sqlb-stale .sm-tbody {
+  opacity: 0.6;
+  transition: opacity 0.2s 0.2s;
+}
+
+.sqlb-grid .sm-td {
+  padding: 0;
+}
+.sqlb-cell {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 8px 0 10px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.sqlb-cell.num {
+  justify-content: flex-end;
+}
+.sqlb-cell.active {
+  box-shadow: inset 0 0 0 1px var(--accent);
+  border-radius: 2px;
+}
+.sqlb-cell > span {
+  min-width: 0;
+}
+.sqlb-null {
+  color: var(--dim);
+  font-style: italic;
+  opacity: 0.75;
+}
+.sqlb-num {
+  font-variant-numeric: tabular-nums;
+}
+.sqlb-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sqlb-nl {
+  color: var(--dim);
+  margin: 0 3px;
+  opacity: 0.8;
+}
+.sqlb-more {
+  flex: none;
+  color: var(--dim);
+  font-size: 11px;
+}
+.sqlb-blob {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 6px;
+  border-radius: 9px;
+  font-size: 10.5px;
+  color: var(--dim);
+  background: var(--raised);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  flex: none;
+}
+
+.sqlb-error-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+}
+.sqlb-error-sql {
+  max-width: 520px;
+  margin-top: 8px !important;
+  text-align: left;
+  border-radius: 6px;
+  background: var(--code-bg);
+  color: var(--dim);
+  font-size: 11px;
+}
+
+/* inline editor (positioned against the row; see CellEditor) */
+.sqlb-editor {
+  position: absolute;
+  top: -1px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--raised);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  cursor: auto;
+}
+.sqlb-editor.has-error {
+  border-color: var(--danger);
+}
+.sqlb-editor-row {
+  display: flex;
+  align-items: flex-start;
+}
+.sqlb-editor-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 24px;
+  padding: 3px 9px;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  user-select: text;
+  white-space: pre;
+  overflow: auto;
+}
+.sqlb-editor-input.mono {
+  font-family: var(--mono);
+}
+.sqlb-editor-btn {
+  margin: 2px 2px 0 0;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--dim);
+  font: inherit;
+  font-size: 10px;
+  font-style: italic;
+  cursor: pointer;
+  flex: none;
+}
+.sqlb-editor-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.sqlb-editor-hint {
+  padding: 2px 9px 4px;
+  border-top: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 10.5px;
+  white-space: normal;
+}
+
+.sqlb-pager {
+  gap: 4px;
+  padding: 0 4px 0 10px;
+  height: 30px;
+}
+.sqlb-pager > svg {
+  flex: none;
+}
+.sqlb-range {
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sqlb-range:hover:not(:disabled) {
+  background: var(--hover-strong);
+}
+.sqlb-range:disabled {
+  cursor: default;
+}
+.sqlb-pageno {
+  min-width: 44px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.sqlb-mini-select {
+  height: 22px;
+  margin-left: 4px;
+  padding: 0 2px 0 5px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--dim);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+}
+.sqlb-mini-select:focus {
+  border-color: var(--accent);
+}
+.sqlb-mini-select option,
+.sqlb-picker option {
+  background: var(--raised);
+  color: var(--text);
+}
+
+/* ── inspector ────────────────────────────────────────────────────────── */
+
+.sqlb-insp {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--side-bg);
+}
+.sqlb-insp-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 4px 0 10px;
+  border-bottom: 1px solid var(--border);
+  flex: none;
+  font-size: 12px;
+}
+.sqlb-insp-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sqlb-insp-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 0 16px;
+}
+.sqlb-field {
+  padding: 6px 10px 8px;
+  border-left: 2px solid transparent;
+}
+.sqlb-field + .sqlb-field {
+  border-top: 1px solid var(--line);
+}
+.sqlb-field.active {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.sqlb-field-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  margin-bottom: 2px;
+}
+.sqlb-field-name {
+  font-weight: 600;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sqlb-field-type {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.sqlb-field-class {
+  color: var(--dim);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.sqlb-field-actions {
+  display: inline-flex;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.sqlb-field:hover .sqlb-field-actions,
+.sqlb-field.active .sqlb-field-actions {
+  opacity: 1;
+}
+.sqlb-field-actions .sm-icon-btn {
+  min-width: 20px;
+  height: 20px;
+}
+.sqlb-fv {
+  font-size: 12.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.sqlb-fv.text {
+  white-space: pre-wrap;
+}
+.sqlb-fv.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.sqlb-fv-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  color: var(--dim);
+  font-family: var(--font);
+  font-size: 11px;
+}
+.sqlb-fv-hint.top {
+  margin: 0 0 4px;
+}
+.sqlb-fv .sqlb-link {
+  margin-left: 4px;
+  font-size: 11.5px;
+}
+.sqlb-json {
+  margin: 2px 0 0;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  font-size: 11.5px;
+  white-space: pre;
+  overflow-x: auto;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.sqlb-hex {
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.55;
+  white-space: pre;
+  overflow-x: auto;
+  user-select: text;
+}
+.sqlb-hex-off,
+.sqlb-hex-ascii {
+  color: var(--dim);
+}
+
+/* ── dialogs ──────────────────────────────────────────────────────────── */
+
+.sqlb-dialog-sub {
+  margin: -6px 0 10px;
+  color: var(--dim);
+  font-size: 12px;
+}
+.sqlb-value-dialog {
+  width: 560px;
+}
+.sqlb-value-text {
+  min-height: 120px;
+  max-height: 60vh;
+  line-height: 1.5;
+}
+.sqlb-value-dialog .sm-dialog-buttons {
+  align-items: center;
+}
+.sqlb-newrow {
+  width: 480px;
+}
+.sqlb-newrow-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 52vh;
+  overflow: auto;
+  padding: 2px;
+}
+.sqlb-newrow-field {
+  display: grid;
+  grid-template-columns: minmax(80px, 34%) 1fr 70px;
+  align-items: center;
+  gap: 8px;
+}
+.sqlb-newrow-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sqlb-newrow-name svg {
+  color: var(--warning);
+  flex: none;
+}
+.sqlb-req {
+  color: var(--danger);
+}
+.sqlb-newrow-type {
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── structure ────────────────────────────────────────────────────────── */
+
+.sqlb-structure {
+  padding: 14px 16px 24px;
+  max-width: 1100px;
+}
+.sqlb-st-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.sqlb-st-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.sqlb-st-icon {
+  color: var(--accent);
+  flex: none;
+}
+.sqlb-sqlblock {
+  border-radius: 6px;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  max-height: 340px;
+  overflow: auto;
+}
+.sqlb-def-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.sqlb-def {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.sqlb-def th,
+.sqlb-def td {
+  padding: 5px 10px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+.sqlb-def tr:last-child td,
+.sqlb-def tbody tr:last-child th {
+  border-bottom: 0;
+}
+.sqlb-def th {
+  color: var(--dim);
+  font-weight: 600;
+  font-size: 11.5px;
+}
+.sqlb-def thead th {
+  background: color-mix(in srgb, var(--raised) 50%, transparent);
+}
+.sqlb-def tbody th {
+  width: 120px;
+}
+.sqlb-def .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sqlb-def td.mono {
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+.sqlb-def tbody tr:hover td {
+  background: var(--hover);
+}
+.sqlb-def-name {
+  font-weight: 500;
+}
+.sqlb-def-name .sqlb-key {
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+.sqlb-fks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sqlb-fk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+}
+.sqlb-fk .mono {
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+.sqlb-fk.in {
+  background: color-mix(in srgb, var(--raised) 40%, transparent);
+}
+.sqlb-fk-act {
+  margin-left: auto;
+  color: var(--dim);
+  font-size: 11px;
+}
+.sqlb-fk-act.warn {
+  color: var(--warning);
+}
+.sqlb-trigger + .sqlb-trigger {
+  margin-top: 10px;
+}
+.sqlb-trigger-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+/* ── SQL tab ──────────────────────────────────────────────────────────── */
+
+.sqlb-sqled {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 19px;
+}
+.sqlb-gutter {
+  flex: none;
+  overflow: hidden;
+  padding: 8px 0 30px;
+  border-right: 1px solid var(--line);
+  color: color-mix(in srgb, var(--dim) 70%, transparent);
+  text-align: right;
+  user-select: none;
+}
+.sqlb-gutter pre {
+  margin: 0;
+  padding: 0 8px 0 10px;
+  font: inherit;
+  min-width: 38px;
+}
+.sqlb-code {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.sqlb-hl,
+.sqlb-ta {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 8px 12px;
+  border: 0;
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.sqlb-hl {
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--text);
+}
+.sqlb-ta {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  resize: none;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--text);
+  user-select: text;
+}
+.sqlb-ta::placeholder {
+  color: var(--dim);
+  opacity: 0.8;
+}
+.sqlb-ta::selection {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  color: transparent;
+}
+
+.sqlb-truncated {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: color-mix(in srgb, var(--warning) 70%, var(--text));
+  font-size: 12px;
+  flex: none;
+}
+.sqlb-sqlerr {
+  margin: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--border));
+  background: color-mix(in srgb, var(--danger) 7%, transparent);
+  max-width: 760px;
+}
+.sqlb-sqlerr.ro {
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+}
+.sqlb-sqlerr-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--danger);
+}
+.sqlb-sqlerr.ro .sqlb-sqlerr-title {
+  color: var(--warning);
+}
+.sqlb-sqlerr-msg {
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.sqlb-sqlerr p {
+  margin: 10px 0;
+  color: var(--dim);
+  font-size: 12.5px;
+}
+.sqlb-sqlerr p b {
+  color: var(--text);
+  font-weight: 600;
+}
+.sqlb-status-err {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sqlb-hist-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.sqlb-hist-head h4 {
+  margin: 0 !important;
+}
+.sqlb-hist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 380px;
+  overflow: auto;
+  margin: 0 -4px;
+}
+.sqlb-hist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.sqlb-hist-item:hover {
+  background: var(--hover-strong);
+}
+.sqlb-hist-sql {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  white-space: pre-wrap;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+.sqlb-hist-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--dim);
+  font-size: 11px;
+}
+
+/* ── info ─────────────────────────────────────────────────────────────── */
+
+.sqlb-info {
+  padding: 14px 16px 24px;
+  max-width: 860px;
+}
+.sqlb-info .sm-section {
+  margin-bottom: 22px;
+}
+.sqlb-info .sm-section-head .sm-btn.subtle {
+  color: var(--dim);
+}
+.sqlb-info .sm-section-head .sm-btn.subtle:hover {
+  color: var(--text);
+}
+.sqlb-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+.sqlb-check.ok {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+}
+.sqlb-check.bad {
+  display: block;
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+  background: color-mix(in srgb, var(--danger) 7%, transparent);
+}
+.sqlb-check-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sqlb-check .sm-code {
+  padding: 6px 0 0;
+  color: var(--text);
+}

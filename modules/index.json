@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "modules": [
+    {
+      "id": "claude-usage",
+      "name": "Claude Usage",
+      "version": "1.1.0",
+      "description": "Your Claude plan limits (session and weekly) with reset countdowns, refreshed on an interval you choose",
+      "icon": "gauge",
+      "author": "Shellmosaic",
+      "permissions": [
+        "claude.usage"
+      ],
+      "minAppVersion": "0.2.1",
+      "files": [
+        {
+          "path": "index.html",
+          "sha256": "e1a181dce1171ec3016671e3738907cedb663ed77894151ed7776eed634c7708",
+          "size": 19269
+        },
+        {
+          "path": "manifest.json",
+          "sha256": "ef3f338db009575c30e92ed67dd808b5f6a4bf39c20513a79fc0349ebb320087",
+          "size": 333
+        }
+      ]
+    },
+    {
+      "id": "event-viewer",
+      "name": "Event Viewer",
+      "version": "1.0.0",
+      "description": "Windows event logs with filters, live tail and Sysmon-aware columns",
+      "icon": "logs",
+      "author": "Shellmosaic",
+      "permissions": [
+        "eventlog.read",
+        "clipboard"
+      ],
+      "minAppVersion": "0.3.0",
+      "files": [
+        {
+          "path": "app.css",
+          "sha256": "6881bde3b74cb0c3849e83b1691dcdee286434718abc0d14daa17e57b88c79a5",
+          "size": 26209
+        },
+        {
+          "path": "app.js",
+          "sha256": "227b7440d4ccd51b8231990bf456d19cd90520e3db88d42c268ac5bb817b0e99",
+          "size": 308640
+        },
+        {
+          "path": "index.html",
+          "sha256": "74ddae7d7cc25731e8b8e38d56f4855ec3f3c8fd15e36475147da4e23327a3cc",
+          "size": 353
+        },
+        {
+          "path": "manifest.json",
+          "sha256": "734c2361db7721a66f783f4d05727d5d493e7ab9a537a95f9b64c08f648f0829",
+          "size": 310
+        }
+      ]
+    },
+    {
+      "id": "process-inspector",
+      "name": "Process Inspector",
+      "version": "1.0.0",
+      "description": "Look inside a running process: modules, threads, handles, token and memory map, with suspend, priority and thread controls",
+      "icon": "microscope",
+      "author": "Shellmosaic",
+      "permissions": [
+        "process.inspect",
+        "process.control",
+        "clipboard"
+      ],
+      "minAppVersion": "0.3.0",
+      "files": [
+        {
+          "path": "app.css",
+          "sha256": "5f2506c323a5b010d75edb767159d2d1c3069e9cbc2356d992e63c8c60e3a154",
+          "size": 22574
+        },
+        {
+          "path": "app.js",
+          "sha256": "d2af9c100e368fefa63b932fa40496227a05a0704d84651088af2ae0b9e12e4a",
+          "size": 312832
+        },
+        {
+          "path": "index.html",
+          "sha256": "7485c2331d5ba44c2e389adbfa9252e641b546f4c4feec3c9d3f7e55334bae2f",
+          "size": 358
+        },
+        {
+          "path": "manifest.json",
+          "sha256": "5a6af57acb43ac4a95e691d2d6d2b84f7fbc2b99e5b0a148420f470c65a68b5e",
+          "size": 402
+        }
+      ]
+    },
+    {
+      "id": "sqlite-browser",
+      "name": "SQLite Browser",
+      "version": "1.0.0",
+      "description": "Browse and query SQLite databases. Opens them read-only; changes only after you allow them",
+      "icon": "database",
+      "author": "Shellmosaic",
+      "permissions": [
+        "sqlite",
+        "clipboard"
+      ],
+      "minAppVersion": "0.3.0",
+      "files": [
+        {
+          "path": "app.css",
+          "sha256": "d5dacce30f6a07b078569869f3929ad027598000663c48fe5fb14931f1824241",
+          "size": 33741
+        },
+        {
+          "path": "app.js",
+          "sha256": "35a7bf16199ac1d8a2bbf455f826f1c9d16c5601ca726b2e7cb79d3fb26114ab",
+          "size": 337219
+        },
+        {
+          "path": "index.html",
+          "sha256": "abc0b9ad34a9ff674707f2dde384020bfd1fed24242ff2ff39ee022355b3e456",
+          "size": 355
+        },
+        {
+          "path": "manifest.json",
+          "sha256": "5c5d7bd9ea1d1d2f6005072a3e553f549a0007c808dcd5c86a4a2076540f59cd",
+          "size": 334
+        }
+      ]
+    }
+  ]
+}

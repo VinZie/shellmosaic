@@ -1,6 +1,6 @@
 # dependencies and build output
 node_modules/
-dist/
+/dist/
 src-tauri/target/
 src-tauri/target-*/
 src-tauri/gen/schemas/
