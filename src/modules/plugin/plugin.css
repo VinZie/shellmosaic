@@ -1,0 +1,73 @@
+/* Plugin panes (see PluginPane.tsx). */
+
+.plugin-frame {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  display: block;
+  background: transparent;
+}
+
+/* iframes swallow pointer events; let pane drags and split resizes pass over them */
+body.dragging .plugin-frame,
+body.resizing-col .plugin-frame,
+body.resizing-row .plugin-frame {
+  pointer-events: none;
+}
+
+.plugin-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  pointer-events: none;
+  opacity: 0;
+  animation: plugin-fade-in 0.2s ease 0.4s forwards;
+}
+.plugin-loading svg {
+  animation: plugin-spin 0.9s linear infinite;
+}
+
+.plugin-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.plugin-banner {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 10px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border));
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  animation: plugin-fade-in 0.18s var(--ease);
+}
+.plugin-banner-icon {
+  color: var(--warning);
+  flex: none;
+}
+
+@keyframes plugin-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes plugin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

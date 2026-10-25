@@ -1,0 +1,71 @@
+[package]
+name = "shellmosaic"
+version = "0.2.0"
+description = "A modular, workspace-based terminal for Windows"
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "shellmosaic_lib"
+# rlib only: the MinGW linker can't export a cdylib this large ("export ordinal too large"),
+# and cdylib/staticlib are only needed for mobile targets.
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["unstable"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-window-state = "2"
+tauri-plugin-clipboard-manager = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+portable-pty = "0.9"
+sysinfo = "0.39"
+netstat2 = "0.11"
+parking_lot = "0.12"
+base64 = "0.22"
+uuid = { version = "1", features = ["v4"] }
+trash = "5"
+tauri-plugin-single-instance = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+tokio = { version = "1", features = ["sync", "time", "net", "fs", "io-util", "macros", "rt"] }
+# SSH: ring instead of aws-lc-rs (no cmake/NASM needed on the MinGW toolchain)
+russh = { version = "0.64", default-features = false, features = ["ring", "rsa", "flate2"] }
+russh-sftp = "3"
+# the host vault
+argon2 = "0.5"
+chacha20poly1305 = "0.10"
+zeroize = "1"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_Environment",
+  "Win32_System_Threading",
+] }
+
+# Unoptimized key derivation takes seconds (vault unlock, encrypted SSH keys) and
+# makes debug builds feel broken; optimize just the crypto crates.
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.blake2]
+opt-level = 3
+[profile.dev.package.bcrypt-pbkdf]
+opt-level = 3
+[profile.dev.package.blowfish]
+opt-level = 3
+[profile.dev.package.ring]
+opt-level = 3
+[profile.dev.package.chacha20]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

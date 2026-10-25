@@ -1,0 +1,254 @@
+/* Sysinfo module */
+
+.sysinfo {
+  container-type: inline-size;
+  container-name: sysinfo;
+}
+
+.sysinfo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 10px;
+  padding: 10px;
+  align-content: start;
+  align-items: start;
+}
+
+.sysinfo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sysinfo-card-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 26px;
+}
+.sysinfo-card-icon {
+  flex: none;
+  color: var(--accent);
+}
+.sysinfo-card-title {
+  flex: none;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sysinfo-card-sub {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+}
+.sysinfo-big {
+  margin-left: auto;
+  flex: none;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.sysinfo-chart {
+  position: relative;
+  height: 72px;
+  border-radius: calc(var(--radius) - 3px);
+  background: color-mix(in srgb, var(--bg) 45%, transparent);
+  overflow: hidden;
+}
+.sysinfo-chart canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.sysinfo-axis {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.sysinfo-cores {
+  display: grid;
+  gap: 2px;
+  grid-auto-rows: 22px;
+}
+.sysinfo-core {
+  position: relative;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  overflow: hidden;
+}
+.sysinfo-core-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--accent);
+  transition: height 0.35s var(--ease);
+}
+
+.sysinfo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  min-width: 0;
+}
+.sysinfo-label {
+  flex: none;
+  color: var(--text-dim);
+  min-width: 34px;
+}
+.sysinfo-num {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sysinfo-push {
+  margin-left: auto;
+}
+
+.sysinfo-meter {
+  position: relative;
+  flex: 1;
+  min-width: 40px;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+.sysinfo-meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.35s var(--ease);
+}
+.sysinfo-meter-fill.warning,
+.sysinfo-core-fill.warning {
+  background: var(--warning);
+}
+.sysinfo-meter-fill.danger,
+.sysinfo-core-fill.danger {
+  background: var(--danger);
+}
+
+.sysinfo-net-rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.sysinfo-net-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.sysinfo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.sysinfo-dot.rx {
+  background: var(--accent);
+}
+.sysinfo-dot.tx {
+  background: var(--success);
+}
+
+.sysinfo-disks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sysinfo-disk {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.sysinfo-disk .sysinfo-meter {
+  flex: none;
+  height: 8px;
+  border-radius: 4px;
+}
+.sysinfo-disk-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  min-width: 0;
+}
+.sysinfo-disk-mount {
+  flex: none;
+  font-weight: 600;
+}
+.sysinfo-disk-foot {
+  font-size: 11px;
+}
+
+.sysinfo-kv {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+}
+.sysinfo-kv > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 8px;
+}
+.sysinfo-kv dt,
+.sysinfo-kv dd {
+  margin: 0;
+}
+
+.sysinfo-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 10px 10px;
+  color: var(--danger);
+  font-size: 11px;
+}
+
+/* narrow pane: one compact column */
+@container sysinfo (max-width: 440px) {
+  .sysinfo-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 6px;
+  }
+  .sysinfo-card {
+    padding: 8px 10px;
+    gap: 7px;
+  }
+  .sysinfo-big {
+    font-size: 18px;
+  }
+  .sysinfo-chart {
+    height: 52px;
+  }
+  .sysinfo-cores {
+    grid-auto-rows: 14px;
+  }
+  .sysinfo-net-rates {
+    font-size: 13px;
+  }
+  .sysinfo-disks {
+    gap: 8px;
+  }
+}

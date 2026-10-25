@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # typecheck + production build (the Rust build embeds dist/)
+      - name: Frontend
+        run: pnpm build
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: cargo check
+        working-directory: src-tauri
+        run: cargo check --locked
+
+      - name: Terminal stream tests
+        working-directory: src-tauri
+        run: |
+          rustc --edition 2021 --test src/vt.rs -o vt-tests.exe
+          ./vt-tests.exe
+
+      - name: Untrusted name tests
+        working-directory: src-tauri
+        run: |
+          rustc --edition 2021 --test src/sanitize.rs -o sanitize-tests.exe
+          ./sanitize-tests.exe

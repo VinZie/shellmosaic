@@ -1,0 +1,203 @@
+/* Tasks module — detected project tasks */
+
+.tasks-toolbar .search-box {
+  flex: 0 1 220px;
+  min-width: 90px;
+}
+.tasks-path {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 45%;
+  height: 24px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tasks-path:hover {
+  background: var(--hover-strong);
+}
+.tasks-path svg {
+  color: var(--text-dim);
+  flex: none;
+}
+.tasks-path span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tasks-loading {
+  padding: 16px;
+}
+.tasks-detail {
+  max-width: 520px;
+  word-break: break-all;
+}
+.tasks-supported {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  max-width: 420px;
+}
+
+.tasks-list {
+  outline: none;
+  padding: 4px 0 8px;
+}
+.tasks-group + .tasks-group {
+  margin-top: 6px;
+}
+.tasks-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 6px 0 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+.tasks-group-head:hover .tasks-group-title {
+  color: var(--text);
+}
+.tasks-group-icon {
+  color: var(--accent);
+  flex: none;
+}
+.tasks-group-icon.pinned {
+  color: var(--warning);
+}
+.tasks-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.tasks-group-file {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--text-dim);
+  opacity: 0.8;
+}
+.tasks-count {
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--hover-strong);
+  color: var(--text-dim);
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.tasks-group-open {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.tasks-group-head:hover .tasks-group-open {
+  opacity: 1;
+}
+
+.list-row.tasks-row {
+  height: 28px;
+  gap: 8px;
+  margin: 0 4px;
+  padding: 0 4px 0 12px;
+  border-radius: 6px;
+  min-width: 0;
+}
+.list-row.tasks-row.ran {
+  animation: tasks-ran 0.9s ease-out;
+}
+@keyframes tasks-ran {
+  from {
+    background: color-mix(in srgb, var(--success) 30%, transparent);
+  }
+}
+.tasks-play {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  color: var(--success);
+  cursor: pointer;
+  transition: background 0.12s, transform 0.12s;
+}
+.tasks-play:hover {
+  background: var(--success);
+  color: var(--bg);
+  transform: scale(1.06);
+}
+.tasks-play svg {
+  margin-left: 1px;
+}
+.tasks-name {
+  flex: 0 1 auto;
+  min-width: 40px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tasks-source {
+  flex: none;
+  height: 17px;
+  font-size: 10px;
+}
+.tasks-cmd {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.tasks-actions {
+  display: flex;
+  flex: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.tasks-actions .icon-btn {
+  min-width: 22px;
+  height: 22px;
+}
+.tasks-row:hover .tasks-actions,
+.tasks-row.selected .tasks-actions {
+  opacity: 1;
+}
+/* a pinned star stays visible */
+.tasks-actions:has(.tasks-star.on) {
+  opacity: 1;
+}
+.tasks-row:not(:hover):not(.selected) .tasks-actions .icon-btn:not(.tasks-star.on) {
+  visibility: hidden;
+}
+.icon-btn.tasks-star.on {
+  background: transparent;
+  color: var(--warning);
+}
+.icon-btn.tasks-star.on:hover {
+  background: var(--hover-strong);
+}

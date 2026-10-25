@@ -1,0 +1,189 @@
+/* Rendered markdown (Notes preview and the Files preview of .md files). */
+
+.notes-md {
+  padding: 14px 18px 28px;
+  line-height: 1.6;
+  font-size: 13px;
+  color: var(--text);
+  user-select: text;
+  overflow-wrap: anywhere;
+  /* raw HTML can't escape the preview: fixed/z-indexed content stays inside it */
+  contain: paint;
+}
+.notes-md > :first-child {
+  margin-top: 0;
+}
+.notes-md h1,
+.notes-md h2,
+.notes-md h3,
+.notes-md h4,
+.notes-md h5,
+.notes-md h6 {
+  margin: 1.2em 0 0.5em;
+  line-height: 1.3;
+  font-weight: 650;
+}
+.notes-md h1 {
+  font-size: 1.6em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--border);
+}
+.notes-md h2 {
+  font-size: 1.32em;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.notes-md h3 {
+  font-size: 1.12em;
+}
+.notes-md h4,
+.notes-md h5,
+.notes-md h6 {
+  font-size: 1em;
+  color: var(--text-dim);
+}
+.notes-md p,
+.notes-md ul,
+.notes-md ol,
+.notes-md blockquote,
+.notes-md table {
+  margin: 0 0 0.8em;
+}
+.notes-md ul,
+.notes-md ol {
+  padding-left: 1.6em;
+}
+.notes-md li + li {
+  margin-top: 0.15em;
+}
+.notes-md li > ul,
+.notes-md li > ol {
+  margin: 0.15em 0 0;
+}
+.notes-md li:has(> .notes-md-task),
+.notes-md li:has(> p > .notes-md-task) {
+  list-style: none;
+  margin-left: -1.35em;
+}
+.notes-md li:has(> .notes-md-task:checked),
+.notes-md li:has(> p > .notes-md-task:checked) {
+  color: var(--text-dim);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--text-dim) 60%, transparent);
+}
+.notes-md-task {
+  margin: 0 0.45em 0 0;
+  vertical-align: -2px;
+  cursor: pointer;
+}
+.notes-md-task:disabled {
+  cursor: default;
+}
+.notes-md a {
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.notes-md a:hover {
+  text-decoration: underline;
+}
+.notes-md code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.notes-md pre {
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.notes-md pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+  white-space: pre;
+}
+.notes-md blockquote {
+  padding: 0.1em 0 0.1em 1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  color: var(--text-dim);
+}
+.notes-md hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 1.4em 0;
+}
+.notes-md img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+.notes-md table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  font-size: 12px;
+}
+.notes-md th,
+.notes-md td {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+}
+.notes-md th {
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+/* fenced code blocks with Run / Copy */
+.notes-md-code {
+  margin: 0 0 0.9em;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  overflow: hidden;
+}
+.notes-md-code-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 4px 0 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+  user-select: none;
+}
+.notes-md-code-lang {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.notes-md-code-btn {
+  height: 20px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: background 0.12s, color 0.12s, opacity 0.12s;
+}
+.notes-md-code:hover .notes-md-code-btn {
+  opacity: 1;
+}
+.notes-md-code-btn:hover {
+  background: var(--hover-strong);
+  color: var(--text);
+}
+.notes-md-code-btn[data-act="run"]:hover {
+  background: color-mix(in srgb, var(--success) 20%, transparent);
+  color: var(--success);
+}

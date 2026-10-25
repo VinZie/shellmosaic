@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Command Board</title>
+    <script src="/__sdk/shellmosaic.js"></script>
+    <style>
+      body { padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; }
+      header { display: flex; align-items: baseline; gap: 8px; }
+      header h1 { font-size: 14px; margin: 0; }
+      #cwd { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+      .cmd { position: relative; text-align: left; padding: 8px 10px; min-height: 52px; display: flex; flex-direction: column; gap: 2px; }
+      .cmd b { font-weight: 600; }
+      .cmd code { font-size: 11px; color: var(--sm-text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .cmd .x { position: absolute; top: 2px; right: 6px; opacity: 0; color: var(--sm-text-dim); }
+      .cmd:hover .x { opacity: 1; }
+      form { display: flex; gap: 6px; flex-wrap: wrap; }
+      form input { flex: 1; min-width: 100px; }
+      .hint { font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Command Board</h1>
+      <span id="cwd" class="dim"></span>
+    </header>
+    <div id="grid"></div>
+    <form id="add">
+      <input id="label" placeholder="Label" required />
+      <input id="command" placeholder="Command, e.g. git status" required />
+      <button class="primary">Add</button>
+    </form>
+    <div class="hint dim">Click to type into the terminal and press Enter · Shift+click to run in a new pane · ✕ removes</div>
+
+    <script>
+      const sm = window.shellmosaic;
+      let commands = [];
+
+      function render() {
+        const grid = document.getElementById("grid");
+        grid.textContent = "";
+        commands.forEach((c, i) => {
+          const b = document.createElement("button");
+          b.className = "cmd";
+          const label = document.createElement("b");
+          label.textContent = c.label;
+          const code = document.createElement("code");
+          code.textContent = c.command;
+          const x = document.createElement("span");
+          x.className = "x";
+          x.textContent = "✕";
+          x.onclick = (e) => {
+            e.stopPropagation();
+            commands.splice(i, 1);
+            save();
+          };
+          b.append(label, code, x);
+          b.onclick = async (e) => {
+            try {
+              if (e.shiftKey) await sm.terminal.run(c.command);
+              else await sm.terminal.write(c.command + "\r");
+            } catch (err) {
+              sm.ui.notify(String(err.message || err), "error");
+            }
+          };
+          grid.appendChild(b);
+        });
+      }
+
+      async function save() {
+        await sm.storage.set("commands", commands);
+        render();
+      }
+
+      document.getElementById("add").onsubmit = (e) => {
+        e.preventDefault();
+        const label = document.getElementById("label");
+        const command = document.getElementById("command");
+        commands.push({ label: label.value.trim(), command: command.value.trim() });
+        label.value = command.value = "";
+        save();
+      };
+
+      window.addEventListener("shellmosaic:ready", async (e) => {
+        const saved = await sm.storage.get("commands");
+        commands = Array.isArray(saved)
+          ? saved
+          : [
+              { label: "Git status", command: "git status" },
+              { label: "List files", command: "ls" },
+              { label: "IP config", command: "ipconfig" },
+            ];
+        render();
+        const showCwd = (cwd) => (document.getElementById("cwd").textContent = cwd || "");
+        showCwd(e.detail && e.detail.cwd);
+        sm.on("cwd", showCwd);
+      });
+    </script>
+  </body>
+</html>

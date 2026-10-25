@@ -1,0 +1,10 @@
+{
+  "id": "command-board",
+  "name": "Command Board",
+  "version": "1.0.0",
+  "author": "Shellmosaic",
+  "description": "Pin commands as buttons and send them to the terminal in this tab. This is an example plugin: copy the folder, change the id, and start building.",
+  "icon": "layout-grid",
+  "entry": "index.html",
+  "permissions": ["terminal.write", "terminal.run"]
+}

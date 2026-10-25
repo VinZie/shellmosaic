@@ -1,0 +1,89 @@
+/* Processes module */
+
+.processes {
+  outline: none;
+}
+.processes .search-box {
+  flex: 0 1 260px;
+}
+
+.processes-table {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.processes-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.processes-twisty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.processes-twisty:hover {
+  background: var(--hover-strong);
+  color: var(--text);
+}
+.processes-twisty-gap {
+  flex: none;
+  width: 16px;
+}
+.processes-count {
+  flex: none;
+  padding: 0 5px;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 15px;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.processes-cpu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  vertical-align: middle;
+}
+.processes-cpu-track {
+  position: relative;
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  overflow: hidden;
+}
+.processes-cpu-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  min-width: 0;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.3s var(--ease);
+}
+.processes-cpu-fill.warning {
+  background: var(--warning);
+}
+.processes-cpu-fill.danger {
+  background: var(--danger);
+}
+.processes-cpu-val {
+  min-width: 32px;
+  text-align: right;
+}
