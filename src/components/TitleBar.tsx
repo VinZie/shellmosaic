@@ -2,6 +2,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useRef, useState } from "react";
 import { beginDrag, useDrag } from "../lib/dnd";
 import { Icon } from "../lib/icons";
+import { ipc } from "../lib/ipc";
 import { cx } from "../lib/util";
 import { getModule } from "../modules/registry";
 import * as A from "../state/actions";
@@ -140,6 +141,20 @@ function WindowControls() {
   );
 }
 
+/** "Administrator" while Shellmosaic runs elevated (after Restart as administrator). */
+function AdminBadge() {
+  const [elevated, setElevated] = useState(false);
+  useEffect(() => {
+    ipc.appElevated().then(setElevated, () => {});
+  }, []);
+  if (!elevated) return null;
+  return (
+    <span className="chip titlebar-admin" title="Shellmosaic runs as administrator: shells and modules have full rights. Restart it normally to drop them." data-tauri-drag-region>
+      <Icon name="shield" size={12} /> Administrator
+    </span>
+  );
+}
+
 export function TitleBar() {
   const ws = useCurrentWorkspace();
   const tabbarDrop = useDrag((s) => s.target?.kind === "tabbar");
@@ -196,6 +211,7 @@ export function TitleBar() {
         </div>
       </div>
       <div className="titlebar-spacer" data-tauri-drag-region />
+      <AdminBadge />
       <button className="icon-btn titlebar-btn" onClick={() => ui.openPalette()} title={`Command palette (${shortcutLabel("palette.open")})`}>
         <Icon name="command" size={15} />
       </button>

@@ -1,13 +1,15 @@
 {
   "name": "shellmosaic",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A modular, workspace-based terminal for Windows",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p modules",
+    "modules:build": "node modules/build.mjs",
+    "modules:dev": "node modules/build.mjs --dev",
     "tauri": "tauri",
     "app:dev": "tauri dev",
     "app:build": "tauri build"

@@ -69,17 +69,24 @@ export interface SysSnapshot {
   cpu: number;
   cores: number[];
   cpuBrand: string;
+  /** average clock in MHz (0 = unknown) */
+  cpuFreq?: number;
+  physicalCores?: number | null;
   memUsed: number;
   memTotal: number;
   swapUsed: number;
   swapTotal: number;
   netRx: number;
   netTx: number;
+  /** bytes moved on all interfaces since they came up */
+  netRxTotal?: number;
+  netTxTotal?: number;
   disks: { name: string; mount: string; total: number; available: number; fs: string }[];
   uptime: number;
   host: string;
   os: string;
   processCount: number;
+  threadCount?: number | null;
 }
 
 export interface ProcInfo {
@@ -247,6 +254,49 @@ export type TransferEvent =
   | { t: "cancelled" }
   | { t: "error"; message: string };
 
+/** An optional module in the signed catalog (modules/index.json on GitHub). */
+export interface CatalogEntry {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  icon: string;
+  author?: string | null;
+  permissions: string[];
+  minAppVersion: string;
+  files: { path: string; sha256: string; size: number }[];
+}
+
+export interface Catalog {
+  schema: number;
+  modules: CatalogEntry[];
+  /** commit (or local folder) the catalog came from */
+  source: string;
+  branch: string;
+  fetchedAt: number;
+}
+
+/** A change queued for the next start. */
+export interface StoreOp {
+  op: "install" | "remove";
+  id: string;
+  name: string;
+  version?: string | null;
+  permissions: string[];
+}
+
+export interface StoreState {
+  installed: Record<string, { version: string; installedAt: number; branch?: string | null }>;
+  pending: StoreOp[];
+  /** what happened to the changes queued before the last start */
+  lastApply: { op: "install" | "remove"; id: string; name: string; ok: boolean; error?: string | null; permissions: string[] }[];
+  appVersion: string;
+  /** plugin folders the store doesn't manage */
+  local: string[];
+}
+
+export type UpdateChannel = "stable" | "test";
+
 type CommitResult = { status: "ok"; version: number } | { status: "conflict"; version: number; model: unknown };
 
 export const ipc = {
@@ -372,6 +422,51 @@ export const ipc = {
   sftpCancel: (id: number) => invoke<void>("sftp_cancel", { id }),
   /** save layout and scrollback now (before the updater's installer closes the app) */
   appPersist: () => invoke<void>("app_persist"),
+  /** save everything and start Shellmosaic again (as administrator when `elevated`) */
+  appRestart: (elevated = false) => invoke<void>("app_restart", { elevated }),
+  appElevated: () => invoke<boolean>("app_elevated"),
+  /** metadata for the updater's `new Update(…)`, or null when there's nothing newer on the channel */
+  updateCheck: (channel: UpdateChannel) =>
+    invoke<{ rid: number; currentVersion: string; version: string; body?: string; rawJson: Record<string, unknown> } | null>("update_check", { channel }),
+
+  // optional modules
+  storeState: () => invoke<StoreState>("store_state"),
+  storeCatalog: (channel: UpdateChannel, refresh = false) => invoke<Catalog>("store_catalog", { channel, refresh }),
+  storeQueueInstall: (channel: UpdateChannel, id: string) => invoke<StoreState>("store_queue_install", { channel, id }),
+  storeQueueRemove: (id: string, name?: string) => invoke<StoreState>("store_queue_remove", { id, name }),
+  /** forget one queued change, or all of them */
+  storeCancel: (id?: string) => invoke<StoreState>("store_cancel", { id }),
+  storeAck: () => invoke<void>("store_ack"),
+
+  // backends of the optional modules' SDK calls (results are passed to the plugin as is)
+  /** close the event-log queries and databases a plugin pane had open */
+  pluginRelease: (owner: string) => invoke<void>("plugin_release", { owner }),
+  processOverview: (pid: number) => invoke<unknown>("process_overview", { pid }),
+  processModules: (pid: number) => invoke<unknown>("process_modules", { pid }),
+  processThreads: (pid: number) => invoke<unknown>("process_threads", { pid }),
+  processHandles: (pid: number) => invoke<unknown>("process_handles", { pid }),
+  processToken: (pid: number) => invoke<unknown>("process_token", { pid }),
+  processMemory: (pid: number) => invoke<unknown>("process_memory", { pid }),
+  processSignature: (path: string) => invoke<unknown>("process_signature", { path }),
+  processControl: (pid: number, action: string, value?: string) => invoke<void>("process_control", { pid, action, value }),
+  threadControl: (pid: number, tid: number, action: string) => invoke<void>("thread_control", { pid, tid, action }),
+  eventlogChannels: () => invoke<unknown>("eventlog_channels"),
+  eventlogInfo: (channel: string) => invoke<unknown>("eventlog_info", { channel }),
+  eventlogQuery: (owner: string, q: { channel: string; xpath?: string; reverse?: boolean; text?: string; max?: number }) =>
+    invoke<unknown>("eventlog_query", { owner, ...q }),
+  eventlogMore: (owner: string, cursor: number, max?: number) => invoke<unknown>("eventlog_more", { owner, cursor, max }),
+  eventlogClose: (owner: string, cursor: number) => invoke<void>("eventlog_close", { owner, cursor }),
+  eventlogSubscribe: (owner: string, q: { channel: string; xpath?: string; text?: string }) => invoke<number>("eventlog_subscribe", { owner, ...q }),
+  eventlogPoll: (owner: string, subscription: number, max?: number) => invoke<string[]>("eventlog_poll", { owner, subscription, max }),
+  eventlogUnsubscribe: (owner: string, subscription: number) => invoke<void>("eventlog_unsubscribe", { owner, subscription }),
+  sqliteOpen: (owner: string, path: string, writable?: boolean, copy?: boolean) => invoke<unknown>("sqlite_open", { owner, path, writable, copy }),
+  sqliteSchema: (owner: string, id: number) => invoke<unknown>("sqlite_schema", { owner, id }),
+  sqliteCount: (owner: string, id: number, table: string) => invoke<number>("sqlite_count", { owner, id, table }),
+  sqliteQuery: (owner: string, id: number, sql: string, params?: unknown[], maxRows?: number) =>
+    invoke<unknown>("sqlite_query", { owner, id, sql, params, maxRows }),
+  sqliteSetWritable: (owner: string, id: number, writable: boolean) => invoke<unknown>("sqlite_set_writable", { owner, id, writable }),
+  sqliteInterrupt: (owner: string, id: number) => invoke<void>("sqlite_interrupt", { owner, id }),
+  sqliteClose: (owner: string, id: number) => invoke<void>("sqlite_close", { owner, id }),
 };
 
 export interface Rect {

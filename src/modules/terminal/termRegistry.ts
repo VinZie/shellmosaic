@@ -208,6 +208,15 @@ export function ensureTerm(paneId: string): TermEntry {
   });
 
   term.attachCustomKeyEventHandler((ev) => {
+    // Shift+Enter → ESC CR, which Claude Code reads as a new line. preventDefault stops the
+    // keypress that would otherwise make xterm send a plain Enter right after it.
+    if (ev.key === "Enter" && ev.shiftKey && !ev.ctrlKey && !ev.altKey && !ev.metaKey && !ev.isComposing && settings().terminal.shiftEnter === "newline") {
+      if (ev.type === "keydown") {
+        ev.preventDefault();
+        term.input("\x1b\r", true);
+      }
+      return false;
+    }
     if (ev.type !== "keydown") return true;
     const t = settings().terminal;
     if (ev.ctrlKey && !ev.shiftKey && !ev.altKey && ev.key.toLowerCase() === "c" && t.ctrlCCopies && term.hasSelection()) {
@@ -225,12 +234,26 @@ export function ensureTerm(paneId: string): TermEntry {
     (ev) => {
       ev.preventDefault();
       ev.stopImmediatePropagation();
-      pasteInto(entry, ev.clipboardData?.getData("text/plain") ?? "");
+      const data = ev.clipboardData;
+      const text = data?.getData("text/plain") ?? "";
+      if (!text && data && [...data.items].some((i) => i.kind === "file" && i.type.startsWith("image/"))) pasteImage(entry);
+      else pasteInto(entry, text);
     },
     true,
   );
 
   return entry;
+}
+
+/**
+ * The clipboard holds a picture, not text: send the key the program uses to paste an
+ * image itself (Claude Code on Windows: Alt+V, which it reads as ESC v).
+ */
+function pasteImage(e: TermEntry) {
+  const mode = settings().terminal.imagePaste;
+  if (mode === "none" || !e.alive) return;
+  sendInput(e.paneId, mode === "ctrlV" ? "\x16" : "\x1bv");
+  e.term.focus();
 }
 
 function linkHandler(uri: string, paneId: string) {

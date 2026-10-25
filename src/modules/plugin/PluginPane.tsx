@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "../../lib/icons";
 import { uid } from "../../lib/util";
 import { focusPane } from "../../state/actions";
+import { useModuleStore } from "../../state/moduleStore";
 import { useSettings } from "../../state/settings";
 import { ui, type MenuItem } from "../../state/ui";
 import { ModuleMessage, useTabCwd } from "../common";
@@ -34,10 +35,13 @@ export function reloadPluginPane(paneId: string) {
   reloaders.get(paneId)?.();
 }
 
-export function pluginMenu(paneId: string): MenuItem[] {
+export function pluginMenu(paneId: string, pluginId?: string): MenuItem[] {
+  const optional = !!pluginId && !!useModuleStore.getState().state?.installed[pluginId];
   return [
     { label: "Reload plugin", icon: "refresh", onSelect: () => reloadPluginPane(paneId) },
-    { label: "Plugin settings…", icon: "puzzle", onSelect: () => ui.openSettings("plugins") },
+    optional
+      ? { label: "Optional modules…", icon: "blocks", onSelect: () => ui.openSettings("optional-modules") }
+      : { label: "Plugin settings…", icon: "puzzle", onSelect: () => ui.openSettings("plugins") },
   ];
 }
 

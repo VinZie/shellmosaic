@@ -6,12 +6,13 @@ import { Icon, ICONS } from "../../lib/icons";
 import { errorText, ipc, type PluginInfo } from "../../lib/ipc";
 import { cx, joinPath } from "../../lib/util";
 import { reloadPlugins } from "../../modules/plugin/loader";
+import { useModuleStore } from "../../state/moduleStore";
 import { resetSettings, updateSettings, useSettings } from "../../state/settings";
 import { ui } from "../../state/ui";
 import { Group, Hl, Searchable, Section, Switch, useMatch, useSearch } from "./controls";
 import { attempt, openInDataDir, useDataDir } from "./helpers";
 
-const PERMISSIONS: { id: string; icon: string; text: string; risky?: boolean }[] = [
+export const PERMISSIONS: { id: string; icon: string; text: string; risky?: boolean }[] = [
   { id: "terminal.write", icon: "terminal", text: "Type into terminals in its tab", risky: true },
   { id: "terminal.read", icon: "terminal", text: "Read recent terminal output" },
   { id: "terminal.run", icon: "play", text: "Open new terminals that run commands", risky: true },
@@ -22,8 +23,12 @@ const PERMISSIONS: { id: string; icon: string; text: string; risky?: boolean }[]
   { id: "clipboard", icon: "clipboard-paste", text: "Read and write the clipboard" },
   { id: "net", icon: "globe", text: "Connect to the internet (HTTPS)" },
   { id: "claude.usage", icon: "gauge", text: "Read your Claude plan usage limits (never your sign-in token)" },
+  { id: "process.inspect", icon: "microscope", text: "Look inside running processes: modules, threads, handles, token, memory map" },
+  { id: "process.control", icon: "cpu", text: "Suspend and resume processes and threads, end threads, change priority and affinity", risky: true },
+  { id: "eventlog.read", icon: "logs", text: "Read the Windows event logs" },
+  { id: "sqlite", icon: "database", text: "Open SQLite databases on your computer and change them when you allow it", risky: true },
 ];
-const permInfo = (id: string) => PERMISSIONS.find((p) => p.id === id);
+export const permInfo = (id: string) => PERMISSIONS.find((p) => p.id === id);
 const plainText = (v: unknown) => (typeof v === "string" || typeof v === "number" ? String(v) : undefined);
 
 async function reload() {
@@ -192,6 +197,12 @@ const API: [string, string, string?][] = [
   ["system.stats()", "CPU, memory and network numbers", "system.read"],
   ["clipboard.readText / writeText", "Use the clipboard", "clipboard"],
   ["claude.usage()", "Claude plan limits of the signed-in Claude Code account", "claude.usage"],
+  ["process.overview / modules / threads / handles / token / memory(pid)", "Inside a running process", "process.inspect"],
+  ["process.suspend / resume / setPriority / setAffinity, thread.*", "Control processes and threads", "process.control"],
+  ["eventlog.channels / query / more / subscribe / poll", "Windows event logs (events as XML)", "eventlog.read"],
+  ["sqlite.open / schema / query / setWritable", "SQLite databases, read-only unless made writable", "sqlite"],
+  ["ui.confirm / pickFile / openModule / reveal / setState", "Dialogs, file picker, open modules, per-pane state"],
+  ["app.info() · app.restartAsAdmin()", "Version, elevation; relaunch as administrator (asks the user)"],
   ["storage.get / set / all", "Save the plugin's own data"],
   ["ui.notify(message, kind)", "Show a toast"],
   ["ui.setTitle(title)", "Set the pane title"],
@@ -287,7 +298,10 @@ function BuildYourOwn({ hasExample }: { hasExample: boolean }) {
 // ── section ───────────────────────────────────────────────────────────────
 
 export function PluginsSection() {
-  const [list, setList] = useState<PluginInfo[] | null>(null);
+  const [all, setList] = useState<PluginInfo[] | null>(null);
+  // optional modules are managed in their own section
+  const managed = useModuleStore((s) => s.state?.installed);
+  const list = all && all.filter((p) => !managed?.[p.id]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const q = useSearch();
@@ -351,7 +365,7 @@ export function PluginsSection() {
       id="plugins"
       title="Plugins"
       icon="puzzle"
-      desc="Extra modules made by you or others. Plugins run sandboxed and only get the permissions you allow."
+      desc="Extra modules made by you or others. Plugins run sandboxed and only get the permissions you allow. Optional modules from the Shellmosaic repository are under Optional modules."
       onReset={() => {
         resetSettings("plugins");
         reload();

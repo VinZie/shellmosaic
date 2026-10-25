@@ -7,10 +7,15 @@
 //
 // A method that needs a permission only runs when the plugin declared it in
 // manifest.json AND the user granted it (settings.plugins.grants[pluginId]).
+import { getVersion } from "@tauri-apps/api/app";
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { open } from "@tauri-apps/plugin-dialog";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { errorText, ipc } from "../../lib/ipc";
 import { isPlainObject } from "../../lib/util";
-import { runInNewTerminal, sendToTerminal } from "../../state/actions";
+import { addModule, runInNewTerminal, sendToTerminal, setPaneMeta } from "../../state/actions";
+import { useModules } from "../registry";
+import { restartApp } from "../../state/moduleStore";
 import { commandForEvent } from "../../state/commands";
 import { leaves, type Side } from "../../state/layout";
 import { workspaceOfTab } from "../../state/model";
@@ -60,12 +65,57 @@ const METHOD_PERMISSION: Record<string, string | null> = {
   "clipboard.readText": "clipboard",
   "clipboard.writeText": "clipboard",
   "claude.usage": "claude.usage",
+  "process.list": "process.inspect",
+  "process.overview": "process.inspect",
+  "process.modules": "process.inspect",
+  "process.threads": "process.inspect",
+  "process.handles": "process.inspect",
+  "process.token": "process.inspect",
+  "process.memory": "process.inspect",
+  "process.signature": "process.inspect",
+  "process.suspend": "process.control",
+  "process.resume": "process.control",
+  "process.setPriority": "process.control",
+  "process.setAffinity": "process.control",
+  "thread.suspend": "process.control",
+  "thread.resume": "process.control",
+  "thread.terminate": "process.control",
+  "eventlog.channels": "eventlog.read",
+  "eventlog.info": "eventlog.read",
+  "eventlog.query": "eventlog.read",
+  "eventlog.more": "eventlog.read",
+  "eventlog.close": "eventlog.read",
+  "eventlog.subscribe": "eventlog.read",
+  "eventlog.poll": "eventlog.read",
+  "eventlog.unsubscribe": "eventlog.read",
+  "sqlite.open": "sqlite",
+  "sqlite.schema": "sqlite",
+  "sqlite.count": "sqlite",
+  "sqlite.query": "sqlite",
+  "sqlite.setWritable": "sqlite",
+  "sqlite.interrupt": "sqlite",
+  "sqlite.close": "sqlite",
   "storage.get": null,
   "storage.set": null,
   "storage.all": null,
   "ui.notify": null,
   "ui.setTitle": null,
+  "ui.setState": null,
+  // the user answers these themselves: a dialog, a file picker, a pane opening next to the plugin
+  "ui.confirm": null,
+  "ui.pickFile": null,
+  "ui.openModule": null,
+  "ui.reveal": null,
+  "app.info": null,
+  "app.restartAsAdmin": null,
 };
+
+/** The app's version and whether it runs elevated, read once. */
+let appInfo: Promise<{ version: string; elevated: boolean }> | null = null;
+function appInfoOnce() {
+  appInfo ??= Promise.all([getVersion().catch(() => ""), ipc.appElevated().catch(() => false)]).then(([version, elevated]) => ({ version, elevated }));
+  return appInfo;
+}
 
 export interface SessionInfo {
   pluginId: string;
@@ -139,6 +189,8 @@ export function attachFrame(
     dispose() {
       s.disposed = true;
       sessions.delete(s);
+      // event-log queries and databases the page had open die with it
+      ipc.pluginRelease(s.info.paneId).catch(() => {});
     },
   };
 }
@@ -413,6 +465,67 @@ function optInt(p: Params, key: string, min: number, max: number, fallback: numb
   return Math.round(Math.min(max, Math.max(min, v)));
 }
 
+/** A whole number in range (process and thread ids, database and query ids). */
+function reqInt(p: Params, key: string, min = 0, max = 0xffff_ffff): number {
+  const v = p[key];
+  if (typeof v !== "number" || !Number.isInteger(v) || v < min || v > max) throw new Error(`"${key}" must be a whole number`);
+  return v;
+}
+
+function optBool(p: Params, key: string): boolean | undefined {
+  const v = p[key];
+  if (v === undefined || v === null) return undefined;
+  if (typeof v !== "boolean") throw new Error(`"${key}" must be true or false`);
+  return v;
+}
+
+/** `C:\…` only: a `\\host\share` path would make Windows log in to that host. */
+function localPath(p: Params, key: string): string {
+  const v = reqStr(p, key);
+  if (!/^[a-zA-Z]:[\\/]/.test(v) || v.includes("..") || v.length > 32_767) throw new Error("only files on this computer (C:\\…) can be used");
+  return v;
+}
+
+const PLUGIN_MODULE = /^plugin:[a-z0-9][a-z0-9._-]{0,119}$/;
+
+/** Open a built-in module or another plugin next to the plugin's pane (only harmless options). */
+async function openModule(info: SessionInfo, p: Params): Promise<boolean> {
+  const module = reqStr(p, "module");
+  const near = { tabId: info.tabId, target: info.paneId, side: "right" as const };
+  if (module === "processes" || module === "ports") {
+    await addModule(module, { ...near, meta: { filter: (optStr(p, "filter") ?? "").slice(0, 200) || null } });
+    return true;
+  }
+  if (module === "files") {
+    const path = p.path === undefined || p.path === null ? undefined : localPath(p, "path");
+    await addModule("files", { ...near, meta: path ? { path, follow: false } : undefined });
+    return true;
+  }
+  if (PLUGIN_MODULE.test(module)) {
+    const def = useModules.getState().modules[module];
+    if (!def?.plugin) throw new Error(`${module.slice(7)} isn't installed (Settings → Optional modules)`);
+    const args = p.args === undefined || p.args === null ? null : p.args;
+    if (args !== null && (!isPlainObject(args) || !fitsIn(args, 16 * 1024))) throw new Error('"args" must be a small object');
+    await addModule(module, { ...near, meta: args ? { args: JSON.parse(JSON.stringify(args)) } : undefined });
+    return true;
+  }
+  throw new Error(`can't open "${module}"`);
+}
+
+/** Saved pane state, written at most every 300 ms per pane. */
+const stateWrites = new Map<string, { timer: ReturnType<typeof setTimeout>; value: unknown }>();
+function savePaneState(paneId: string, value: unknown) {
+  const pending = stateWrites.get(paneId);
+  if (pending) clearTimeout(pending.timer);
+  stateWrites.set(paneId, {
+    value,
+    timer: setTimeout(() => {
+      stateWrites.delete(paneId);
+      setPaneMeta(paneId, { state: value });
+    }, 300),
+  });
+}
+
 function storageKey(p: Params): string {
   const key = reqStr(p, "key");
   if (!key || key.length > 256) throw new Error('"key" must be 1–256 characters');
@@ -427,9 +540,12 @@ function terminalTarget(tabId: string): string | undefined {
   return last && inTab.includes(last) ? last : inTab[0];
 }
 
-function contextOf(s: Internal) {
+async function contextOf(s: Internal) {
   const { info } = s;
   const granted = grantedPermissions(info.pluginId);
+  const meta = getState().model.panes[info.paneId]?.meta ?? {};
+  const pendingState = stateWrites.get(info.paneId);
+  const app = await appInfoOnce();
   return {
     pluginId: info.pluginId,
     paneId: info.paneId,
@@ -438,6 +554,10 @@ function contextOf(s: Internal) {
     cwd: info.cwd ?? null,
     visible: info.visible,
     grantedPermissions: info.permissions.filter((p) => granted.includes(p)),
+    args: isPlainObject(meta.args) ? meta.args : null,
+    state: pendingState ? pendingState.value : isPlainObject(meta.state) ? meta.state : null,
+    appVersion: app.version,
+    elevated: app.elevated,
   };
 }
 
@@ -454,12 +574,14 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
     case "ready": {
       s.ready = true;
       const { pluginId, name, permissions } = info;
+      // a reloaded page starts over: what the previous one had open is gone
+      ipc.pluginRelease(info.paneId).catch(() => {});
       if (missingPermissions(pluginId, permissions).length && !deniedThisRun.has(pluginId)) {
         // style the plugin right away; the reply waits for the user's answer
         push(s, "theme", themeVars());
         await requestPermissions(pluginId, name, permissions);
       }
-      return { ...contextOf(s), theme: themeVars() };
+      return { ...(await contextOf(s)), theme: themeVars() };
     }
     case "context":
       return contextOf(s);
@@ -524,6 +646,126 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
     }
     case "ui.setTitle":
       ui.setTitle(info.paneId, String(p.title ?? "").slice(0, 200));
+      return true;
+    case "ui.setState": {
+      const value = p.state ?? null;
+      if (value !== null && (!isPlainObject(value) || !fitsIn(value, 64 * 1024))) throw new Error("state must be an object of at most 64 KB");
+      savePaneState(info.paneId, value === null ? null : JSON.parse(JSON.stringify(value)));
+      return true;
+    }
+    case "ui.confirm": {
+      await dialogFree();
+      return ui.confirm(String(p.title ?? "").slice(0, 200), String(p.message ?? "").slice(0, 2000), {
+        okLabel: optStr(p, "okLabel")?.slice(0, 40),
+        danger: p.danger === true,
+      });
+    }
+    case "ui.pickFile": {
+      const filters = Array.isArray(p.filters)
+        ? p.filters
+            .filter(isPlainObject)
+            .slice(0, 10)
+            .map((f) => ({
+              name: String(f.name ?? "Files").slice(0, 60),
+              extensions: (Array.isArray(f.extensions) ? f.extensions : []).map(String).filter((x) => /^(\*|[a-z0-9]{1,16})$/i.test(x)).slice(0, 20),
+            }))
+            .filter((f) => f.extensions.length)
+        : undefined;
+      const picked = await open({ multiple: false, directory: false, title: optStr(p, "title")?.slice(0, 120), filters });
+      return typeof picked === "string" ? picked : null;
+    }
+    case "ui.openModule":
+      return openModule(info, p);
+    case "ui.reveal":
+      await revealItemInDir(localPath(p, "path"));
+      return true;
+
+    case "app.info":
+      return appInfoOnce();
+    case "app.restartAsAdmin": {
+      if ((await appInfoOnce()).elevated) throw new Error("Shellmosaic already runs as administrator");
+      await dialogFree();
+      return restartApp({ elevated: true, reason: `${info.name} asked for it.` });
+    }
+
+    case "process.list":
+      return ipc.procList();
+    case "process.overview":
+      return ipc.processOverview(reqInt(p, "pid"));
+    case "process.modules":
+      return ipc.processModules(reqInt(p, "pid"));
+    case "process.threads":
+      return ipc.processThreads(reqInt(p, "pid"));
+    case "process.handles":
+      return ipc.processHandles(reqInt(p, "pid"));
+    case "process.token":
+      return ipc.processToken(reqInt(p, "pid"));
+    case "process.memory":
+      return ipc.processMemory(reqInt(p, "pid"));
+    case "process.signature":
+      return ipc.processSignature(reqStr(p, "path"));
+    case "process.suspend":
+    case "process.resume":
+      await ipc.processControl(reqInt(p, "pid"), method.slice(8));
+      return true;
+    case "process.setPriority":
+      await ipc.processControl(reqInt(p, "pid"), "priority", reqStr(p, "priority"));
+      return true;
+    case "process.setAffinity": {
+      const mask = reqStr(p, "mask");
+      if (!/^\d{1,20}$/.test(mask)) throw new Error('"mask" must be a decimal number');
+      await ipc.processControl(reqInt(p, "pid"), "affinity", mask);
+      return true;
+    }
+    case "thread.suspend":
+    case "thread.resume":
+    case "thread.terminate":
+      await ipc.threadControl(reqInt(p, "pid"), reqInt(p, "tid"), method.slice(7));
+      return true;
+
+    case "eventlog.channels":
+      return ipc.eventlogChannels();
+    case "eventlog.info":
+      return ipc.eventlogInfo(reqStr(p, "channel"));
+    case "eventlog.query":
+      return ipc.eventlogQuery(info.paneId, {
+        channel: reqStr(p, "channel"),
+        xpath: optStr(p, "xpath"),
+        reverse: optBool(p, "reverse"),
+        text: optStr(p, "text"),
+        max: p.max === undefined ? undefined : reqInt(p, "max", 1, 1000),
+      });
+    case "eventlog.more":
+      return ipc.eventlogMore(info.paneId, reqInt(p, "cursor"), p.max === undefined ? undefined : reqInt(p, "max", 1, 1000));
+    case "eventlog.close":
+      await ipc.eventlogClose(info.paneId, reqInt(p, "cursor"));
+      return true;
+    case "eventlog.subscribe":
+      return ipc.eventlogSubscribe(info.paneId, { channel: reqStr(p, "channel"), xpath: optStr(p, "xpath"), text: optStr(p, "text") });
+    case "eventlog.poll":
+      return ipc.eventlogPoll(info.paneId, reqInt(p, "subscription"), p.max === undefined ? undefined : reqInt(p, "max", 1, 1000));
+    case "eventlog.unsubscribe":
+      await ipc.eventlogUnsubscribe(info.paneId, reqInt(p, "subscription"));
+      return true;
+
+    case "sqlite.open":
+      return ipc.sqliteOpen(info.paneId, localPath(p, "path"), optBool(p, "writable"), optBool(p, "copy"));
+    case "sqlite.schema":
+      return ipc.sqliteSchema(info.paneId, reqInt(p, "db"));
+    case "sqlite.count":
+      return ipc.sqliteCount(info.paneId, reqInt(p, "db"), reqStr(p, "table"));
+    case "sqlite.query": {
+      const params = p.params ?? [];
+      if (!Array.isArray(params) || params.length > 999) throw new Error('"params" must be a list');
+      return ipc.sqliteQuery(info.paneId, reqInt(p, "db"), reqStr(p, "sql"), params, p.maxRows === undefined ? undefined : reqInt(p, "maxRows", 1, 50_000));
+    }
+    case "sqlite.setWritable":
+      return ipc.sqliteSetWritable(info.paneId, reqInt(p, "db"), optBool(p, "writable") ?? false);
+    case "sqlite.interrupt":
+      await ipc.sqliteInterrupt(info.paneId, reqInt(p, "db"));
+      return true;
+    case "sqlite.close":
+      await ipc.sqliteClose(info.paneId, reqInt(p, "db"));
       return true;
   }
   throw new Error(`unknown method: ${method}`);

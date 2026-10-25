@@ -1,11 +1,12 @@
 //! System statistics, process list and network sockets.
 
 use std::collections::HashMap;
+use std::sync::OnceLock;
 use std::time::Instant;
 
 use parking_lot::Mutex;
 use serde::Serialize;
-use sysinfo::{Disks, Networks, Pid, ProcessesToUpdate, System};
+use sysinfo::{CpuRefreshKind, Disks, Networks, Pid, ProcessesToUpdate, System};
 use tauri::{AppHandle, Manager};
 
 use crate::paths::{blocking, hidden_command, ErrStr};
@@ -66,17 +67,24 @@ pub struct Snapshot {
     cpu: f32,
     cores: Vec<f32>,
     cpu_brand: String,
+    /// average clock in MHz as Windows reports it (0 = unknown)
+    cpu_freq: u64,
+    physical_cores: Option<usize>,
     mem_used: u64,
     mem_total: u64,
     swap_used: u64,
     swap_total: u64,
     net_rx: f64,
     net_tx: f64,
+    /// bytes moved on all interfaces since they came up
+    net_rx_total: u64,
+    net_tx_total: u64,
     disks: Vec<DiskInfo>,
     uptime: u64,
     host: String,
     os: String,
     process_count: usize,
+    thread_count: Option<usize>,
 }
 
 #[tauri::command]
@@ -84,19 +92,46 @@ pub async fn sys_snapshot(app: AppHandle, with_disks: Option<bool>) -> Result<Sn
     blocking(move || snapshot(&app.state::<SysMon>(), with_disks)).await
 }
 
+/// System-wide process and thread counts. The process table in `Inner` is only
+/// refreshed while a Processes or Ports pane polls, so it can't be counted here.
+#[cfg(windows)]
+fn task_counts() -> Option<(usize, usize)> {
+    use windows_sys::Win32::System::ProcessStatus::{K32GetPerformanceInfo, PERFORMANCE_INFORMATION};
+    // SAFETY: plain Win32 call filling a struct we own
+    unsafe {
+        let mut info: PERFORMANCE_INFORMATION = std::mem::zeroed();
+        let size = std::mem::size_of::<PERFORMANCE_INFORMATION>() as u32;
+        info.cb = size;
+        (K32GetPerformanceInfo(&mut info, size) != 0).then(|| (info.ProcessCount as usize, info.ThreadCount as usize))
+    }
+}
+
+#[cfg(not(windows))]
+fn task_counts() -> Option<(usize, usize)> {
+    None
+}
+
 fn snapshot(mon: &SysMon, with_disks: Option<bool>) -> Snapshot {
+    // fixed while we run, but sysinfo asks Windows again on every call
+    static PHYSICAL_CORES: OnceLock<Option<usize>> = OnceLock::new();
     let mut g = mon.inner.lock();
-    g.sys.refresh_cpu_usage();
+    g.sys.refresh_cpu_specifics(CpuRefreshKind::nothing().with_cpu_usage().with_frequency());
     g.sys.refresh_memory();
 
     let elapsed = g.last_net.elapsed().as_secs_f64().max(0.001);
     g.nets.refresh(true);
     g.last_net = Instant::now();
-    let (mut rx, mut tx) = (0u64, 0u64);
+    let (mut rx, mut tx, mut rx_total, mut tx_total) = (0u64, 0u64, 0u64, 0u64);
     for (_, data) in g.nets.iter() {
         rx += data.received();
         tx += data.transmitted();
+        rx_total += data.total_received();
+        tx_total += data.total_transmitted();
     }
+
+    let freqs: Vec<u64> = g.sys.cpus().iter().map(|c| c.frequency()).filter(|&f| f > 0).collect();
+    let cpu_freq = if freqs.is_empty() { 0 } else { freqs.iter().sum::<u64>() / freqs.len() as u64 };
+    let counts = task_counts();
 
     let disks = if with_disks.unwrap_or(false) {
         g.disks.refresh(true);
@@ -118,17 +153,22 @@ fn snapshot(mon: &SysMon, with_disks: Option<bool>) -> Snapshot {
         cpu: g.sys.global_cpu_usage(),
         cores: g.sys.cpus().iter().map(|c| c.cpu_usage()).collect(),
         cpu_brand: g.sys.cpus().first().map(|c| c.brand().trim().to_string()).unwrap_or_default(),
+        cpu_freq,
+        physical_cores: *PHYSICAL_CORES.get_or_init(System::physical_core_count),
         mem_used: g.sys.used_memory(),
         mem_total: g.sys.total_memory(),
         swap_used: g.sys.used_swap(),
         swap_total: g.sys.total_swap(),
         net_rx: rx as f64 / elapsed,
         net_tx: tx as f64 / elapsed,
+        net_rx_total: rx_total,
+        net_tx_total: tx_total,
         disks,
         uptime: System::uptime(),
         host: System::host_name().unwrap_or_default(),
         os: System::long_os_version().unwrap_or_default(),
-        process_count: g.sys.processes().len(),
+        process_count: counts.map_or_else(|| g.sys.processes().len(), |c| c.0),
+        thread_count: counts.map(|c| c.1),
     }
 }
 

@@ -254,6 +254,10 @@ const PERMISSION_TEXT: Record<string, string> = {
   clipboard: "Read and write the clipboard",
   net: "Connect to the internet (HTTPS)",
   "claude.usage": "Read your Claude plan usage (not your sign-in)",
+  "process.inspect": "Look inside running processes (modules, threads, handles, memory)",
+  "process.control": "Suspend and resume processes and threads, change priority",
+  "eventlog.read": "Read the Windows event logs",
+  sqlite: "Open SQLite databases and change them when you allow it",
 };
 
 function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissions" }> }) {
@@ -261,7 +265,7 @@ function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissio
     ui.closeDialog();
     d.resolve(ok);
   };
-  const risky = d.permissions.some((p) => ["shell.exec", "fs.write", "terminal.write", "terminal.run"].includes(p));
+  const risky = d.permissions.some((p) => ["shell.exec", "fs.write", "terminal.write", "terminal.run", "process.control", "sqlite"].includes(p));
   return (
     <Modal
       title={`Allow "${d.name}"?`}
@@ -277,7 +281,7 @@ function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissio
       <ul className="perm-list">
         {d.permissions.map((p) => (
           <li key={p}>
-            <Icon name={p.startsWith("fs") ? "folder" : p.startsWith("terminal") ? "terminal" : p === "net" ? "globe" : p === "shell.exec" ? "zap" : p === "claude.usage" ? "gauge" : "shield"} size={14} />
+            <Icon name={p.startsWith("fs") ? "folder" : p.startsWith("terminal") ? "terminal" : p === "net" ? "globe" : p === "shell.exec" ? "zap" : p === "claude.usage" ? "gauge" : p.startsWith("process") ? "cpu" : p === "eventlog.read" ? "logs" : p === "sqlite" ? "database" : "shield"} size={14} />
             <span>{PERMISSION_TEXT[p] ?? p}</span>
             <code>{p}</code>
           </li>

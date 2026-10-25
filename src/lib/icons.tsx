@@ -13,7 +13,8 @@ import {
   Settings, Shield, Skull, SlidersHorizontal, Sparkles, Square, SquareTerminal, Star, Sun, Swords, Target, Terminal,
   TextWrap, Timer, Trash, TriangleAlert, Trophy, Tv, Upload, WandSparkles, Webhook, Wifi, Workflow, Wrench, X, Zap,
   ChartLine, Expand, Shrink, Undo2, Import, Share2, Type, Regex, CaseSensitive, WholeWord, ZoomIn, ZoomOut, Unplug,
-  ArrowDownToLine, CornerDownLeft, Tag, LockOpen, FolderSync, KeyRound, Clock, FileUp, FolderUp,
+  ArrowDownToLine, CornerDownLeft, Tag, LockOpen, FolderSync, KeyRound, Clock, FileUp, FolderUp, Microscope, Logs,
+  Blocks, PackagePlus,
 } from "lucide-react";
 
 /** Every icon the app can reference by name (workspace icons, module icons, menus). */
@@ -46,7 +47,8 @@ export const ICONS: Record<string, LucideIcon> = {
   undo: Undo2, import: Import, share: Share2, type: Type, regex: Regex, "case-sensitive": CaseSensitive,
   "whole-word": WholeWord, "zoom-in": ZoomIn, "zoom-out": ZoomOut, unplug: Unplug, "scroll-bottom": ArrowDownToLine,
   enter: CornerDownLeft, tag: Tag, "lock-open": LockOpen, "folder-sync": FolderSync, "key-round": KeyRound,
-  clock: Clock, "file-up": FileUp, "folder-up": FolderUp,
+  clock: Clock, "file-up": FileUp, "folder-up": FolderUp, microscope: Microscope, logs: Logs, blocks: Blocks,
+  "package-plus": PackagePlus,
 };
 
 /** Icons offered in the workspace/tab icon picker. */
