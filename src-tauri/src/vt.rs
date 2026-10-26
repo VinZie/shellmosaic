@@ -2,16 +2,19 @@
 //! their own: `rustc --edition 2021 --test src/vt.rs`.
 
 /// Append to the ring, trimming the front at a line boundary so a replay never
-/// starts in the middle of an escape sequence or UTF-8 character.
-pub fn push_ring(ring: &mut Vec<u8>, data: &[u8], cap: usize) {
+/// starts in the middle of an escape sequence or UTF-8 character. Returns how many
+/// bytes were trimmed off the front.
+pub fn push_ring(ring: &mut Vec<u8>, data: &[u8], cap: usize) -> usize {
     ring.extend_from_slice(data);
-    if ring.len() > cap {
-        let mut cut = ring.len() - cap * 3 / 4;
-        if let Some(nl) = ring[cut..].iter().position(|&b| b == b'\n') {
-            cut += nl + 1;
-        }
-        ring.drain(..cut);
+    if ring.len() <= cap {
+        return 0;
     }
+    let mut cut = ring.len() - cap * 3 / 4;
+    if let Some(nl) = ring[cut..].iter().position(|&b| b == b'\n') {
+        cut += nl + 1;
+    }
+    ring.drain(..cut);
+    cut
 }
 
 pub fn strip_ansi(data: &[u8]) -> String {
@@ -231,9 +234,11 @@ mod tests {
     #[test]
     fn ring_trims_at_newline() {
         let mut ring = Vec::new();
-        push_ring(&mut ring, b"aaaa\nbbbb\ncccc\ndddd\n", 10);
+        assert_eq!(push_ring(&mut ring, b"aaaa\n", 10), 0);
+        let cut = push_ring(&mut ring, b"bbbb\ncccc\ndddd\n", 10);
         assert!(ring.len() <= 10);
         assert!(ring.starts_with(b"cccc") || ring.starts_with(b"dddd"));
+        assert_eq!(cut + ring.len(), 20);
     }
 
     #[test]

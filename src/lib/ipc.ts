@@ -47,7 +47,11 @@ export interface PtyInfo {
   profileId?: string | null;
 }
 
-export type PtyMessage = ArrayBuffer | Uint8Array | number[] | { t: string; code?: number | null };
+export type PtyMessage =
+  | ArrayBuffer
+  | Uint8Array
+  | number[]
+  | { t: string; code?: number | null; cols?: number | null; rows?: number | null; token?: number };
 
 export interface FsEntry {
   name: string;
@@ -308,6 +312,7 @@ export const ipc = {
   // terminals
   ptyAttach: (paneId: string, spec: SpawnSpec, cols: number, rows: number, onData: Channel<PtyMessage>) =>
     invoke<AttachInfo>("pty_attach", { paneId, spec, cols, rows, onData }),
+  ptyRestored: (paneId: string, token: number, data: string) => invoke<void>("pty_restored", { paneId, token, data }),
   ptyDetach: (paneId: string, token: number) => invoke<void>("pty_detach", { paneId, token }),
   ptyWrite: (paneId: string, data: string) => invoke<void>("pty_write", { paneId, data }),
   ptyResize: (paneId: string, cols: number, rows: number) => invoke<void>("pty_resize", { paneId, cols, rows }),

@@ -33,6 +33,11 @@ const DEFAULT_RING_BYTES: usize = 2 * 1024 * 1024;
 pub struct SessionMeta {
     pub cwd: Option<String>,
     pub profile_id: Option<String>,
+    /// the terminal size the saved scrollback was last drawn at
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cols: Option<u16>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rows: Option<u16>,
 }
 
 pub struct PtyManager {
@@ -62,6 +67,7 @@ struct Session {
     cwd: Mutex<Option<String>>,
     title: Mutex<Option<String>>,
     exit_code: Mutex<Option<u32>>,
+    size: Mutex<(u16, u16)>,
 }
 
 enum Backend {
@@ -78,6 +84,7 @@ enum Backend {
 impl Session {
     fn resize(&self, cols: u16, rows: u16) -> Result<(), String> {
         let (cols, rows) = (cols.max(2), rows.max(1));
+        *self.size.lock() = (cols, rows);
         match &self.backend {
             Backend::Local { master, .. } => {
                 if let Some(m) = master.lock().as_ref() {
@@ -100,11 +107,32 @@ impl Session {
             Backend::Ssh { kill, .. } => kill.notify_one(),
         }
     }
+
+    fn meta(&self) -> SessionMeta {
+        let (cols, rows) = *self.size.lock();
+        SessionMeta {
+            cwd: self.cwd.lock().clone(),
+            profile_id: Some(self.profile_id.clone()),
+            cols: Some(cols),
+            rows: Some(rows),
+        }
+    }
 }
 
 struct Output {
     ring: Vec<u8>,
     channel: Option<(u64, Channel<InvokeResponseBody>)>,
+    /// Set until a view has drawn the "restored session" marker (pty_restored).
+    restored: Option<Restored>,
+}
+
+/// Where the saved output of a restored session ends in the ring, and the size it was
+/// drawn at. A view replays it at that size, then draws the marker below it.
+#[derive(Clone, Copy)]
+struct Restored {
+    at: usize,
+    cols: Option<u16>,
+    rows: Option<u16>,
 }
 
 #[derive(Serialize)]
@@ -191,13 +219,7 @@ impl PtyManager {
         {
             let mut meta = self.meta.lock();
             for s in &sessions {
-                meta.insert(
-                    s.id.clone(),
-                    SessionMeta {
-                        cwd: s.cwd.lock().clone(),
-                        profile_id: Some(s.profile_id.clone()),
-                    },
-                );
+                meta.insert(s.id.clone(), s.meta());
             }
         }
         self.save_meta();
@@ -214,27 +236,26 @@ impl PtyManager {
         }
     }
 
-    /// The saved scrollback of a pane being restored, ended with a visible marker.
-    fn restored_ring(&self, id: &str, spec: &SpawnSpec) -> Vec<u8> {
-        let mut ring = Vec::new();
+    /// The saved scrollback of a pane being restored. The view resets the terminal and
+    /// draws the "restored session" marker after it: only the view knows where the old
+    /// output left the cursor (Claude Code, for one, leaves it in the middle of its frame).
+    fn restored_ring(&self, id: &str, spec: &SpawnSpec) -> (Vec<u8>, Option<Restored>) {
         if spec.restore && self.persist_scrollback.load(Ordering::Relaxed) {
             if let Ok(old) = fs::read(self.bin_path(id)) {
                 if !old.is_empty() {
-                    ring.extend_from_slice(&old);
-                    // leave any alt-screen app the old session died in, reset attributes
-                    ring.extend_from_slice(
-                        b"\x1b[?1049l\x1b[0m\x1b[?25h\r\n\x1b[2m\xe2\x94\x80\xe2\x94\x80 restored session \xe2\x94\x80\xe2\x94\x80\x1b[0m\r\n",
-                    );
+                    let saved = self.meta.lock().get(id).cloned().unwrap_or_default();
+                    let restored = Restored { at: old.len(), cols: saved.cols, rows: saved.rows };
+                    return (old, Some(restored));
                 }
             }
         }
-        ring
+        (Vec::new(), None)
     }
 
     /// A shell on a saved SSH host. A pane restored at startup only shows its old
     /// output and waits (Enter reconnects) instead of dialing out on its own.
     fn spawn_ssh(&self, id: &str, spec: &SpawnSpec, host_id: &str, cols: u16, rows: u16) -> Arc<Session> {
-        let ring = self.restored_ring(id, spec);
+        let (ring, restored) = self.restored_ring(id, spec);
         // restored = it ran in an earlier session (saved scrollback, or at least its metadata
         // when scrollback isn't saved); a pane opened just now connects right away
         let dormant = spec.restore && (!ring.is_empty() || self.meta.lock().contains_key(id));
@@ -246,13 +267,14 @@ impl PtyManager {
             profile_id: spec.profile_id.clone(),
             backend: Backend::Ssh { size, kill: kill.clone() },
             input: Mutex::new((!dormant).then_some(input)),
-            out: Mutex::new(Output { ring, channel: None }),
+            out: Mutex::new(Output { ring, channel: None, restored }),
             alive: AtomicBool::new(!dormant),
             dirty: AtomicBool::new(true),
             pid: None,
             cwd: Mutex::new(None),
             title: Mutex::new(None),
             exit_code: Mutex::new(None),
+            size: Mutex::new((cols, rows)),
         });
         if dormant {
             return session;
@@ -304,20 +326,21 @@ impl PtyManager {
         });
         let killer = child.clone_killer();
         let pid = child.process_id();
-        let ring = self.restored_ring(id, spec);
+        let (ring, restored) = self.restored_ring(id, spec);
 
         let session = Arc::new(Session {
             id: id.to_string(),
             profile_id: spec.profile_id.clone(),
             backend: Backend::Local { master: Mutex::new(Some(pair.master)), killer: Mutex::new(killer) },
             input: Mutex::new(Some(input)),
-            out: Mutex::new(Output { ring, channel: None }),
+            out: Mutex::new(Output { ring, channel: None, restored }),
             alive: AtomicBool::new(true),
             dirty: AtomicBool::new(true),
             pid,
             cwd: Mutex::new(cwd.filter(|c| !c.is_empty())),
             title: Mutex::new(None),
             exit_code: Mutex::new(None),
+            size: Mutex::new((cols, rows)),
         });
 
         // Waiter: ConPTY keeps the output pipe open after the child exits, so once
@@ -371,7 +394,11 @@ fn on_output(s: &Session, app: &AppHandle, osc: &mut OscScanner, chunk: &[u8], c
         }
     }
     let mut out = s.out.lock();
-    push_ring(&mut out.ring, chunk, cap);
+    let cut = push_ring(&mut out.ring, chunk, cap);
+    if let Some(r) = out.restored {
+        // (trimmed past the old output: there's no spot left to mark)
+        out.restored = (cut < r.at).then_some(Restored { at: r.at - cut, ..r });
+    }
     s.dirty.store(true, Ordering::Relaxed);
     let failed = match &out.channel {
         Some((_, ch)) => ch.send(InvokeResponseBody::Raw(chunk.to_vec())).is_err(),
@@ -442,9 +469,23 @@ pub fn pty_attach(
 
     // Replay under the output lock so no live chunk slips in between.
     let mut out = session.out.lock();
-    send_json(&on_data, json!({ "t": "replay-start" }));
-    if !out.ring.is_empty() {
-        let _ = on_data.send(InvokeResponseBody::Raw(out.ring.clone()));
+    let send_raw = |data: &[u8]| {
+        if !data.is_empty() {
+            let _ = on_data.send(InvokeResponseBody::Raw(data.to_vec()));
+        }
+    };
+    match out.restored {
+        Some(r) => {
+            send_json(&on_data, json!({ "t": "replay-start", "cols": r.cols, "rows": r.rows }));
+            send_raw(&out.ring[..r.at]);
+            // the view draws the marker here, then calls pty_restored
+            send_json(&on_data, json!({ "t": "restored", "token": token }));
+            send_raw(&out.ring[r.at..]);
+        }
+        None => {
+            send_json(&on_data, json!({ "t": "replay-start" }));
+            send_raw(&out.ring);
+        }
     }
     send_json(&on_data, json!({ "t": "replay-end" }));
     let alive = session.alive.load(Ordering::SeqCst);
@@ -457,6 +498,26 @@ pub fn pty_attach(
     let cwd = session.cwd.lock().clone();
     let exit_code = *session.exit_code.lock();
     Ok(AttachInfo { token, alive, spawned, pid: session.pid, cwd, exit_code })
+}
+
+/// A view drew the "restored session" marker (and the resets before it) where the old
+/// session's output ends. The same bytes go into the ring there, so a later replay (in
+/// another window, or after the next restart) looks the way this view does now.
+#[tauri::command]
+pub fn pty_restored(mgr: State<'_, PtyManager>, pane_id: String, token: u64, data: String) {
+    if data.len() > 4096 {
+        return;
+    }
+    let s = mgr.sessions.lock().get(&pane_id).cloned();
+    let Some(s) = s else { return };
+    let mut out = s.out.lock();
+    if !matches!(&out.channel, Some((t, _)) if *t == token) {
+        return; // a newer view replays the old output again and marks it itself
+    }
+    if let Some(r) = out.restored.take() {
+        out.ring.splice(r.at..r.at, data.into_bytes());
+        s.dirty.store(true, Ordering::Relaxed);
+    }
 }
 
 /// Stop forwarding to a view. Ignored if another view attached since (token mismatch).
@@ -504,10 +565,7 @@ pub fn pty_kill(mgr: State<'_, PtyManager>, pane_id: String, forget: Option<bool
         s.out.lock().channel = None;
         if !forget {
             // restarting: remember where the shell was so the new one starts there
-            mgr.meta.lock().insert(
-                pane_id.clone(),
-                SessionMeta { cwd: s.cwd.lock().clone(), profile_id: Some(s.profile_id.clone()) },
-            );
+            mgr.meta.lock().insert(pane_id.clone(), s.meta());
         }
     }
     if forget {

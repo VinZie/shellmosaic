@@ -141,6 +141,7 @@ pub fn run() {
             state::state_get,
             state::state_commit,
             pty::pty_attach,
+            pty::pty_restored,
             pty::pty_detach,
             pty::pty_write,
             pty::pty_resize,

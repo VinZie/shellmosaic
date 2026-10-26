@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.1 — 2026-10-25
+
+### Fixed
+- A terminal restored after a restart no longer prints "restored session" and the new prompt
+  in the middle of the old output (for example inside Claude Code's last frame, which stayed
+  drawn below it). The marker now goes below everything the old session drew, and whatever its
+  program left switched on (mouse and focus reporting, bracketed paste, hidden cursor, scroll
+  region and more) is reset first.
+- Restored output is replayed at the size it was drawn at, so a pane that is now a different
+  size (or sits in a background tab) no longer shows leftover copies of redrawn frames.
+
 ## 0.3.0 — 2026-10-25
 
 ### Added

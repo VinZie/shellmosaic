@@ -29,6 +29,10 @@ export interface TermEntry {
   token: number | null;
   attaching: boolean;
   suppress: boolean;
+  /** a restored session's old output is being drawn (at the size it was drawn at before) */
+  replaying: boolean;
+  /** output held until the "restored session" marker is drawn (markRestored) */
+  held: PtyMessage[] | null;
   alive: boolean;
   visible: boolean;
   lastSize: { cols: number; rows: number };
@@ -84,11 +88,16 @@ function scheduleFit(e: TermEntry, delay = 30) {
 
 function fitNow(e: TermEntry) {
   openIfVisible(e);
-  if (!e.opened || !e.host.isConnected || e.host.clientWidth < 20 || e.host.clientHeight < 20) return;
-  try {
-    e.fit.fit();
-  } catch {
-    return;
+  // fitted once the old output and the marker below it are drawn (markRestored)
+  if (e.replaying) return;
+  // (a hidden terminal keeps its size, but the shell still follows it: a restored one
+  // in a background tab is as big as it was last time)
+  if (e.opened && e.host.isConnected && e.host.clientWidth >= 20 && e.host.clientHeight >= 20) {
+    try {
+      e.fit.fit();
+    } catch {
+      return;
+    }
   }
   const { cols, rows } = e.term;
   if (cols !== e.lastSize.cols || rows !== e.lastSize.rows) {
@@ -175,6 +184,8 @@ export function ensureTerm(paneId: string): TermEntry {
     token: null,
     attaching: false,
     suppress: false,
+    replaying: false,
+    held: null,
     alive: true,
     visible: false,
     lastSize: { cols: 0, rows: 0 },
@@ -325,23 +336,8 @@ async function startPty(e: TermEntry, restore: boolean) {
   channel.onmessage = (msg) => {
     // disposed (pane closed or handed to another window) until the detach lands
     if (entries.get(e.paneId) !== e) return;
-    if (msg instanceof ArrayBuffer) return onOutput(e, new Uint8Array(msg));
-    if (msg instanceof Uint8Array) return onOutput(e, msg);
-    if (Array.isArray(msg)) return onOutput(e, Uint8Array.from(msg));
-    switch (msg.t) {
-      case "replay-start":
-        e.suppress = true;
-        break;
-      case "replay-end":
-        // responses to queries inside the replay (e.g. cursor position) must not reach the shell
-        e.term.write("", () => {
-          e.suppress = false;
-        });
-        break;
-      case "exit":
-        onExit(e, msg.code ?? null);
-        break;
-    }
+    if (e.held) e.held.push(msg);
+    else onMessage(e, msg);
   };
   if (!e.lastSize.cols) {
     fitNow(e);
@@ -380,6 +376,76 @@ async function startPty(e: TermEntry, restore: boolean) {
   } finally {
     e.attaching = false;
   }
+}
+
+function onMessage(e: TermEntry, msg: PtyMessage) {
+  if (msg instanceof ArrayBuffer) return onOutput(e, new Uint8Array(msg));
+  if (msg instanceof Uint8Array) return onOutput(e, msg);
+  if (Array.isArray(msg)) return onOutput(e, Uint8Array.from(msg));
+  switch (msg.t) {
+    case "replay-start":
+      e.suppress = true;
+      // a restored session's old output replays at the size it was drawn at: drawn at
+      // another width, its cursor moves would land on the wrong lines
+      if (msg.cols && msg.rows) {
+        e.replaying = true;
+        e.term.resize(msg.cols, msg.rows);
+      }
+      break;
+    case "restored":
+      // the old session's output ends here; hold what follows until the marker is drawn
+      e.replaying = true;
+      e.held = [];
+      e.term.write("", () => markRestored(e, msg.token ?? null));
+      break;
+    case "replay-end":
+      // responses to queries inside the replay (e.g. cursor position) must not reach the shell
+      e.term.write("", () => {
+        e.suppress = false;
+      });
+      break;
+    case "exit":
+      onExit(e, msg.code ?? null);
+      break;
+  }
+}
+
+// What a restored session's program may have left switched on: synchronized output, mouse
+// reporting, then DECSTR (attributes, scroll region, hidden cursor, focus and paste reporting,
+// cursor-key and keypad modes, origin, wraparound, insert mode, charsets).
+const RESTORE_RESET = "\x1b[?2026l\x1b[?9l\x1b[?1000l\x1b[?1002l\x1b[?1003l\x1b[?1006l\x1b[?1016l\x1b[!p";
+const RESTORE_MARKER = "\x1b[2m── restored session ──\x1b[0m\r\n";
+
+/**
+ * The old output of a restored session is drawn. Reset what its program left switched on
+ * and print the marker below everything it drew: the cursor isn't necessarily there
+ * (Claude Code leaves it inside its frame, so the new prompt landed mid-screen with the
+ * old frame still drawn under it). Then the held output follows, at the pane's own size.
+ */
+function markRestored(e: TermEntry, token: number | null) {
+  if (entries.get(e.paneId) !== e) return;
+  // (?1049l outside the alternate screen would still move the cursor to a saved spot)
+  const reset = (e.term.buffer.active.type === "alternate" ? "\x1b[?1049l" : "") + RESTORE_RESET;
+  e.term.write(reset, () => {
+    if (entries.get(e.paneId) !== e) return;
+    const b = e.term.buffer.active;
+    let last = b.length - 1;
+    while (last >= 0 && !b.getLine(last)?.translateToString(true).trim()) last--;
+    // the line below the last one with text on it, or the cursor's if that's lower
+    const row = Math.max(last + 1, b.baseY + b.cursorY) - b.baseY;
+    const move = row < e.term.rows ? `\x1b[${row + 1};1H` : `\x1b[${e.term.rows};1H\r\n`;
+    const marker = move + RESTORE_MARKER;
+    e.term.write(marker, () => {
+      if (entries.get(e.paneId) !== e) return;
+      // the ring gets the same bytes, so the next replay of it looks like this one
+      if (token !== null) ipc.ptyRestored(e.paneId, token, reset + marker).catch(() => {});
+      e.replaying = false;
+      fitNow(e);
+      const held = e.held ?? [];
+      e.held = null;
+      for (const msg of held) onMessage(e, msg);
+    });
+  });
 }
 
 function onOutput(e: TermEntry, data: Uint8Array) {
