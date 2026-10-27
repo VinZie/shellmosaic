@@ -36,6 +36,7 @@ export type OpenModule =
   | { module: "processes"; filter?: string }
   | { module: "ports"; filter?: string }
   | { module: "files"; path?: string }
+  | { module: "git"; path?: string }
   | { module: `plugin:${string}`; args?: Record<string, unknown> };
 
 // ── process.inspect ─────────────────────────────────────────────────────
@@ -388,12 +389,241 @@ export interface QueryResult {
   returnedRows: boolean;
 }
 
+// ── agents (the Orchestrator; src-tauri/src/agents/proto.rs) ─────────────
+
+export type AgentRole = "lead" | "worker";
+/** starting → idle ⇄ working (waiting: a permission prompt is open); paused (Esc, process kept); stopped (no process); exited (ended on its own) */
+export type AgentState = "starting" | "idle" | "working" | "waiting" | "paused" | "stopped" | "exited";
+/** queued → assigned → working → review → done; failed / cancelled */
+export type TaskStatus = "queued" | "assigned" | "working" | "review" | "done" | "failed" | "cancelled";
+export type RequestStatus = "pending" | "allowed" | "denied" | "answered" | "closed";
+
+export interface AgentRun {
+  id: string;
+  /** the repository folder's name unless named */
+  name: string;
+  workspaceId: string;
+  /** the tab holding the agents' panes */
+  tabId: string | null;
+  /** repository root */
+  root: string;
+  /** the user's branch when the team started (approved work goes there) */
+  baseBranch: string | null;
+  status: "active" | "stopped";
+  leadId: string;
+  createdAt: number;
+}
+
+export interface Agent {
+  id: string;
+  runId: string;
+  role: AgentRole;
+  /** "lead", "w1", "w2", "w3" */
+  slot: string;
+  /** "Lead", "Worker 1", … */
+  name: string;
+  paneId: string;
+  /** what it was started with: "opus" | "sonnet" | "haiku" or a full model id */
+  model: string;
+  /** what its statusLine reports, e.g. "claude-sonnet-5-5" (null until it started) */
+  modelId: string | null;
+  effort: string;
+  sessionId: string;
+  transcript: string | null;
+  state: AgentState;
+  /** Unix ms */
+  stateSince: number;
+  taskId: string | null;
+  lastTaskId: string | null;
+  used: boolean;
+  /** its worktree (the repository root for the lead) */
+  cwd: string;
+  branch: string | null;
+  /** context window used, % */
+  contextPct: number | null;
+  costUsd: number | null;
+  pid: number | null;
+  /** its last reply (the text it ended its turn with) */
+  lastMessage: string | null;
+  createdAt: number;
+}
+
+export interface AgentTask {
+  /** "t1", "t2", … */
+  id: string;
+  runId: string;
+  title: string;
+  description: string;
+  /** 1–5; picks the model (Routing) */
+  difficulty: number;
+  status: TaskStatus;
+  /** agent id */
+  assignee: string | null;
+  followUpOf: string | null;
+  /** the model it ran on */
+  model: string | null;
+  branch: string | null;
+  /** the worker's report (complete_task) */
+  summary: string | null;
+  attempts: number;
+  /** times it failed, was blocked or sent back; from 2 on it runs one difficulty level up */
+  failures: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface AgentRequest {
+  /** "r1", "r2", … */
+  id: string;
+  runId: string;
+  agentId: string;
+  /** permission: a Claude Code permission prompt (the user's to answer); question: a worker's ask_lead */
+  kind: "permission" | "question";
+  /** Claude Code tool name ("Bash", "PowerShell", "Write", "mcp__…") */
+  tool: string | null;
+  /** one line: "run `cargo test`", "create C:\…\x.rs", or the question */
+  summary: string;
+  /** the tool's input (long strings shortened) */
+  detail: unknown;
+  /** Claude Code's own "don't ask again" rules; answering with always applies them for the session */
+  suggestions: unknown;
+  status: RequestStatus;
+  /** "you" | "lead" | "terminal" (settled in the agent's pane) | "timeout" | "cancelled" | "restart" (Shellmosaic restarted) | "stopped" (team stopped) | "removed" (agent removed) | "gone" (nothing was waiting for the answer any more) */
+  answeredBy: string | null;
+  answer: string | null;
+  createdAt: number;
+  answeredAt: number | null;
+}
+
+export interface AgentActivity {
+  seq: number;
+  /** Unix ms */
+  t: number;
+  runId: string;
+  agentId: string | null;
+  taskId: string | null;
+  /** "run.start" | "run.stop" | "agent.hired" | "agent.removed" | "agent.exited" | "agent.stopped" | "agent.interrupt" | "task.created" | "task.assigned" | "task.review" | "task.failed" | "task.blocked" | "task.done" | "task.rework" | "task.cancelled" | "task.undelivered" | "request" | "tool" | "progress" | "notice" */
+  kind: string;
+  text: string;
+  /** one of the events the lead is told about */
+  lead?: boolean;
+}
+
+export interface ModelChoice {
+  model: string;
+  /** "low" | "medium" | "high" | "xhigh" | "max" */
+  effort: string;
+}
+
+export interface Routing {
+  lead: ModelChoice;
+  /** by task difficulty 1–5 */
+  levels: ModelChoice[];
+  /** 1–3 */
+  maxWorkers: number;
+  maxOpusWorkers: number;
+  /** at this % of the 5-hour or weekly plan limit, workers get at most Sonnet */
+  sonnetAbove: number;
+  /** at this %, no new workers start */
+  noHireAbove: number;
+}
+
+export interface TaskDiff {
+  branch: string;
+  commits: number;
+  files: number;
+  added: number;
+  removed: number;
+  /** unified diff against orch/integration (at most ~400 KB) */
+  diff: string;
+  truncated: boolean;
+}
+
+export interface MergePreview {
+  /** the user's branch */
+  base: string;
+  /** "orch/integration" */
+  integration: string;
+  /** commits it would bring in (0: nothing to merge) */
+  commits: number;
+  files: string[];
+  added: number;
+  removed: number;
+  /** files that would conflict (merging is refused then) */
+  conflicts: string[];
+  /** files the merge changes that have uncommitted changes in the user's tree (refused then) */
+  dirtyOverlap: string[];
+  /** the branch the user's tree is on now (must be `base` to merge) */
+  current: string | null;
+}
+
+export interface AgentSnapshot {
+  /** bumped on every change (the "agents" event carries it) */
+  rev: number;
+  /** newest activity seq */
+  lastSeq: number;
+  runs: AgentRun[];
+  agents: Agent[];
+  tasks: AgentTask[];
+  requests: AgentRequest[];
+  /** plan usage the agents' statusLine last reported */
+  usage: { rateLimits: Record<string, { used_percentage?: number; resets_at?: number }>; at: number } | null;
+  routing: Routing;
+  /** Shellmosaic runs as administrator: no agent can start */
+  elevated: boolean;
+}
+
 // ── the SDK object ──────────────────────────────────────────────────────
 
 export interface ShellmosaicSdk {
   version: number;
   context(): Promise<PaneContext>;
-  on(event: "theme" | "cwd" | "visible", fn: (data: any) => void): () => void;
+  /** "agents": { rev } whenever the Orchestrator changed (needs agents.read) */
+  on(event: "theme" | "cwd" | "visible" | "agents", fn: (data: any) => void): () => void;
+  claude: {
+    /** plan limits of the signed-in Claude Code account (claude.usage) */
+    usage(): Promise<{ fetchedAt: number; plan: { subscription: string | null; tier: string | null }; usage: Record<string, unknown> }>;
+  };
+  /** agents.read: snapshot, activity, reveal; agents.manage: everything else */
+  agents: {
+    snapshot(): Promise<AgentSnapshot>;
+    /** entries after `after`, oldest first; `latest`: the newest `limit` of them (still oldest first) */
+    activity(opts?: { runId?: string; after?: number; limit?: number; latest?: boolean }): Promise<AgentActivity[]>;
+    /** show the agent's pane (switches workspace and tab) */
+    reveal(agentId: string): Promise<boolean>;
+    /** a team in this pane's workspace, working in the repository `cwd` (default: the pane's cwd) is in.
+     *  Fails with "not-a-repo: …" for a plain folder (offer gitInit) and "no-commits: …" for an empty repository. */
+    start(opts?: { cwd?: string; name?: string }): Promise<AgentRun>;
+    /** git init + everything committed */
+    gitInit(cwd: string): Promise<boolean>;
+    stopRun(runId: string): Promise<boolean>;
+    /** forget a stopped team (its branches stay in the repository) */
+    forgetRun(runId: string): Promise<boolean>;
+    hire(runId: string, opts?: { model?: string }): Promise<Agent>;
+    remove(agentId: string): Promise<boolean>;
+    /** start a stopped agent again (continuing its conversation), or un-pause it */
+    resume(agentId: string): Promise<boolean>;
+    /** Esc; pause keeps it stopped until resumed (its process ends after 30 min) */
+    interrupt(agentId: string, opts?: { pause?: boolean }): Promise<boolean>;
+    /** type a message into the agent's session (the lead: what the user wants done) */
+    send(agentId: string, text: string): Promise<boolean>;
+    answer(requestId: string, answer: { allow: boolean; always?: boolean; text?: string } | { text: string }): Promise<boolean>;
+    createTask(runId: string, task: { title: string; description: string; difficulty: number; followUpOf?: string }): Promise<AgentTask>;
+    /** a queued or failed task; `agentId` may also be a slot ("w2"): a free slot starts a new worker there.
+     *  Without it an idle worker is picked or a new one starts. Returns the worker's agent id. */
+    assign(taskId: string, agentId?: string): Promise<string>;
+    cancelTask(taskId: string): Promise<boolean>;
+    /** accept (merged into orch/integration) or send back with a note; returns what happened */
+    review(taskId: string, accept: boolean, note?: string): Promise<string>;
+    /** `base`: the routing it was edited from (fails if it changed meanwhile) */
+    setRouting(routing: Routing, base?: Routing): Promise<Routing>;
+    /** a task branch's changes against orch/integration */
+    taskDiff(taskId: string): Promise<TaskDiff>;
+    /** what merging orch/integration into the user's branch would do */
+    mergePreview(runId: string): Promise<MergePreview>;
+    /** the user approved it: merge orch/integration into their branch (their working tree must be on it) */
+    mergeToBase(runId: string): Promise<string>;
+  };
   storage: {
     get<T = unknown>(key: string): Promise<T | null>;
     set(key: string, value: unknown): Promise<boolean>;
@@ -408,6 +638,8 @@ export interface ShellmosaicSdk {
     confirm(title: string, message: string, opts?: { okLabel?: string; danger?: boolean }): Promise<boolean>;
     /** the system "Open" dialog; the chosen path or null */
     pickFile(opts?: { title?: string; filters?: FileFilter[] }): Promise<string | null>;
+    /** the folder picker; the chosen folder or null */
+    pickFolder(opts?: { title?: string }): Promise<string | null>;
     /** open another module next to this pane */
     openModule(target: OpenModule): Promise<boolean>;
     /** show a local file (C:\…) selected in Explorer */

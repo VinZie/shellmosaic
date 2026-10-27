@@ -61,6 +61,42 @@
       ]
     },
     {
+      "id": "orchestrator",
+      "name": "Orchestrator",
+      "version": "0.1.0",
+      "description": "Run a team of Claude Code agents: a lead splits the work into tasks for up to three workers, each in its own git worktree",
+      "icon": "bot",
+      "author": "Shellmosaic",
+      "permissions": [
+        "agents.read",
+        "agents.manage",
+        "claude.usage"
+      ],
+      "minAppVersion": "0.4.0",
+      "files": [
+        {
+          "path": "app.css",
+          "sha256": "6cd79dd974486d35754b421c551e523f58fc85bd79fb12fe9ba813044df43613",
+          "size": 27210
+        },
+        {
+          "path": "app.js",
+          "sha256": "7e1e1849f1157b40d47b67276bb16a3f72e011621b2e5ba7bfd5ea67cf5dccdd",
+          "size": 325655
+        },
+        {
+          "path": "index.html",
+          "sha256": "378808c4f65daceaa79430b1d2a2024250edfd3ba715b6fccc7e9a2fc85decd9",
+          "size": 353
+        },
+        {
+          "path": "manifest.json",
+          "sha256": "e70d98dde77bbe8afaa638a767e2a94292a4b7d35de85c9a9732b0d2327349fa",
+          "size": 381
+        }
+      ]
+    },
+    {
       "id": "process-inspector",
       "name": "Process Inspector",
       "version": "1.0.0",
