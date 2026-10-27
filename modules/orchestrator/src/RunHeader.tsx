@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Bot, CircleStop, Copy, Ellipsis, FolderOpen, GitBranch, GitMerge, Play, Send, Trash2 } from "lucide-react";
 import { Button, Chip, copy, cx, IconButton, openMenu, sm, type Agent, type AgentRun, type MenuItem, type Routing } from "../../shared";
 import { act, forgetTeam, resumeAgent, stopTeam } from "./actions";
-import { isBusy, isLive, type Usage } from "./lib";
+import { isBusy, isLive, TRUST_HINT, type Usage } from "./lib";
 import { openMerge } from "./Merge";
 import { UsageMeter } from "./parts";
 
@@ -13,12 +13,15 @@ export function RunHeader({
   lead,
   routing,
   usage,
+  leadTrusting,
   canManage,
   now,
   onBack,
 }: {
   run: AgentRun;
   lead: Agent | undefined;
+  /** the lead's trust prompt waits for an answer: nothing can be typed to it yet */
+  leadTrusting: boolean;
   routing: Routing;
   usage: Usage | null;
   canManage: boolean;
@@ -66,19 +69,19 @@ export function RunHeader({
           <Ellipsis size={15} />
         </IconButton>
       </div>
-      {active && <Composer lead={lead} canManage={canManage} />}
+      {active && <Composer lead={lead} trusting={leadTrusting} canManage={canManage} />}
     </div>
   );
 }
 
 /** Tell the lead what to do: the goal, a change of plan, an answer. */
-function Composer({ lead, canManage }: { lead: Agent | undefined; canManage: boolean }) {
+function Composer({ lead, trusting, canManage }: { lead: Agent | undefined; trusting: boolean; canManage: boolean }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
   const live = !!lead && isLive(lead);
   const send = async () => {
-    if (!lead || !text.trim() || busy) return;
+    if (!lead || !text.trim() || busy || trusting) return;
     setBusy(true);
     if (await act(() => sm.agents.send(lead.id, text.trim()), "Sent to the lead")) setText("");
     setBusy(false);
@@ -115,10 +118,12 @@ function Composer({ lead, canManage }: { lead: Agent | undefined; canManage: boo
         }}
       />
       <div className="orc-composer-side">
-        <Button small kind="primary" disabled={!text.trim() || busy} onClick={send} title="Ctrl+Enter">
+        <Button small kind="primary" disabled={!text.trim() || busy || trusting} onClick={send} title="Ctrl+Enter">
           <Send size={13} /> Send
         </Button>
-        <span className={cx("orc-composer-hint", isBusy(lead!) && "busy")}>{isBusy(lead!) ? "Working: it reads it next" : "Ctrl+Enter"}</span>
+        <span className={cx("orc-composer-hint", isBusy(lead!) && "busy")} title={trusting ? TRUST_HINT : undefined}>
+          {trusting ? "Trust its folder first" : isBusy(lead!) ? "Working: it reads it next" : "Ctrl+Enter"}
+        </span>
       </div>
     </div>
   );

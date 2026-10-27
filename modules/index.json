@@ -63,7 +63,7 @@
     {
       "id": "orchestrator",
       "name": "Orchestrator",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Run a team of Claude Code agents: a lead splits the work into tasks for up to three workers, each in its own git worktree",
       "icon": "bot",
       "author": "Shellmosaic",
@@ -76,13 +76,13 @@
       "files": [
         {
           "path": "app.css",
-          "sha256": "6cd79dd974486d35754b421c551e523f58fc85bd79fb12fe9ba813044df43613",
-          "size": 27210
+          "sha256": "116bfdab2b5eb3e78c19de5565bd7209edd79ed067de97507fc9f1b430ed8885",
+          "size": 27259
         },
         {
           "path": "app.js",
-          "sha256": "7e1e1849f1157b40d47b67276bb16a3f72e011621b2e5ba7bfd5ea67cf5dccdd",
-          "size": 325655
+          "sha256": "7139fd1871eed1d0e3616488c98f59bf8a1d0d5ebd90cbb10817c7cc52a9e5cf",
+          "size": 327508
         },
         {
           "path": "index.html",
@@ -91,7 +91,7 @@
         },
         {
           "path": "manifest.json",
-          "sha256": "e70d98dde77bbe8afaa638a767e2a94292a4b7d35de85c9a9732b0d2327349fa",
+          "sha256": "dd7b7791c81ad12ba1d4028ba9b17b933f183d923a03a60d4c33e482d816988c",
           "size": 381
         }
       ]

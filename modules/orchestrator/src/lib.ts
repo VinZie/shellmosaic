@@ -26,11 +26,22 @@ export const STATE_HINT: Record<AgentState, string> = {
   starting: "Claude Code is starting",
   idle: "Waiting for its next message or task",
   working: "In a turn (or running a long tool call)",
-  waiting: "A permission prompt is open: answer it in Requests or in its pane",
+  waiting: "A permission or trust prompt is open: answer it in Requests or in its pane",
   paused: "Interrupted by Pause; its session is kept (it ends after 30 minutes)",
   stopped: "No process: resume it to continue its conversation",
   exited: "Claude Code ended on its own",
 };
+
+/** The `tool` of a request that stands for Claude Code's folder trust prompt. */
+export const TRUST_TOOL = "Trust";
+/** Its trust prompt waits for an answer: nothing can be typed into it or interrupted until then. */
+export const trustPending = (snap: AgentSnapshot, a: Agent) => snap.requests.some((q) => q.agentId === a.id && q.status === "pending" && q.tool === TRUST_TOOL);
+export const TRUST_HINT = "Claude Code asks whether to trust its folder: answer in Requests or in its pane";
+
+/** Still starting after this long: it may be stuck on a screen in its pane (a sign-in, an update notice…). */
+const SLOW_START_MS = 20_000;
+export const slowStart = (a: Agent, now: number) => a.state === "starting" && now - a.stateSince >= SLOW_START_MS;
+export const SLOW_START_HINT = "Still starting after 20 s: look at its pane, Claude Code may be waiting for you there";
 
 export const TASK_LABEL: Record<TaskStatus, string> = {
   queued: "Queued",

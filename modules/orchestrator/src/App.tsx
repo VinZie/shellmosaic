@@ -27,7 +27,7 @@ import {
   type TabItem,
 } from "../../shared";
 import { useActivity, useNow, useSnapshot, useUsage } from "./data";
-import { errorKind, isLive, runAgents, runRequests, runTasks, STATE_LABEL, untilText, type Usage, type UsageWindow } from "./lib";
+import { errorKind, isLive, runAgents, runRequests, runTasks, STATE_LABEL, trustPending, untilText, type Usage, type UsageWindow } from "./lib";
 import { openMerge } from "./Merge";
 import { ALL_TABS, DEFAULT_PREFS, normalizePrefs, TAB_LABELS, type Prefs, type TabId } from "./prefs";
 import { RunHeader } from "./RunHeader";
@@ -229,7 +229,7 @@ function RunView({
   const stopped = run.status === "stopped";
   return (
     <>
-      <RunHeader run={run} lead={lead} routing={snap.routing} usage={usage} canManage={canManage} now={now} onBack={onBack} />
+      <RunHeader run={run} lead={lead} leadTrusting={!!lead && trustPending(snap, lead)} routing={snap.routing} usage={usage} canManage={canManage} now={now} onBack={onBack} />
       {stopped && (
         <Banner tone="info">
           This team was stopped{agents.length ? "" : " and its agents are gone"}. Its tasks, activity and branches are kept: merge what's on orch/integration, or start a new team to continue.

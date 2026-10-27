@@ -14,6 +14,7 @@ mod pipe;
 mod procs;
 pub mod proto;
 mod roles;
+mod startup;
 mod tools;
 mod transcript;
 mod worktree;
@@ -54,6 +55,9 @@ impl Host for TauriHost {
     }
     fn text(&self, pane_id: &str, max_bytes: usize) -> Option<String> {
         self.app.state::<PtyManager>().text_tail(pane_id, max_bytes)
+    }
+    fn screen(&self, pane_id: &str) -> Option<Vec<String>> {
+        self.app.state::<PtyManager>().screen_lines(pane_id, 256 << 10)
     }
     fn changed(&self, rev: u64) {
         let _ = self.app.emit("agents://changed", rev);

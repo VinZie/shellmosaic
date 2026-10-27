@@ -18,7 +18,7 @@ import {
   type Column,
 } from "../../../shared";
 import { agentMenu, interruptAgent, messageAgent, pauseAgent, removeWorker, resumeAgent, revealAgent, stopTeam } from "../actions";
-import { agentModel, isBusy, isLive, runAgents, STATE_LABEL, taskNum } from "../lib";
+import { agentModel, isBusy, isLive, runAgents, slowStart, SLOW_START_HINT, STATE_LABEL, taskNum, TRUST_HINT, trustPending } from "../lib";
 import { MasterDetails } from "../Master";
 import { AgentName, StateChip } from "../parts";
 import type { DetailsSide } from "../prefs";
@@ -55,7 +55,7 @@ export function AgentsTab({
   const columns = useMemo<Column<Agent>[]>(
     () => [
       { id: "name", label: "Agent", width: 130, render: (a) => <AgentName agent={a} />, text: (a) => a.name, sort: (a) => (a.role === "lead" ? "0" : a.slot) },
-      { id: "state", label: "State", width: 108, render: (a) => <StateChip state={a.state} />, text: (a) => STATE_LABEL[a.state], sort: (a) => STATE_RANK[a.state] },
+      { id: "state", label: "State", width: 108, render: (a) => <StateChip state={a.state} slow={slowStart(a, now)} />, text: (a) => STATE_LABEL[a.state], sort: (a) => STATE_RANK[a.state] },
       { id: "model", label: "Model", width: 100, text: (a) => agentModel(a), sort: (a) => agentModel(a) },
       { id: "effort", label: "Effort", width: 70, text: (a) => a.effort, hidden: true },
       {
@@ -96,8 +96,8 @@ export function AgentsTab({
       selected={current ? [current.id] : []}
       onSelect={(keys) => onSelect((keys[0] as string) ?? null)}
       onOpen={(a) => isLive(a) && revealAgent(a)}
-      onContextMenu={(at, rows) => rows[0] && openMenu(at, agentMenu(rows[0], run, canManage, { onShowTask }))}
-      rowClass={(a) => a.state === "waiting" && "orc-row-attention"}
+      onContextMenu={(at, rows) => rows[0] && openMenu(at, agentMenu(rows[0], run, canManage, { onShowTask, trusting: trustPending(snap, rows[0]) }))}
+      rowClass={(a) => (a.state === "waiting" || slowStart(a, now)) && "orc-row-attention"}
       empty="No agents"
     />
   );
@@ -112,13 +112,15 @@ function AgentDetails({ agent: a, run, snap, canManage, onShowTask, now }: { age
   const lastTask = !task && a.lastTaskId ? snap.tasks.find((t) => t.id === a.lastTaskId) : undefined;
   const started = a.modelId && a.model && !a.modelId.toLowerCase().includes(a.model.toLowerCase()) ? ` (started as ${a.model})` : "";
   const manage = canManage && active;
+  const trusting = trustPending(snap, a);
+  const hint = trusting ? TRUST_HINT : slowStart(a, now) ? SLOW_START_HINT : null;
   return (
     <>
       <div className="orc-details-head">
         <AgentName agent={a} />
-        <StateChip state={a.state} />
+        <StateChip state={a.state} slow={slowStart(a, now)} />
         <span className="sm-grow" />
-        <IconButton title="More" onClick={(e) => openMenu(e.currentTarget, agentMenu(a, run, canManage, { onShowTask }))}>
+        <IconButton title="More" onClick={(e) => openMenu(e.currentTarget, agentMenu(a, run, canManage, { onShowTask, trusting }))}>
           <Ellipsis size={15} />
         </IconButton>
       </div>
@@ -131,7 +133,7 @@ function AgentDetails({ agent: a, run, snap, canManage, onShowTask, now }: { age
             <Play size={13} /> Resume
           </Button>
         )}
-        {manage && isBusy(a) && (
+        {manage && isBusy(a) && !trusting && (
           <>
             <Button small onClick={() => interruptAgent(a)} title="Stop its current turn (Esc)">
               <Square size={12} /> Interrupt
@@ -141,7 +143,7 @@ function AgentDetails({ agent: a, run, snap, canManage, onShowTask, now }: { age
             </Button>
           </>
         )}
-        {manage && live && (
+        {manage && live && !trusting && (
           <Button small onClick={() => messageAgent(a)}>
             <MessageSquare size={13} /> Message…
           </Button>
@@ -159,6 +161,7 @@ function AgentDetails({ agent: a, run, snap, canManage, onShowTask, now }: { age
           ))}
       </Toolbar>
       <div className="sm-scroll sm-pad">
+        {hint && <p className="sm-warning-text orc-details-hint">{hint}.</p>}
         <Section title="Details">
           <KeyValues
             labelWidth={110}

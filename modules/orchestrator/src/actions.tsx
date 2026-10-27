@@ -60,7 +60,8 @@ export const pauseAgent = (a: Agent) => act(() => sm.agents.interrupt(a.id, { pa
 export const interruptAgent = (a: Agent) => act(() => sm.agents.interrupt(a.id));
 export const revealAgent = (a: Agent) => act(() => sm.agents.reveal(a.id));
 
-export function agentMenu(a: Agent, run: AgentRun, canManage: boolean, opts: { onShowTask?: (taskId: string) => void } = {}): MenuItem[] {
+/** `trusting`: its trust prompt waits for an answer (see `trustPending`). */
+export function agentMenu(a: Agent, run: AgentRun, canManage: boolean, opts: { onShowTask?: (taskId: string) => void; trusting?: boolean } = {}): MenuItem[] {
   const active = run.status === "active";
   const live = isLive(a);
   const items: MenuItem[] = [
@@ -71,11 +72,11 @@ export function agentMenu(a: Agent, run: AgentRun, canManage: boolean, opts: { o
   if (canManage && active) {
     items.push({ separator: true });
     if (!live || a.state === "paused") items.push({ label: "Resume", icon: <Play size={14} />, onSelect: () => resumeAgent(a) });
-    if (isBusy(a)) {
+    if (isBusy(a) && !opts.trusting) {
       items.push({ label: "Interrupt (Esc)", icon: <Square size={14} />, onSelect: () => interruptAgent(a) });
       items.push({ label: "Pause", icon: <Pause size={14} />, onSelect: () => pauseAgent(a) });
     }
-    items.push({ label: "Send a message…", icon: <MessageSquare size={14} />, disabled: !live, onSelect: () => messageAgent(a) });
+    items.push({ label: "Send a message…", icon: <MessageSquare size={14} />, disabled: !live || opts.trusting, onSelect: () => messageAgent(a) });
     items.push({ separator: true });
     items.push(
       a.role === "lead"

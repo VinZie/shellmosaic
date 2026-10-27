@@ -24,7 +24,7 @@ use tokio::sync::{mpsc, watch, Notify};
 use crate::paths::{safe_key, write_atomic, ErrStr};
 use crate::shells::{build_command, SpawnSpec};
 use crate::ssh::{self, TermIo};
-use crate::vt::{push_ring, strip_ansi, OscEvent, OscScanner};
+use crate::vt::{push_ring, strip_ansi, OscEvent, OscScanner, Screen};
 
 const DEFAULT_RING_BYTES: usize = 2 * 1024 * 1024;
 
@@ -455,6 +455,20 @@ impl PtyManager {
             out.ring[out.ring.len().saturating_sub(max_bytes)..].to_vec()
         };
         Some(strip_ansi(&tail))
+    }
+
+    /// A session's screen as it is now, rebuilt from its last `max_bytes` of output at its
+    /// current size (exact for a session whose whole output fits, such as one just started).
+    pub fn screen_lines(&self, pane_id: &str, max_bytes: usize) -> Option<Vec<String>> {
+        let s = self.sessions.lock().get(pane_id).cloned()?;
+        let tail = {
+            let out = s.out.lock();
+            out.ring[out.ring.len().saturating_sub(max_bytes)..].to_vec()
+        };
+        let (cols, rows) = *s.size.lock();
+        let mut screen = Screen::new(cols, rows);
+        screen.feed(&tail);
+        Some(screen.lines())
     }
 }
 

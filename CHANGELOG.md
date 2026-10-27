@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.1 — 2026-10-27
+
+### Fixed
+- **Orchestrator** (with the Orchestrator module 0.1.1): a team started in a folder Claude Code
+  hadn't been trusted in stayed "Starting" forever. Claude Code was waiting on its "Do you trust
+  this folder?" prompt in the lead's pane, and it loads the agents' hooks only after that is
+  answered (a trusted parent folder doesn't count). Shellmosaic now spots the prompt: the agent
+  shows "Needs you", and Requests asks you to trust the folder (it picks "Yes, I trust this
+  folder" in the pane for you) or to stop the team. Until it's answered, messages and
+  Interrupt/Pause are held back instead of being typed into the prompt (Enter there means "No,
+  exit"). An agent still starting after 20 seconds for any other reason is flagged, with a hint
+  to look at its pane.
+
 ## 0.4.0 — 2026-10-26
 
 ### Added

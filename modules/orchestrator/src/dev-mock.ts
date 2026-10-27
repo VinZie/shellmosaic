@@ -4,7 +4,7 @@
 // requests, and an earlier stopped team. A ticker moves the work along: tool calls, tasks
 // finishing and being accepted, new prompts, a request that times out.
 //
-// URL: ?scenario=empty|team|merge|requests  ?usage=85|96  ?nousage  ?deny=agents.manage
+// URL: ?scenario=empty|team|merge|requests|trust|slow  ?usage=85|96  ?nousage  ?deny=agents.manage
 //      ?app=0.3.0  ?elevated  ?conflict  ?dirty  ?branch (repo on another branch)  ?still (no ticker)  ?light
 import type {
   Agent,
@@ -215,6 +215,18 @@ function seed() {
   log(old.id, null, null, "run.stop", "Stopped the team", false, NOW - 22 * HOUR);
 
   if (SCENARIO === "empty") return;
+
+  if (SCENARIO === "trust" || SCENARIO === "slow") {
+    // a team just started in a folder Claude Code doesn't trust yet, or one slow to start
+    const run: AgentRun = { id: "5d0c4b", name: "research", workspaceId: "dev", tabId: "tab-team", root: "C:\\Users\\dev\\src\\research", baseBranch: "master", status: "active", leadId: "5d0c4b-lead", createdAt: NOW - 40_000 };
+    W.runs.push(run);
+    const lead = agent(run, "lead", "opus", null, "high", SCENARIO === "trust" ? "waiting" : "starting", { contextPct: null, costUsd: null, used: false, stateSince: NOW - 30_000 });
+    W.agents.push(lead);
+    log(run.id, lead.id, null, "run.start", `Started the team in ${run.root}`, false, run.createdAt);
+    if (SCENARIO === "trust") req(run, lead, "permission", "Trust", `trust the folder ${run.root}`, { folder: run.root }, false, NOW - 28_000);
+    else log(run.id, lead.id, null, "agent.slow", "Lead hasn't started after 20 s. Look at its pane: Claude Code may be waiting for you there.", false, NOW - 10_000);
+    return;
+  }
 
   const run: AgentRun = { id: "7f3e9a", name: "shellmosaic", workspaceId: "dev", tabId: "tab-team", root: ROOT, baseBranch: "main", status: "active", leadId: "7f3e9a-lead", createdAt: NOW - 2 * HOUR };
   W.runs.push(run);
@@ -621,7 +633,12 @@ export function install() {
         r.answer = ans.always ? "always" : ans.text ?? null;
         r.answeredAt = Date.now();
         const a = W.agents.find((x) => x.id === r.agentId);
-        if (a?.state === "waiting") a.state = "working";
+        if (a && r.tool === "Trust") {
+          // trusted: the session starts; not trusted: the team stops
+          if (ans.allow) (a.state = "idle"), (a.stateSince = Date.now());
+          else for (const x of W.agents.filter((x) => x.runId === a.runId)) x.state = "stopped";
+          if (!ans.allow) find(W.runs, a.runId, "run").status = "stopped";
+        } else if (a?.state === "waiting") a.state = "working";
         return true;
       }),
     createTask: (runId: string, t: { title: string; description: string; difficulty: number; followUpOf?: string }) =>
@@ -735,9 +752,10 @@ export function install() {
 
   // the stand-in grants nothing by default; this module's manifest asks for these
   const granted = ["agents.read", "agents.manage", "claude.usage"].filter((p) => !denied.includes(p));
-  const args = SCENARIO === "merge" ? { open: "merge" } : SCENARIO === "requests" ? { tab: "requests" } : null;
+  const onRequests = SCENARIO === "requests" || SCENARIO === "trust";
+  const args = SCENARIO === "merge" ? { open: "merge" } : onRequests ? { tab: "requests" } : null;
   const sdk = window.shellmosaic as unknown as { ready: Promise<PaneContext>; context: () => Promise<PaneContext>; on: (e: string, fn: (d: unknown) => void) => () => void };
-  const patch = <T extends PaneContext>(c: T): T => ({ ...c, grantedPermissions: granted, args, appVersion: APP, cwd: ROOT, state: SCENARIO === "requests" ? { tab: "requests" } : c.state });
+  const patch = <T extends PaneContext>(c: T): T => ({ ...c, grantedPermissions: granted, args, appVersion: APP, cwd: ROOT, state: onRequests ? { tab: "requests" } : c.state });
   sdk.ready = sdk.ready.then(patch);
   const context = sdk.context;
   sdk.context = () => context().then(patch);

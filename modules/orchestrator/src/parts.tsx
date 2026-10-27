@@ -1,11 +1,12 @@
 // Small pieces the views share: state chips, difficulty, the usage meter.
 import { Bot, Crown } from "lucide-react";
 import { Chip, cx, formatAgo, type Agent, type AgentState, type Routing, type TaskStatus } from "../../shared";
-import { DIFFICULTY_LABEL, STATE_HINT, STATE_LABEL, STATE_TONE, TASK_LABEL, TASK_TONE, untilText, usageLevel, type Usage, type UsageWindow } from "./lib";
+import { DIFFICULTY_LABEL, SLOW_START_HINT, STATE_HINT, STATE_LABEL, STATE_TONE, TASK_LABEL, TASK_TONE, untilText, usageLevel, type Usage, type UsageWindow } from "./lib";
 
-export function StateChip({ state }: { state: AgentState }) {
+/** `slow`: it has been starting for a while (see `slowStart`). */
+export function StateChip({ state, slow }: { state: AgentState; slow?: boolean }) {
   return (
-    <Chip tone={STATE_TONE[state]} title={STATE_HINT[state]}>
+    <Chip tone={slow ? "warning" : STATE_TONE[state]} title={slow ? SLOW_START_HINT : STATE_HINT[state]}>
       <span className={cx("orc-dot", `orc-dot-${state}`)} />
       {STATE_LABEL[state]}
     </Chip>

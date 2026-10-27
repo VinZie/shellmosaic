@@ -21,7 +21,7 @@ use super::launch::{self, Launch};
 use super::mcp::{BoxFut, CallCtx, ToolHost, ToolOutput};
 use super::pipe::Gate;
 use super::proto::*;
-use super::{procs, roles, tools, worktree};
+use super::{procs, roles, startup, tools, worktree};
 use crate::paths::write_atomic;
 
 pub const MAX_WORKERS: usize = 3;
@@ -32,6 +32,12 @@ const PAUSE_KILL: Duration = Duration::from_secs(30 * 60);
 const QUESTION_WAIT: Duration = Duration::from_secs(20 * 60);
 /// Lead events are batched this long before they're typed into an idle lead's pane.
 const NUDGE_DELAY: Duration = Duration::from_millis(2500);
+/// An agent still starting after this long may be stuck on a screen in its pane: the user hears about it.
+const SLOW_START: Duration = Duration::from_secs(20);
+/// How long a starting agent's pane is watched for Claude Code's trust prompt.
+const START_WATCH: Duration = Duration::from_secs(10 * 60);
+/// The `tool` of the request that stands for Claude Code's folder trust prompt.
+pub const TRUST_TOOL: &str = "Trust";
 
 /// What the Orchestrator needs from the app.
 pub trait Host: Send + Sync + 'static {
@@ -44,6 +50,8 @@ pub trait Host: Send + Sync + 'static {
     fn running(&self, pane_id: &str) -> Option<u32>;
     /// The session's recent output as plain text.
     fn text(&self, pane_id: &str, max_bytes: usize) -> Option<String>;
+    /// The session's screen as it is now, line by line.
+    fn screen(&self, pane_id: &str) -> Option<Vec<String>>;
     /// Something changed (the UI re-reads the snapshot).
     fn changed(&self, rev: u64);
     fn panes(&self, req: PaneRequest);
@@ -730,7 +738,119 @@ impl Core {
                 set_state(a, AgentState::Starting);
             }
         });
+        self.watch_start(&agent.id, pid);
         Ok(())
+    }
+
+    /// Until the agent's session starts, watch its pane for Claude Code's trust prompt (no
+    /// hook runs before it's answered): the user answers it in Requests. Tell the user when
+    /// it's slow to start for another reason (a sign-in, an update notice…).
+    fn watch_start(&self, agent_id: &str, pid: Option<u32>) {
+        let me = self.arc();
+        let id = agent_id.to_string();
+        self.rt.spawn(async move {
+            let since = tokio::time::Instant::now();
+            let mut told = false;
+            while since.elapsed() < START_WATCH {
+                tokio::time::sleep(Duration::from_millis(500)).await;
+                let Ok(a) = me.agent(&id) else { return };
+                if a.state != AgentState::Starting || a.pid != pid {
+                    return;
+                }
+                if me.host.screen(&a.pane_id).and_then(|s| startup::trust_prompt(&s)).is_some() {
+                    me.clone().ask_trust(&a).await;
+                    // (the pane takes a moment to move on after the answer)
+                    tokio::time::sleep(Duration::from_secs(3)).await;
+                    continue;
+                }
+                if !told && since.elapsed() >= SLOW_START {
+                    told = true;
+                    let text = format!("{} hasn't started after {} s. Look at its pane: Claude Code may be waiting for you there.", a.name, SLOW_START.as_secs());
+                    me.edit(|st| st.log(&a.run_id, Some(&a.id), None, "agent.slow", text.clone(), false));
+                    me.host.notice(&text, "warning");
+                }
+            }
+        });
+    }
+
+    /// Claude Code asks whether to trust the agent's folder: a request for the user. Allow
+    /// picks "Yes, I trust this folder" in the pane; Deny stops the team (or removes the
+    /// worker), which can't work there otherwise. Answering in the pane works too.
+    async fn ask_trust(self: Arc<Self>, agent: &Agent) {
+        let (tx, mut rx) = oneshot::channel();
+        let summary = format!("trust the folder {}", agent.cwd);
+        let q = self.new_request(agent, RequestKind::Permission, Some(TRUST_TOOL.into()), summary, Some(json!({ "folder": agent.cwd })), None, false);
+        self.answers.lock().insert(q.id.clone(), tx);
+        self.host.attention(&q, &agent.name);
+        let answer = loop {
+            tokio::select! {
+                a = &mut rx => break a.ok(),
+                _ = tokio::time::sleep(Duration::from_millis(500)) => {}
+            }
+            if !self.st.lock().requests.iter().any(|x| x.id == q.id && x.status == RequestStatus::Pending) {
+                // answered (the answer is on its way) or closed (it never comes)
+                break (&mut rx).await.ok();
+            }
+            let shown = self.agent(&agent.id).is_ok_and(|a| a.state == AgentState::Waiting && a.pid == agent.pid)
+                && self.host.screen(&agent.pane_id).and_then(|s| startup::trust_prompt(&s)).is_some();
+            if !shown {
+                // answered in the pane, or the agent is gone
+                self.close_request(&q.id, "terminal");
+                self.edit(|st| {
+                    if let Some(a) = st.agent_mut(&agent.id).filter(|a| a.state == AgentState::Waiting) {
+                        set_state(a, AgentState::Starting);
+                    }
+                });
+                return;
+            }
+        };
+        match answer {
+            Some(Answer::Allow | Answer::AllowAlways) => {
+                if let Err(e) = self.choose_trust(&agent.pane_id).await {
+                    let text = format!("Couldn't answer {}'s trust prompt ({e}). Answer it in its pane.", agent.name);
+                    self.edit(|st| st.log(&agent.run_id, Some(&agent.id), None, "agent.trust", text.clone(), false));
+                    self.host.notice(&text, "warning");
+                }
+            }
+            Some(Answer::Deny(_)) => {
+                let a = agent.clone();
+                let me = self.clone();
+                self.rt.spawn_blocking(move || {
+                    let r = if a.role == Role::Lead { me.stop_run(&a.run_id) } else { me.remove_agent(&a.id) };
+                    if let Err(e) = r {
+                        me.host.notice(&e, "error");
+                    }
+                });
+            }
+            _ => {}
+        }
+    }
+
+    /// Pick "Yes, I trust this folder" in the pane's trust prompt: down to it, and Enter only
+    /// once the screen shows it selected (Enter on "No, exit" ends the session).
+    async fn choose_trust(&self, pane: &str) -> Result<(), String> {
+        let selected = || self.host.screen(pane).and_then(|s| startup::trust_prompt(&s)).map(|p| p.yes_selected);
+        for attempt in 0..4 {
+            match selected() {
+                None => return Err("it isn't showing any more".into()),
+                Some(true) => return self.host.write(pane, "\r"),
+                Some(false) if attempt == 3 => break,
+                Some(false) => {}
+            }
+            self.host.write(pane, startup::DOWN)?;
+            for _ in 0..10 {
+                tokio::time::sleep(Duration::from_millis(100)).await;
+                if selected() != Some(false) {
+                    break;
+                }
+            }
+        }
+        Err("\"Yes, I trust this folder\" didn't get selected".into())
+    }
+
+    /// The agent's trust prompt waits for the user (see `ask_trust`).
+    fn trust_pending(&self, agent_id: &str) -> bool {
+        self.st.lock().requests.iter().any(|q| q.agent_id == agent_id && q.status == RequestStatus::Pending && q.tool.as_deref() == Some(TRUST_TOOL))
     }
 
     /// End an agent's process tree (marked stopped first, so its exit isn't reported as a crash).
@@ -812,6 +932,10 @@ impl Core {
         let a = self.agent(agent_id)?;
         if self.host.running(&a.pane_id).is_none() {
             return Err(format!("{} isn't running.", a.name));
+        }
+        if self.trust_pending(agent_id) {
+            // (Esc there means "no": Claude Code would exit)
+            return Err(format!("{} is waiting for you to trust its folder: answer that in Requests first.", a.name));
         }
         self.host.write(&a.pane_id, "\x1b")?;
         // (an interrupted turn fires no Stop hook)
@@ -1201,6 +1325,10 @@ impl Core {
     /// The user (or the lead) writes to an agent.
     pub async fn send(&self, agent_id: &str, text: &str) -> Result<(), String> {
         let a = self.agent(agent_id)?;
+        if self.trust_pending(agent_id) {
+            // (typing there would answer it: Enter is "No, exit")
+            return Err(format!("{} is waiting for you to trust its folder: answer that in Requests first.", a.name));
+        }
         if a.state == AgentState::Starting {
             self.ready(agent_id, Duration::from_secs(120)).await?;
         }
@@ -1445,7 +1573,8 @@ impl Core {
             }
             if let Some(a) = st.agent_mut(&q.agent_id) {
                 if a.state == AgentState::Waiting {
-                    set_state(a, AgentState::Working);
+                    // (the trust prompt comes before the session: it's still starting)
+                    set_state(a, if q.tool.as_deref() == Some(TRUST_TOOL) { AgentState::Starting } else { AgentState::Working });
                 }
             }
         });

@@ -188,6 +188,243 @@ pub fn percent_decode(s: &str) -> String {
     String::from_utf8_lossy(&out).into_owned()
 }
 
+/// What a terminal shows, rebuilt from its output: enough of what ConPTY sends (text,
+/// cursor moves, erases, scrolling) to read a full-screen prompt. One cell per character;
+/// no colors, attributes or scrollback.
+pub struct Screen {
+    cols: usize,
+    rows: usize,
+    cells: Vec<Vec<char>>,
+    x: usize,
+    y: usize,
+    /// the last column was written: the next character goes on a new line
+    wrap: bool,
+    saved: (usize, usize),
+}
+
+impl Screen {
+    pub fn new(cols: u16, rows: u16) -> Self {
+        let (cols, rows) = (cols.max(1) as usize, rows.max(1) as usize);
+        Self { cols, rows, cells: vec![vec![' '; cols]; rows], x: 0, y: 0, wrap: false, saved: (0, 0) }
+    }
+
+    /// The screen's lines, without trailing spaces.
+    pub fn lines(&self) -> Vec<String> {
+        self.cells.iter().map(|r| r.iter().collect::<String>().trim_end().to_string()).collect()
+    }
+
+    pub fn feed(&mut self, data: &[u8]) {
+        let text = String::from_utf8_lossy(data);
+        let mut chars = text.chars().peekable();
+        while let Some(c) = chars.next() {
+            match c {
+                '\x1b' => match chars.next() {
+                    Some('[') => {
+                        let mut params = String::new();
+                        for n in chars.by_ref() {
+                            if ('@'..='~').contains(&n) {
+                                self.csi(&params, n);
+                                break;
+                            }
+                            params.push(n);
+                        }
+                    }
+                    Some(']') | Some('P') | Some('_') | Some('^') => {
+                        while let Some(n) = chars.next() {
+                            if n == '\x07' {
+                                break;
+                            }
+                            if n == '\x1b' && chars.peek() == Some(&'\\') {
+                                chars.next();
+                                break;
+                            }
+                        }
+                    }
+                    Some(' '..='/') => {
+                        for n in chars.by_ref() {
+                            if !(' '..='/').contains(&n) {
+                                break;
+                            }
+                        }
+                    }
+                    Some('7') => self.saved = (self.x, self.y),
+                    Some('8') => {
+                        (self.x, self.y) = self.saved;
+                        self.wrap = false;
+                    }
+                    Some('D') => self.linefeed(),
+                    Some('E') => {
+                        self.x = 0;
+                        self.linefeed();
+                    }
+                    Some('M') => self.reverse_index(),
+                    Some('c') => *self = Self::new(self.cols as u16, self.rows as u16),
+                    _ => {}
+                },
+                '\r' => {
+                    self.x = 0;
+                    self.wrap = false;
+                }
+                '\n' | '\x0b' | '\x0c' => self.linefeed(),
+                '\x08' => {
+                    self.x = self.x.saturating_sub(1);
+                    self.wrap = false;
+                }
+                '\t' => {
+                    self.x = ((self.x / 8 + 1) * 8).min(self.cols - 1);
+                    self.wrap = false;
+                }
+                c if c.is_control() => {}
+                c => self.print(c),
+            }
+        }
+    }
+
+    fn print(&mut self, c: char) {
+        if self.wrap {
+            self.x = 0;
+            self.linefeed();
+        }
+        self.cells[self.y][self.x] = c;
+        if self.x + 1 < self.cols {
+            self.x += 1;
+        } else {
+            self.wrap = true;
+        }
+    }
+
+    fn linefeed(&mut self) {
+        self.wrap = false;
+        if self.y + 1 < self.rows {
+            self.y += 1;
+        } else {
+            self.scroll_up(1);
+        }
+    }
+
+    fn reverse_index(&mut self) {
+        self.wrap = false;
+        if self.y > 0 {
+            self.y -= 1;
+        } else {
+            self.scroll_down(1);
+        }
+    }
+
+    fn scroll_up(&mut self, n: usize) {
+        let (n, cols) = (n.min(self.rows), self.cols);
+        self.cells.drain(..n);
+        self.cells.extend((0..n).map(|_| vec![' '; cols]));
+    }
+
+    fn scroll_down(&mut self, n: usize) {
+        let (n, cols) = (n.min(self.rows), self.cols);
+        self.cells.truncate(self.rows - n);
+        for _ in 0..n {
+            self.cells.insert(0, vec![' '; cols]);
+        }
+    }
+
+    fn clear(&mut self, y: usize, from: usize, to: usize) {
+        let to = to.min(self.cols);
+        for x in from.min(to)..to {
+            self.cells[y][x] = ' ';
+        }
+    }
+
+    fn csi(&mut self, params: &str, f: char) {
+        if params.starts_with(['?', '>', '<', '=']) {
+            // private modes: only the alternate screen matters (it starts out blank)
+            if (f == 'h' || f == 'l') && params[1..].split(';').any(|p| matches!(p, "47" | "1047" | "1049")) {
+                for y in 0..self.rows {
+                    self.clear(y, 0, self.cols);
+                }
+            }
+            return;
+        }
+        let nums: Vec<usize> = params.split(';').map(|p| p.parse().unwrap_or(0)).collect();
+        let arg = |i: usize| nums.get(i).copied().unwrap_or(0);
+        let n = arg(0).max(1);
+        let (cols, rows) = (self.cols, self.rows);
+        match f {
+            'H' | 'f' => {
+                self.y = (arg(0).max(1) - 1).min(rows - 1);
+                self.x = (arg(1).max(1) - 1).min(cols - 1);
+            }
+            'A' => self.y = self.y.saturating_sub(n),
+            'B' | 'e' => self.y = (self.y + n).min(rows - 1),
+            'C' | 'a' => self.x = (self.x + n).min(cols - 1),
+            'D' => self.x = self.x.saturating_sub(n),
+            'E' => {
+                self.y = (self.y + n).min(rows - 1);
+                self.x = 0;
+            }
+            'F' => {
+                self.y = self.y.saturating_sub(n);
+                self.x = 0;
+            }
+            'G' | '`' => self.x = (n - 1).min(cols - 1),
+            'd' => self.y = (n - 1).min(rows - 1),
+            'J' => match arg(0) {
+                0 => {
+                    self.clear(self.y, self.x, cols);
+                    for y in self.y + 1..rows {
+                        self.clear(y, 0, cols);
+                    }
+                }
+                1 => {
+                    for y in 0..self.y {
+                        self.clear(y, 0, cols);
+                    }
+                    self.clear(self.y, 0, self.x + 1);
+                }
+                _ => {
+                    for y in 0..rows {
+                        self.clear(y, 0, cols);
+                    }
+                }
+            },
+            'K' => match arg(0) {
+                0 => self.clear(self.y, self.x, cols),
+                1 => self.clear(self.y, 0, self.x + 1),
+                _ => self.clear(self.y, 0, cols),
+            },
+            'X' => self.clear(self.y, self.x, self.x + n),
+            '@' => {
+                let (x, row) = (self.x, &mut self.cells[self.y]);
+                for _ in 0..n.min(cols - x) {
+                    row.pop();
+                    row.insert(x, ' ');
+                }
+            }
+            'P' => {
+                let (x, row) = (self.x, &mut self.cells[self.y]);
+                for _ in 0..n.min(cols - x) {
+                    row.remove(x);
+                    row.push(' ');
+                }
+            }
+            'L' => {
+                for _ in 0..n.min(rows - self.y) {
+                    self.cells.pop();
+                    self.cells.insert(self.y, vec![' '; cols]);
+                }
+            }
+            'M' => {
+                for _ in 0..n.min(rows - self.y) {
+                    self.cells.remove(self.y);
+                    self.cells.push(vec![' '; cols]);
+                }
+            }
+            'S' => self.scroll_up(n),
+            'T' => self.scroll_down(n),
+            // colors and the rest: nothing to draw
+            _ => return,
+        }
+        self.wrap = false;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -245,5 +482,28 @@ mod tests {
     fn strips_escapes() {
         assert_eq!(strip_ansi(b"\x1b[31mred\x1b[0m \x1b]0;t\x07ok\r\n"), "red ok\n");
         assert_eq!(strip_ansi(b"\x1b(Bplain\x1b)0"), "plain");
+    }
+
+    #[test]
+    fn screen_draws_what_conpty_sends() {
+        // ConPTY's way: absolute positions, cursor-forward for spaces, then diffs
+        let mut s = Screen::new(40, 6);
+        s.feed(b"\x1b[?25l\x1b]0;claude\x07\x1b[38;2;1;2;3m\x1b[1;1H>\x1b[1CNo\x1b[m\x1b[2;3HYes,\x1b[1CI\x1b[1Ctrust");
+        assert_eq!(s.lines()[..2], ["> No", "  Yes, I trust"]);
+        s.feed(b"\x1b[1;1H \x1b[2;1H>");
+        assert_eq!(s.lines()[..2], ["  No", "> Yes, I trust"]);
+    }
+
+    #[test]
+    fn screen_wraps_scrolls_and_erases() {
+        let mut s = Screen::new(5, 2);
+        s.feed(b"abcdefg");
+        assert_eq!(s.lines(), ["abcde", "fg"]);
+        s.feed(b"\r\nxy");
+        assert_eq!(s.lines(), ["fg", "xy"]);
+        s.feed(b"\x1b[1;2H\x1b[K\x1b[2;1H\x1b[1P");
+        assert_eq!(s.lines(), ["f", "y"]);
+        s.feed(b"\x1b[2J");
+        assert_eq!(s.lines(), ["", ""]);
     }
 }

@@ -1,7 +1,7 @@
-// What the agents are waiting for: permission prompts (yours to answer, here or in the
-// agent's pane) and workers' questions (the lead's, though you can answer too).
+// What the agents are waiting for: permission and folder trust prompts (yours to answer,
+// here or in the agent's pane) and workers' questions (the lead's, though you can answer too).
 import { useMemo, useState } from "react";
-import { Check, CheckCheck, CircleHelp, Eye, ShieldQuestion, X } from "lucide-react";
+import { Check, CheckCheck, CircleHelp, CircleStop, Eye, ShieldQuestion, UserMinus, X } from "lucide-react";
 import {
   Button,
   Chip,
@@ -22,7 +22,7 @@ import {
   type Tone,
 } from "../../../shared";
 import { act, revealAgent } from "../actions";
-import { runAgents, runRequests } from "../lib";
+import { runAgents, runRequests, TRUST_TOOL } from "../lib";
 import { AgentName } from "../parts";
 
 const STATUS: Record<RequestStatus, [string, Tone | undefined]> = {
@@ -32,6 +32,8 @@ const STATUS: Record<RequestStatus, [string, Tone | undefined]> = {
   answered: ["Answered", "success"],
   closed: ["Closed", "dim"],
 };
+
+const kindText = (q: AgentRequest) => (q.tool === TRUST_TOOL ? "Trust" : q.kind === "permission" ? "Permission" : "Question");
 
 /** Who settled it, in words. */
 function byText(q: AgentRequest): string {
@@ -74,7 +76,7 @@ export function RequestsTab({ snap, run, canManage, now }: { snap: AgentSnapshot
     () => [
       { id: "id", label: "#", width: 50, mono: true, text: (q) => q.id, sort: (q) => Number(q.id.slice(1)) },
       { id: "who", label: "Agent", width: 96, text: (q) => nameOf(q.agentId), sort: (q) => nameOf(q.agentId) },
-      { id: "kind", label: "Kind", width: 90, text: (q) => (q.kind === "permission" ? "Permission" : "Question"), sort: (q) => q.kind },
+      { id: "kind", label: "Kind", width: 90, text: kindText, sort: kindText },
       { id: "summary", label: "Request", width: 300, text: (q) => q.summary },
       { id: "status", label: "Result", width: 92, render: (q) => <Chip tone={STATUS[q.status][1]}>{STATUS[q.status][0]}</Chip>, text: (q) => STATUS[q.status][0], sort: (q) => q.status },
       { id: "by", label: "By", width: 140, text: byText, sort: byText },
@@ -92,7 +94,7 @@ export function RequestsTab({ snap, run, canManage, now }: { snap: AgentSnapshot
           <div className="orc-pending-none">
             <CheckCheck size={18} />
             <span>Nothing is waiting for you.</span>
-            <span className="sm-dim">Permission prompts and workers' questions show up here (and in the agent's pane) when they come.</span>
+            <span className="sm-dim">Permission and folder trust prompts and workers' questions show up here (and in the agent's pane) when they come.</span>
           </div>
         ) : (
           <Section title={`Waiting (${pending.length})`} className="orc-pending-section">
@@ -124,6 +126,9 @@ function Detail({ req }: { req: AgentRequest }) {
   const d = (req.detail ?? {}) as Record<string, unknown>;
   const s = (k: string) => (typeof d[k] === "string" ? (d[k] as string) : "");
   if (req.kind === "question") return <div className="orc-prose sm-selectable orc-question">{req.summary}</div>;
+  if (req.tool === TRUST_TOOL) {
+    return <div className="sm-dim orc-req-desc">Claude Code asks this once per folder, before the agent's session starts. Trusting it lets the agents read, edit and run files there.</div>;
+  }
   if ((req.tool === "Bash" || req.tool === "PowerShell") && s("command")) {
     return (
       <>
@@ -217,7 +222,28 @@ function RequestCard({ req: q, agent, canAnswer, now }: { req: AgentRequest; age
       <Detail req={q} />
       {permission ? (
         canAnswer ? (
-          denying ? (
+          q.tool === TRUST_TOOL ? (
+            <div className="orc-req-actions">
+              <Button small kind="primary" disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: true }))} title="Picks “Yes, I trust this folder” in its pane">
+                <Check size={13} /> Trust folder
+              </Button>
+              {agent?.role === "worker" ? (
+                <Button small disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: false }))} title="Its task goes back to the queue">
+                  <UserMinus size={13} /> Remove worker
+                </Button>
+              ) : (
+                <Button small disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: false }))} title="The team can't work in a folder Claude Code doesn't trust">
+                  <CircleStop size={13} /> Stop team
+                </Button>
+              )}
+              <span className="sm-grow" />
+              {agent && (
+                <Button small kind="subtle" onClick={() => revealAgent(agent)} title="Its pane shows the same prompt: answering there works too">
+                  <Eye size={13} /> Show pane
+                </Button>
+              )}
+            </div>
+          ) : denying ? (
             <div className="orc-req-actions">
               <input
                 className="sm-input orc-req-note"
