@@ -11,16 +11,17 @@ import { getVersion } from "@tauri-apps/api/app";
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { errorText, ipc } from "../../lib/ipc";
+import { errorText, ipc, type Routing } from "../../lib/ipc";
 import { isPlainObject } from "../../lib/util";
-import { addModule, runInNewTerminal, sendToTerminal, setPaneMeta } from "../../state/actions";
+import { addModule, focusPane, runInNewTerminal, sendToTerminal, setPaneMeta, switchTab, switchWorkspace } from "../../state/actions";
 import { useModules } from "../registry";
 import { restartApp } from "../../state/moduleStore";
 import { commandForEvent } from "../../state/commands";
 import { leaves, type Side } from "../../state/layout";
-import { workspaceOfTab } from "../../state/model";
+import { tabOfPane, workspaceOfTab } from "../../state/model";
 import { settings, updateSettings, useSettings } from "../../state/settings";
 import { getState } from "../../state/store";
+import { useAgents } from "../../state/agents";
 import { activeTheme, pluginThemeVars, useThemes } from "../../state/themes";
 import { ui, useUi, type Dialog, type Toast } from "../../state/ui";
 
@@ -95,6 +96,27 @@ const METHOD_PERMISSION: Record<string, string | null> = {
   "sqlite.setWritable": "sqlite",
   "sqlite.interrupt": "sqlite",
   "sqlite.close": "sqlite",
+  "agents.snapshot": "agents.read",
+  "agents.activity": "agents.read",
+  "agents.reveal": "agents.read",
+  "agents.start": "agents.manage",
+  "agents.gitInit": "agents.manage",
+  "agents.stopRun": "agents.manage",
+  "agents.forgetRun": "agents.manage",
+  "agents.hire": "agents.manage",
+  "agents.remove": "agents.manage",
+  "agents.resume": "agents.manage",
+  "agents.interrupt": "agents.manage",
+  "agents.send": "agents.manage",
+  "agents.answer": "agents.manage",
+  "agents.createTask": "agents.manage",
+  "agents.assign": "agents.manage",
+  "agents.cancelTask": "agents.manage",
+  "agents.review": "agents.manage",
+  "agents.setRouting": "agents.manage",
+  "agents.taskDiff": "agents.read",
+  "agents.mergePreview": "agents.read",
+  "agents.mergeToBase": "agents.manage",
   "storage.get": null,
   "storage.set": null,
   "storage.all": null,
@@ -104,6 +126,7 @@ const METHOD_PERMISSION: Record<string, string | null> = {
   // the user answers these themselves: a dialog, a file picker, a pane opening next to the plugin
   "ui.confirm": null,
   "ui.pickFile": null,
+  "ui.pickFolder": null,
   "ui.openModule": null,
   "ui.reveal": null,
   "app.info": null,
@@ -201,6 +224,18 @@ function install() {
   window.addEventListener("message", onWindowMessage);
   watchTheme();
 }
+
+/** An event for every ready plugin pane that declared and was granted `perm`. */
+function pushToGranted(perm: string, event: string, data: unknown) {
+  for (const s of sessions) {
+    if (s.ready && s.info.permissions.includes(perm) && grantedPermissions(s.info.pluginId).includes(perm)) push(s, event, data);
+  }
+}
+
+// the Orchestrator changed: modules that show it fetch what they need
+useAgents.subscribe((s, prev) => {
+  if (s.snap && s.snap.rev !== prev.snap?.rev) pushToGranted("agents.read", "agents", { rev: s.snap.rev });
+});
 
 function push(s: Internal, event: string, data: unknown) {
   if (s.disposed) return;
@@ -496,9 +531,9 @@ async function openModule(info: SessionInfo, p: Params): Promise<boolean> {
     await addModule(module, { ...near, meta: { filter: (optStr(p, "filter") ?? "").slice(0, 200) || null } });
     return true;
   }
-  if (module === "files") {
+  if (module === "files" || module === "git") {
     const path = p.path === undefined || p.path === null ? undefined : localPath(p, "path");
-    await addModule("files", { ...near, meta: path ? { path, follow: false } : undefined });
+    await addModule(module, { ...near, meta: path ? { path, follow: false } : undefined });
     return true;
   }
   if (PLUGIN_MODULE.test(module)) {
@@ -674,6 +709,10 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
       const picked = await open({ multiple: false, directory: false, title: optStr(p, "title")?.slice(0, 120), filters });
       return typeof picked === "string" ? picked : null;
     }
+    case "ui.pickFolder": {
+      const picked = await open({ multiple: false, directory: true, title: optStr(p, "title")?.slice(0, 120) });
+      return typeof picked === "string" ? picked : null;
+    }
     case "ui.openModule":
       return openModule(info, p);
     case "ui.reveal":
@@ -767,6 +806,93 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
     case "sqlite.close":
       await ipc.sqliteClose(info.paneId, reqInt(p, "db"));
       return true;
+
+    case "agents.snapshot":
+      return ipc.agentsSnapshot();
+    case "agents.activity":
+      return ipc.agentsActivity(
+        optStr(p, "runId") ?? null,
+        p.after === undefined ? undefined : reqInt(p, "after", 0, Number.MAX_SAFE_INTEGER),
+        optInt(p, "limit", 1, 2000, 500),
+        optBool(p, "latest"),
+      );
+    case "agents.reveal":
+      return revealAgent(reqStr(p, "agentId"));
+    case "agents.start": {
+      const ws = workspaceOfTab(getState().model, info.tabId);
+      if (!ws) throw new Error("the module's pane isn't in a workspace");
+      const cwd = p.cwd === undefined || p.cwd === null ? info.cwd : localPath(p, "cwd");
+      if (!cwd) throw new Error("open it next to a terminal in your repository, or pick the folder");
+      return ipc.agentsStart(ws.id, cwd, optStr(p, "name")?.slice(0, 80) ?? null);
+    }
+    case "agents.gitInit":
+      await ipc.agentsGitInit(localPath(p, "cwd"));
+      return true;
+    case "agents.stopRun":
+      await ipc.agentsStopRun(reqStr(p, "runId"));
+      return true;
+    case "agents.forgetRun":
+      await ipc.agentsForgetRun(reqStr(p, "runId"));
+      return true;
+    case "agents.hire":
+      return ipc.agentsHire(reqStr(p, "runId"), optStr(p, "model") ?? null);
+    case "agents.remove":
+      await ipc.agentsRemove(reqStr(p, "agentId"));
+      return true;
+    case "agents.resume":
+      await ipc.agentsResume(reqStr(p, "agentId"));
+      return true;
+    case "agents.interrupt":
+      await ipc.agentsInterrupt(reqStr(p, "agentId"), optBool(p, "pause") ?? false);
+      return true;
+    case "agents.send": {
+      const text = reqStr(p, "text");
+      if (!text.trim() || text.length > 100_000) throw new Error('"text" must be 1–100000 characters');
+      await ipc.agentsSend(reqStr(p, "agentId"), text);
+      return true;
+    }
+    case "agents.answer":
+      await ipc.agentsAnswer(reqStr(p, "requestId"), { allow: optBool(p, "allow"), always: optBool(p, "always"), text: optStr(p, "text") });
+      return true;
+    case "agents.createTask":
+      return ipc.agentsTaskCreate(reqStr(p, "runId"), {
+        title: reqStr(p, "title"),
+        description: optStr(p, "description") ?? "",
+        difficulty: reqInt(p, "difficulty", 1, 5),
+        followUpOf: optStr(p, "followUpOf") ?? null,
+      });
+    case "agents.assign":
+      return ipc.agentsTaskAssign(reqStr(p, "taskId"), optStr(p, "agentId") ?? null);
+    case "agents.cancelTask":
+      await ipc.agentsTaskCancel(reqStr(p, "taskId"));
+      return true;
+    case "agents.review":
+      return ipc.agentsTaskReview(reqStr(p, "taskId"), optBool(p, "accept") ?? false, optStr(p, "note"));
+    case "agents.setRouting": {
+      if (!isPlainObject(p.routing) || !fitsIn(p.routing, 16 * 1024)) throw new Error('"routing" must be a routing object');
+      const base = isPlainObject(p.base) ? (p.base as unknown as Routing) : null;
+      return ipc.agentsSetRouting(p.routing as unknown as Routing, base);
+    }
+    case "agents.taskDiff":
+      return ipc.agentsTaskDiff(reqStr(p, "taskId"));
+    case "agents.mergePreview":
+      return ipc.agentsMergePreview(reqStr(p, "runId"));
+    case "agents.mergeToBase":
+      return ipc.agentsMergeBase(reqStr(p, "runId"));
   }
   throw new Error(`unknown method: ${method}`);
+}
+
+/** Show an agent's pane: its workspace, tab and the pane itself. */
+async function revealAgent(agentId: string): Promise<boolean> {
+  const agent = useAgents.getState().snap?.agents.find((a) => a.id === agentId);
+  if (!agent) throw new Error("there's no such agent");
+  const m = getState().model;
+  const tab = tabOfPane(m, agent.paneId);
+  const ws = tab ? workspaceOfTab(m, tab.id) : undefined;
+  if (!tab || !ws) throw new Error(`${agent.name}'s pane isn't open`);
+  await switchWorkspace(ws.id);
+  switchTab(tab.id);
+  focusPane(agent.paneId);
+  return true;
 }

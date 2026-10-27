@@ -39,7 +39,7 @@ export function CommandPalette() {
 
   const items = useMemo<Item[]>(() => {
     if (!open) return [];
-    const moduleItems: Item[] = Object.values(modules).map((m) => ({
+    const moduleItems: Item[] = Object.values(modules).filter((m) => !m.hidden).map((m) => ({
       id: `mod:${m.id}`,
       title: m.name,
       category: m.plugin ? "Plugin module" : "Module",

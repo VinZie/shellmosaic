@@ -1,4 +1,5 @@
 // Built-in modules. Third-party modules are plugins (see ./plugin/loader.ts).
+import { agentModule } from "./agent/AgentPane";
 import { filesModule } from "./files/FilesPane";
 import { gitModule } from "./git/GitPane";
 import { hostsModule } from "./hosts/HostsPane";
@@ -27,5 +28,6 @@ export function registerBuiltinModules() {
     portsModule,
     tasksModule,
     logsModule,
+    agentModule,
   ].forEach(registerModule);
 }

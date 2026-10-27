@@ -71,7 +71,9 @@ fn repo_risks(cwd: &str) -> Vec<String> {
             || n == "gpg.program"
             || (n.starts_with("gpg.") && last == "program")
             || (n.starts_with("filter.") && matches!(last, "clean" | "smudge" | "process"))
-            || (n.starts_with("diff.") && matches!(last, "textconv" | "command"));
+            || (n.starts_with("diff.") && matches!(last, "textconv" | "command"))
+            // the Orchestrator merges agents' branches
+            || (n.starts_with("merge.") && last == "driver");
         if risky {
             out.push(format!("{name} = {}", value.chars().take(200).collect::<String>()));
         }
@@ -115,6 +117,16 @@ fn checked_root(app: &AppHandle, cwd: &str) -> Result<String, String> {
         Ok(root)
     } else {
         Err(UNTRUSTED.into())
+    }
+}
+
+/// Shellmosaic may run git in the repository at `root` (the Orchestrator's worktrees and merges).
+pub(crate) fn check_trusted(app: &AppHandle, root: &Path) -> Result<(), String> {
+    let root = root.to_string_lossy();
+    if app.state::<GitTrust>().trusts(&root, &repo_risks(&root)) {
+        Ok(())
+    } else {
+        Err(format!("{UNTRUSTED} (open a Git pane in {root})"))
     }
 }
 

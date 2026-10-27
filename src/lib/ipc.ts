@@ -28,7 +28,131 @@ export interface SpawnSpec {
   freshEnv: boolean;
   /** a saved SSH host's id: a remote shell instead of a local one */
   ssh?: string | null;
+  /** an Orchestrator agent's pane: the Orchestrator starts its terminal, the view only attaches */
+  agent?: string | null;
 }
+
+// ── Orchestrator (src-tauri/src/agents/proto.rs) ─────────────────────────
+
+export type AgentRole = "lead" | "worker";
+export type AgentState = "starting" | "idle" | "working" | "waiting" | "paused" | "stopped" | "exited";
+export type TaskStatus = "queued" | "assigned" | "working" | "review" | "done" | "failed" | "cancelled";
+export type RequestStatus = "pending" | "allowed" | "denied" | "answered" | "closed";
+
+export interface AgentRun {
+  id: string;
+  name: string;
+  workspaceId: string;
+  tabId: string | null;
+  root: string;
+  baseBranch: string | null;
+  status: "active" | "stopped";
+  leadId: string;
+  createdAt: number;
+}
+
+export interface Agent {
+  id: string;
+  runId: string;
+  role: AgentRole;
+  slot: string;
+  name: string;
+  paneId: string;
+  model: string;
+  modelId: string | null;
+  effort: string;
+  sessionId: string;
+  transcript: string | null;
+  state: AgentState;
+  stateSince: number;
+  taskId: string | null;
+  lastTaskId: string | null;
+  used: boolean;
+  cwd: string;
+  branch: string | null;
+  contextPct: number | null;
+  costUsd: number | null;
+  pid: number | null;
+  lastMessage: string | null;
+  createdAt: number;
+}
+
+export interface AgentTask {
+  id: string;
+  runId: string;
+  title: string;
+  description: string;
+  difficulty: number;
+  status: TaskStatus;
+  assignee: string | null;
+  followUpOf: string | null;
+  model: string | null;
+  branch: string | null;
+  summary: string | null;
+  attempts: number;
+  failures: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface AgentRequest {
+  id: string;
+  runId: string;
+  agentId: string;
+  kind: "permission" | "question";
+  tool: string | null;
+  summary: string;
+  detail: unknown;
+  suggestions: unknown;
+  status: RequestStatus;
+  answeredBy: string | null;
+  answer: string | null;
+  createdAt: number;
+  answeredAt: number | null;
+}
+
+export interface AgentActivity {
+  seq: number;
+  t: number;
+  runId: string;
+  agentId: string | null;
+  taskId: string | null;
+  kind: string;
+  text: string;
+  lead?: boolean;
+}
+
+export interface ModelChoice {
+  model: string;
+  effort: string;
+}
+
+export interface Routing {
+  lead: ModelChoice;
+  /** by difficulty 1–5 */
+  levels: ModelChoice[];
+  maxWorkers: number;
+  maxOpusWorkers: number;
+  sonnetAbove: number;
+  noHireAbove: number;
+}
+
+export interface AgentSnapshot {
+  rev: number;
+  lastSeq: number;
+  runs: AgentRun[];
+  agents: Agent[];
+  tasks: AgentTask[];
+  requests: AgentRequest[];
+  /** `{ rateLimits: { five_hour, seven_day }, at }` from the agents' statusLine */
+  usage: { rateLimits: Record<string, { used_percentage?: number; resets_at?: number }>; at: number } | null;
+  routing: Routing;
+  elevated: boolean;
+}
+
+export type AgentPaneRequest =
+  | { op: "add"; runId: string; workspaceId: string; tabId: string | null; paneId: string; agentId: string; title: string }
+  | { op: "remove"; paneId: string };
 
 export interface AttachInfo {
   token: number;
@@ -472,6 +596,32 @@ export const ipc = {
   sqliteSetWritable: (owner: string, id: number, writable: boolean) => invoke<unknown>("sqlite_set_writable", { owner, id, writable }),
   sqliteInterrupt: (owner: string, id: number) => invoke<void>("sqlite_interrupt", { owner, id }),
   sqliteClose: (owner: string, id: number) => invoke<void>("sqlite_close", { owner, id }),
+
+  // Orchestrator
+  agentsSnapshot: () => invoke<AgentSnapshot>("agents_snapshot"),
+  agentsActivity: (runId?: string | null, after?: number, limit?: number, latest?: boolean) =>
+    invoke<AgentActivity[]>("agents_activity", { runId, after, limit, latest }),
+  agentsStart: (workspaceId: string, cwd: string, name?: string | null) => invoke<AgentRun>("agents_start", { workspaceId, cwd, name }),
+  agentsGitInit: (cwd: string) => invoke<void>("agents_git_init", { cwd }),
+  agentsSetTab: (runId: string, tabId: string) => invoke<void>("agents_set_tab", { runId, tabId }),
+  agentsStopRun: (runId: string) => invoke<void>("agents_stop_run", { runId }),
+  agentsForgetRun: (runId: string) => invoke<void>("agents_forget_run", { runId }),
+  agentsHire: (runId: string, model?: string | null) => invoke<Agent>("agents_hire", { runId, model }),
+  agentsRemove: (agentId: string) => invoke<void>("agents_remove", { agentId }),
+  agentsResume: (agentId: string) => invoke<void>("agents_resume", { agentId }),
+  agentsInterrupt: (agentId: string, pause = false) => invoke<void>("agents_interrupt", { agentId, pause }),
+  agentsSend: (agentId: string, text: string) => invoke<void>("agents_send", { agentId, text }),
+  agentsAnswer: (requestId: string, a: { allow?: boolean; always?: boolean; text?: string }) =>
+    invoke<void>("agents_answer", { requestId, allow: a.allow, always: a.always, text: a.text }),
+  agentsTaskCreate: (runId: string, t: { title: string; description: string; difficulty: number; followUpOf?: string | null }) =>
+    invoke<AgentTask>("agents_task_create", { runId, title: t.title, description: t.description, difficulty: t.difficulty, followUpOf: t.followUpOf }),
+  agentsTaskAssign: (taskId: string, agentId?: string | null) => invoke<string>("agents_task_assign", { taskId, agentId }),
+  agentsTaskCancel: (taskId: string) => invoke<void>("agents_task_cancel", { taskId }),
+  agentsTaskReview: (taskId: string, accept: boolean, note?: string) => invoke<string>("agents_task_review", { taskId, accept, note }),
+  agentsSetRouting: (routing: Routing, base?: Routing | null) => invoke<Routing>("agents_set_routing", { routing, base }),
+  agentsTaskDiff: (taskId: string) => invoke<unknown>("agents_task_diff", { taskId }),
+  agentsMergePreview: (runId: string) => invoke<unknown>("agents_merge_preview", { runId }),
+  agentsMergeBase: (runId: string) => invoke<string>("agents_merge_base", { runId }),
 };
 
 export interface Rect {

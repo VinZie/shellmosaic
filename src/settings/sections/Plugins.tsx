@@ -27,6 +27,13 @@ export const PERMISSIONS: { id: string; icon: string; text: string; risky?: bool
   { id: "process.control", icon: "cpu", text: "Suspend and resume processes and threads, end threads, change priority and affinity", risky: true },
   { id: "eventlog.read", icon: "logs", text: "Read the Windows event logs" },
   { id: "sqlite", icon: "database", text: "Open SQLite databases on your computer and change them when you allow it", risky: true },
+  { id: "agents.read", icon: "bot", text: "See your Claude Code agents: tasks, activity, pending requests and terminal output" },
+  {
+    id: "agents.manage",
+    icon: "bot",
+    text: "Start, stop and instruct Claude Code agents. Agents run commands and change files on this computer using your Claude account",
+    risky: true,
+  },
 ];
 export const permInfo = (id: string) => PERMISSIONS.find((p) => p.id === id);
 const plainText = (v: unknown) => (typeof v === "string" || typeof v === "number" ? String(v) : undefined);
@@ -201,6 +208,8 @@ const API: [string, string, string?][] = [
   ["process.suspend / resume / setPriority / setAffinity, thread.*", "Control processes and threads", "process.control"],
   ["eventlog.channels / query / more / subscribe / poll", "Windows event logs (events as XML)", "eventlog.read"],
   ["sqlite.open / schema / query / setWritable", "SQLite databases, read-only unless made writable", "sqlite"],
+  ["agents.snapshot / activity / reveal", "The Orchestrator's teams: agents, tasks, requests and activity", "agents.read"],
+  ["agents.start / send / answer / createTask / assign / review …", "Run Orchestrator teams of Claude Code agents", "agents.manage"],
   ["ui.confirm / pickFile / openModule / reveal / setState", "Dialogs, file picker, open modules, per-pane state"],
   ["app.info() · app.restartAsAdmin()", "Version, elevation; relaunch as administrator (asks the user)"],
   ["storage.get / set / all", "Save the plugin's own data"],

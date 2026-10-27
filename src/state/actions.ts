@@ -10,6 +10,7 @@ import * as M from "./model";
 import type { Background, Id, PaneSpec } from "./model";
 import { defaultProfile } from "./profiles";
 import { settings, setSetting, updateSettings } from "./settings";
+import { agentOfPane, confirmAgentPanes } from "./agents";
 import { activeTab, commit, currentWorkspace, getState } from "./store";
 import { ui } from "./ui";
 
@@ -20,8 +21,11 @@ const model = () => getState().model;
 
 export function knownCwd(paneId: Id | null | undefined): string | undefined {
   if (!paneId) return undefined;
-  return ui.get().cwds[paneId] ?? (model().panes[paneId]?.meta.cwd as string | undefined);
+  return ui.get().cwds[paneId] ?? (model().panes[paneId]?.meta.cwd as string | undefined) ?? agentOfPane(paneId)?.cwd;
 }
+
+/** Every pane of these tabs. */
+const panesOfTabs = (tabIds: Id[]) => tabIds.flatMap((t) => leaves(model().tabs[t]?.root ?? null));
 
 /** Directory of the terminal the user is most likely "in" for this tab. */
 export function tabCwd(tabId?: Id): string | undefined {
@@ -100,6 +104,7 @@ export async function renameWorkspace(wsId: Id) {
 export async function deleteWorkspace(wsId: Id) {
   const ws = model().workspaces[wsId];
   if (!ws) return;
+  if (!(await confirmAgentPanes(panesOfTabs(ws.tabs)))) return;
   const ok = await ui.confirm(
     `Delete "${ws.name}"?`,
     `This closes its ${ws.tabs.length} tab${ws.tabs.length === 1 ? "" : "s"} and every shell running in them.`,
@@ -140,6 +145,7 @@ export async function duplicateWorkspace(wsId: Id) {
 export async function closeAllTabs(wsId: Id) {
   const ws = model().workspaces[wsId];
   if (!ws?.tabs.length) return;
+  if (!(await confirmAgentPanes(panesOfTabs(ws.tabs)))) return;
   const ok = await ui.confirm(`Close all tabs in "${ws.name}"?`, "Every shell in this workspace will be stopped.", {
     okLabel: "Close all",
     danger: true,
@@ -226,21 +232,25 @@ export function duplicateTab(tabId: Id) {
   commit((m) => M.duplicateTab(m, tabId, knownCwd));
 }
 
-export function closeTab(tabId: Id) {
-  commit((m) => M.closeTab(m, tabId));
+export async function closeTab(tabId: Id) {
+  if (!(await confirmAgentPanes(panesOfTabs([tabId])))) return;
+  await commit((m) => M.closeTab(m, tabId));
 }
 
 export async function closeOtherTabs(tabId: Id) {
   const ws = M.workspaceOfTab(model(), tabId);
   if (!ws) return;
-  await commit((m) => ws.tabs.filter((t) => t !== tabId && !m.tabs[t]?.pinned).forEach((t) => M.closeTab(m, t)));
+  const others = ws.tabs.filter((t) => t !== tabId && !model().tabs[t]?.pinned);
+  if (!(await confirmAgentPanes(panesOfTabs(others)))) return;
+  await commit((m) => others.forEach((t) => M.closeTab(m, t)));
 }
 
 export async function closeTabsToRight(tabId: Id) {
   const ws = M.workspaceOfTab(model(), tabId);
   if (!ws) return;
-  const right = ws.tabs.slice(ws.tabs.indexOf(tabId) + 1);
-  await commit((m) => right.filter((t) => !m.tabs[t]?.pinned).forEach((t) => M.closeTab(m, t)));
+  const right = ws.tabs.slice(ws.tabs.indexOf(tabId) + 1).filter((t) => !model().tabs[t]?.pinned);
+  if (!(await confirmAgentPanes(panesOfTabs(right)))) return;
+  await commit((m) => right.forEach((t) => M.closeTab(m, t)));
 }
 
 export function moveTabToWorkspace(tabId: Id, wsId: Id, index?: number) {
@@ -329,8 +339,9 @@ export function splitFocused(side: Side, moduleId = "terminal") {
   return splitPane(tab.focused, side, moduleId);
 }
 
-export function closePane(paneId: Id) {
-  commit((m) => M.closePane(m, paneId));
+export async function closePane(paneId: Id) {
+  if (!(await confirmAgentPanes([paneId]))) return;
+  await commit((m) => M.closePane(m, paneId));
 }
 
 export function closeFocusedPane() {
@@ -361,6 +372,8 @@ export function movePaneToTab(paneId: Id, tabId: Id) {
 export function changeModule(paneId: Id, moduleId: string) {
   const pane = model().panes[paneId];
   if (!pane || pane.module === moduleId) return;
+  // (its agent lives in the backend: removing it goes through the Orchestrator)
+  if (pane.module === "agent" && agentOfPane(paneId)) return ui.toast("An agent's pane can't become something else: close it to remove the agent.", "info");
   const cwd = knownCwd(paneId) ?? tabCwd();
   getModule(pane.module)?.onRemove?.(paneId, pane);
   commit((m) => M.changePaneModule(m, paneId, paneSpec(moduleId, {}, cwd)));

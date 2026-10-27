@@ -1,6 +1,7 @@
 // xterm.js instances live outside React so they survive layout changes: a pane
 // component only lends its DOM node; the terminal (and its PTY attachment) stays.
 import { Channel } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
@@ -34,6 +35,8 @@ export interface TermEntry {
   /** output held until the "restored session" marker is drawn (markRestored) */
   held: PtyMessage[] | null;
   alive: boolean;
+  /** the process this view is attached to */
+  pid?: number | null;
   visible: boolean;
   lastSize: { cols: number; rows: number };
   ro: ResizeObserver;
@@ -52,6 +55,12 @@ function paneOf(paneId: string): Pane | undefined {
 /** The saved SSH host a terminal pane connects to (none: a local shell). */
 export function sshHostOf(pane: Pane | undefined): string | null {
   const id = pane?.meta.ssh;
+  return typeof id === "string" && id ? id : null;
+}
+
+/** The Orchestrator agent an agent pane shows (its terminal belongs to the Orchestrator). */
+export function agentIdOf(pane: Pane | undefined): string | null {
+  const id = pane?.module === "agent" ? pane.meta.agentId : null;
   return typeof id === "string" && id ? id : null;
 }
 
@@ -275,13 +284,15 @@ function linkHandler(uri: string, paneId: string) {
   }
 }
 
-/** Input from the user; mirrored to every terminal in the tab when broadcast is on. */
+/** Input from the user; mirrored to every terminal in the tab when broadcast is on (never to agents). */
 function sendInput(paneId: string, data: string) {
   const broadcast = ui.get().broadcast;
-  if (Object.values(broadcast).some(Boolean)) {
-    const tab = tabOfPane(getState().model, paneId);
+  const model = getState().model;
+  if (Object.values(broadcast).some(Boolean) && model.panes[paneId]?.module !== "agent") {
+    const tab = tabOfPane(model, paneId);
     if (tab && broadcast[tab.id]) {
       for (const id of leaves(tab.root)) {
+        if (model.panes[id]?.module === "agent") continue;
         const other = entries.get(id);
         if (other?.alive && other.token !== null) ipc.ptyWrite(id, data).catch(() => {});
       }
@@ -345,8 +356,12 @@ async function startPty(e: TermEntry, restore: boolean) {
   const cols = e.term.cols || 80;
   const rows = e.term.rows || 24;
   const ssh = sshHostOf(pane);
+  const agent = agentIdOf(pane);
   try {
-    const spec = { ...spawnSpec(pane.meta.profile, pane.meta.cwd, restore), ssh };
+    // an agent's terminal is already running (or stopped): the view only attaches to it
+    const spec = agent
+      ? { profileId: "agent", command: "", args: [], kind: "custom", env: {}, cwd: null, shellIntegration: false, restore: false, freshEnv: true, ssh: null, agent }
+      : { ...spawnSpec(pane.meta.profile, pane.meta.cwd, restore), ssh };
     const info = await ipc.ptyAttach(e.paneId, spec, cols, rows, channel);
     // disposed meanwhile (maybe already replaced by a new entry for the same pane)
     if (entries.get(e.paneId) !== e) {
@@ -355,6 +370,7 @@ async function startPty(e: TermEntry, restore: boolean) {
     }
     e.token = info.token;
     e.alive = info.alive;
+    e.pid = info.pid;
     e.lastSize = { cols, rows };
     if (info.cwd) ui.setCwd(e.paneId, info.cwd);
     fitNow(e);
@@ -365,7 +381,9 @@ async function startPty(e: TermEntry, restore: boolean) {
       import("../../state/actions").then((a) => a.setPaneMeta(e.paneId, { run: null }));
     }
   } catch (err) {
-    if (ssh) {
+    if (agent && errorText(err) === "agent-stopped") {
+      e.term.write(`\x1b[2m[agent stopped — press Enter to resume it]\x1b[0m\r\n`);
+    } else if (ssh) {
       e.term.write(`\r\n\x1b[31mCould not connect: ${errorText(err)}\x1b[0m\r\n`);
       e.term.write(`\x1b[2mPress Enter to retry.\x1b[0m\r\n`);
     } else {
@@ -456,7 +474,9 @@ function onOutput(e: TermEntry, data: Uint8Array) {
 function onExit(e: TermEntry, code: number | null) {
   if (!e.alive && e.token === null) return;
   e.alive = false;
-  if (sshHostOf(paneOf(e.paneId))) {
+  if (agentIdOf(paneOf(e.paneId))) {
+    e.term.write(`\r\n\x1b[2m[Claude Code ended — press Enter to resume the agent]\x1b[0m\r\n`);
+  } else if (sshHostOf(paneOf(e.paneId))) {
     e.term.write(`\r\n\x1b[2m[connection closed — press Enter to reconnect]\x1b[0m\r\n`);
   } else {
     const codeText = code === null ? "" : ` with code ${code}`;
@@ -471,7 +491,19 @@ export async function restartTerm(paneId: string) {
   if (!e || e.attaching) return;
   // block a second restart (Enter pressed again, remount) while the old shell is being killed
   e.attaching = true;
-  await ipc.ptyKill(paneId, false).catch(() => {});
+  const agent = agentIdOf(paneOf(paneId));
+  if (agent) {
+    // the Orchestrator starts it again (continuing its conversation); then this view attaches
+    try {
+      await ipc.agentsResume(agent);
+    } catch (err) {
+      e.term.write(`\r\n\x1b[31m${errorText(err)}\x1b[0m\r\n`);
+      e.attaching = false;
+      return;
+    }
+  } else {
+    await ipc.ptyKill(paneId, false).catch(() => {});
+  }
   e.attaching = false;
   // closed or handed to another window meanwhile: don't spawn a shell for a disposed terminal
   if (entries.get(paneId) !== e) return;
@@ -544,6 +576,18 @@ function reapplyOptions() {
   }
 }
 
+// The Orchestrator started an agent's Claude Code again (a new model for a fresh task, a
+// resume): a view still showing the old session attaches to the new one.
+listen<{ paneId: string; pid?: number | null }>("pty://spawned", ({ payload }) => {
+  const e = entries.get(payload.paneId);
+  if (!e || e.attaching || (e.pid != null && e.pid === payload.pid)) return;
+  if (e.token !== null) ipc.ptyDetach(e.paneId, e.token).catch(() => {});
+  e.token = null;
+  e.alive = true;
+  e.term.write("\r\n\x1b[2m── Claude Code started again ──\x1b[0m\r\n");
+  startPty(e, false);
+});
+
 // live-apply settings, theme and per-pane overrides
 useSettings.subscribe(reapplyOptions);
 useThemes.subscribe(reapplyOptions);
@@ -552,7 +596,7 @@ useModel.subscribe((s) => {
   // hand terminals over when their workspace is shown by another window (or they're gone)
   for (const id of [...entries.keys()]) {
     const pane = s.model.panes[id];
-    if (!pane || pane.module !== "terminal") {
+    if (!pane || (pane.module !== "terminal" && pane.module !== "agent")) {
       disposeTerm(id);
       continue;
     }

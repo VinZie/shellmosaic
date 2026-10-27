@@ -158,7 +158,9 @@
       confirm: (title, message, opts = {}) => call("ui.confirm", { title, message, ...opts }),
       /** The Open dialog → a path or null. filters: [{ name, extensions: ["db"] }] */
       pickFile: (opts = {}) => call("ui.pickFile", opts),
-      /** Open a module next to this pane: { module: "processes" | "ports", filter } | { module: "files", path } | { module: "plugin:<id>", args } */
+      /** The folder picker → a path or null. */
+      pickFolder: (opts = {}) => call("ui.pickFolder", opts),
+      /** Open a module next to this pane: { module: "processes" | "ports", filter } | { module: "files" | "git", path } | { module: "plugin:<id>", args } */
       openModule: (target) => call("ui.openModule", target),
       /** Show a local file selected in Explorer. */
       reveal: (path) => call("ui.reveal", { path }),
@@ -210,6 +212,35 @@
       setWritable: (db, writable) => call("sqlite.setWritable", { db, writable }),
       interrupt: (db) => call("sqlite.interrupt", { db }),
       close: (db) => call("sqlite.close", { db }),
+    },
+    /**
+     * The Orchestrator: teams of Claude Code agents. Reading needs agents.read (and the
+     * "agents" event { rev } arrives on every change); everything else needs agents.manage.
+     */
+    agents: {
+      snapshot: () => call("agents.snapshot"),
+      activity: (opts = {}) => call("agents.activity", opts),
+      reveal: (agentId) => call("agents.reveal", { agentId }),
+      /** { cwd?, name? }: a team in this pane's workspace, in the repository cwd is in */
+      start: (opts = {}) => call("agents.start", opts),
+      gitInit: (cwd) => call("agents.gitInit", { cwd }),
+      stopRun: (runId) => call("agents.stopRun", { runId }),
+      forgetRun: (runId) => call("agents.forgetRun", { runId }),
+      hire: (runId, opts = {}) => call("agents.hire", { runId, ...opts }),
+      remove: (agentId) => call("agents.remove", { agentId }),
+      resume: (agentId) => call("agents.resume", { agentId }),
+      interrupt: (agentId, opts = {}) => call("agents.interrupt", { agentId, ...opts }),
+      send: (agentId, text) => call("agents.send", { agentId, text }),
+      /** { allow, always? } for permission requests, { text } for questions */
+      answer: (requestId, answer) => call("agents.answer", { requestId, ...answer }),
+      createTask: (runId, task) => call("agents.createTask", { runId, ...task }),
+      assign: (taskId, agentId) => call("agents.assign", { taskId, agentId }),
+      cancelTask: (taskId) => call("agents.cancelTask", { taskId }),
+      review: (taskId, accept, note) => call("agents.review", { taskId, accept, note }),
+      setRouting: (routing, base) => call("agents.setRouting", { routing, base }),
+      taskDiff: (taskId) => call("agents.taskDiff", { taskId }),
+      mergePreview: (runId) => call("agents.mergePreview", { runId }),
+      mergeToBase: (runId) => call("agents.mergeToBase", { runId }),
     },
   };
 

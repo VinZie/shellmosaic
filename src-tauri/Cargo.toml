@@ -1,9 +1,11 @@
 [package]
 name = "shellmosaic"
-version = "0.3.1"
+version = "0.4.0"
 description = "A modular, workspace-based terminal for Windows"
 edition = "2021"
 rust-version = "1.80"
+# src/bin/shellmosaic-agent.rs is the Orchestrator's hook/MCP shim; the app is this one
+default-run = "shellmosaic"
 
 [lib]
 name = "shellmosaic_lib"
@@ -32,7 +34,7 @@ trash = "5"
 tauri-plugin-single-instance = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
-tokio = { version = "1", features = ["sync", "time", "net", "fs", "io-util", "macros", "rt"] }
+tokio = { version = "1", features = ["sync", "time", "net", "fs", "io-util", "io-std", "macros", "rt"] }
 # SSH: ring instead of aws-lc-rs (no cmake/NASM needed on the MinGW toolchain)
 russh = { version = "0.64", default-features = false, features = ["ring", "rsa", "flate2"] }
 russh-sftp = "3"
@@ -68,6 +70,7 @@ windows-sys = { version = "0.61", features = [
   "Win32_System_Environment",
   "Win32_System_EventLog",
   "Win32_System_Memory",
+  "Win32_System_Pipes",
   "Win32_System_ProcessStatus",
   "Win32_System_Registry",
   "Win32_System_SystemInformation",

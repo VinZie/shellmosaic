@@ -16,6 +16,7 @@
     "core:window:allow-show",
     "core:window:allow-set-focus",
     "core:window:allow-set-title",
+    "core:window:allow-request-user-attention",
     "dialog:default",
     "opener:default",
     "opener:allow-reveal-item-in-dir",

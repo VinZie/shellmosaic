@@ -31,6 +31,8 @@ export interface ModuleDef {
   onRemove?: (paneId: Id, pane: Pane) => void;
   /** set for plugin modules */
   plugin?: { id: string; permissions: string[]; entry: string };
+  /** never offered to add (Orchestrator agent panes: only the Orchestrator creates them) */
+  hidden?: boolean;
 }
 
 interface Registry {
@@ -55,6 +57,7 @@ export function getModule(id: string): ModuleDef | undefined {
   return useModules.getState().modules[id];
 }
 
+/** The modules a user can add (hidden ones left out). */
 export function allModules(): ModuleDef[] {
-  return Object.values(useModules.getState().modules);
+  return Object.values(useModules.getState().modules).filter((m) => !m.hidden);
 }

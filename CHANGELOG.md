@@ -1,6 +1,20 @@
 # Changelog
 
-## 0.3.1 — 2026-10-25
+## 0.4.0 — 2026-10-26
+
+### Added
+- **Orchestrator** (optional module, needs this version): a lead Claude Code agent plans the work
+  and directs up to three worker agents, each a real Claude Code session in its own pane and its
+  own git worktree next to the repository. Tasks get a model by difficulty (Haiku, Sonnet, Opus),
+  within limits on the team's size, Opus use and your plan's usage. Workers commit on their own
+  branches; accepted work is merged into `orch/integration`, and into your branch only when you
+  approve it. Agents ask you before anything beyond editing their own worktree (answer in their
+  pane or in the module), never push, and don't run while Shellmosaic is elevated.
+- `shellmosaic-agent.exe`, installed next to Shellmosaic: Claude Code runs it for the agents'
+  hooks, status line and MCP tools, and it relays them to Shellmosaic over a named pipe that only
+  the agents' own processes can use.
+- Plugin permissions `agents.read` and `agents.manage`, and `shellmosaic.agents.*`, plus
+  `ui.pickFolder()` and Git panes in `ui.openModule()` for every plugin.
 
 ### Fixed
 - A terminal restored after a restart no longer prints "restored session" and the new prompt

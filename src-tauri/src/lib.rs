@@ -1,3 +1,4 @@
+mod agents;
 mod claude;
 mod config;
 mod env;
@@ -49,6 +50,9 @@ fn persist_all(app: &tauri::AppHandle) {
     if let Some(ptys) = app.try_state::<PtyManager>() {
         ptys.persist();
     }
+    if let Some(agents) = app.try_state::<agents::Agents>() {
+        agents.core.save();
+    }
 }
 
 pub fn run() {
@@ -96,6 +100,7 @@ pub fn run() {
             app.manage(ssh::Prompts::default());
             app.manage(sftp::SftpConns::default());
             app.manage(git::GitTrust::load(paths.root.join("trusted-repos.json")));
+            app.manage(agents::init(&handle, &paths));
             app.manage(paths);
             app.manage(store);
             app.manage(ptys);
@@ -254,6 +259,27 @@ pub fn run() {
             sftp::sftp_download,
             sftp::sftp_upload,
             sftp::sftp_cancel,
+            agents::agents_snapshot,
+            agents::agents_activity,
+            agents::agents_start,
+            agents::agents_git_init,
+            agents::agents_set_tab,
+            agents::agents_stop_run,
+            agents::agents_forget_run,
+            agents::agents_hire,
+            agents::agents_remove,
+            agents::agents_resume,
+            agents::agents_interrupt,
+            agents::agents_send,
+            agents::agents_answer,
+            agents::agents_task_create,
+            agents::agents_task_assign,
+            agents::agents_task_cancel,
+            agents::agents_task_review,
+            agents::agents_set_routing,
+            agents::agents_task_diff,
+            agents::agents_merge_preview,
+            agents::agents_merge_base,
             run_command,
             app_persist,
             app_restart,

@@ -7,6 +7,7 @@ import { registerBuiltinModules } from "./modules";
 import { loadPlugins } from "./modules/plugin/loader";
 import { paneSpec } from "./state/actions";
 import { createWorkspace, emptyModel, setWindowWorkspace, windowOfWorkspace, type Model } from "./state/model";
+import { startAgents } from "./state/agents";
 import { loadProfiles } from "./state/profiles";
 import { loadSettings, settings } from "./state/settings";
 import { getState, initModel, onPanesRemoved, useModel } from "./state/store";
@@ -49,6 +50,8 @@ async function boot() {
     }
   });
   await initModel(seed);
+  // (after the model: placing an agent's pane needs it)
+  await startAgents();
   const label = getCurrentWindow().label;
   if (label !== "main" && !getState().model.windows[label]) {
     await getCurrentWindow().close();

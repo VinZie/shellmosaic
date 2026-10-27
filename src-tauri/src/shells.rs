@@ -53,6 +53,9 @@ pub struct SpawnSpec {
     /// a saved SSH host's id: a remote shell instead of a local one (see ssh.rs)
     #[serde(default)]
     pub ssh: Option<String>,
+    /// an Orchestrator agent's pane: its terminal is started by the Orchestrator, not the view
+    #[serde(default)]
+    pub agent: Option<String>,
 }
 
 fn default_kind() -> String {

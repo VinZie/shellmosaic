@@ -51,6 +51,8 @@ export const COMMANDS: Command[] = [
   ...Array.from({ length: 9 }, (_, i) => ({
     id: `workspace.goto.${i + 1}`, title: `Go to workspace ${i + 1}`, category: "Workspaces", run: () => A.switchWorkspaceIndex(i),
   })),
+  { id: "orchestrator.open", title: "Orchestrator: teams of Claude Code agents", category: "Orchestrator", icon: "bot",
+    run: () => (getModule("plugin:orchestrator") ? A.addModule("plugin:orchestrator") : ui.openSettings("optional-modules")) },
   { id: "pane.splitRight", title: "Split right (terminal)", category: "Panes", icon: "columns-2", run: () => A.splitFocused("right") },
   { id: "pane.splitDown", title: "Split down (terminal)", category: "Panes", icon: "rows-2", run: () => A.splitFocused("bottom") },
   { id: "pane.close", title: "Close pane", category: "Panes", icon: "x", run: () => A.closeFocusedPane() },

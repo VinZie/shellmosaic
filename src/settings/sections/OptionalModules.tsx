@@ -51,6 +51,12 @@ async function install(m: CatalogEntry, update: boolean) {
       <p className="selectable" style={{ whiteSpace: "pre-line" }}>
         {permissionList(m.permissions)}
       </p>
+      {m.permissions.includes("agents.manage") && (
+        <p className="warn-text">
+          Its agents are Claude Code sessions on your account: they use your plan's usage, and they run commands and change files in the
+          repositories you start them in.
+        </p>
+      )}
       <p className="dim">It's downloaded and checked now, and {update ? "updated" : "installed"} the next time Shellmosaic starts. You can queue more modules and restart once.</p>
     </>,
     { okLabel: update ? "Update" : "Install" },

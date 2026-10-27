@@ -258,6 +258,8 @@ const PERMISSION_TEXT: Record<string, string> = {
   "process.control": "Suspend and resume processes and threads, change priority",
   "eventlog.read": "Read the Windows event logs",
   sqlite: "Open SQLite databases and change them when you allow it",
+  "agents.read": "See your Claude Code agents: tasks, activity, pending requests and terminal output",
+  "agents.manage": "Start, stop and instruct Claude Code agents. Agents run commands and change files on this computer using your Claude account",
 };
 
 function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissions" }> }) {
@@ -265,7 +267,7 @@ function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissio
     ui.closeDialog();
     d.resolve(ok);
   };
-  const risky = d.permissions.some((p) => ["shell.exec", "fs.write", "terminal.write", "terminal.run", "process.control", "sqlite"].includes(p));
+  const risky = d.permissions.some((p) => ["shell.exec", "fs.write", "terminal.write", "terminal.run", "process.control", "sqlite", "agents.manage"].includes(p));
   return (
     <Modal
       title={`Allow "${d.name}"?`}
@@ -281,7 +283,7 @@ function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissio
       <ul className="perm-list">
         {d.permissions.map((p) => (
           <li key={p}>
-            <Icon name={p.startsWith("fs") ? "folder" : p.startsWith("terminal") ? "terminal" : p === "net" ? "globe" : p === "shell.exec" ? "zap" : p === "claude.usage" ? "gauge" : p.startsWith("process") ? "cpu" : p === "eventlog.read" ? "logs" : p === "sqlite" ? "database" : "shield"} size={14} />
+            <Icon name={p.startsWith("fs") ? "folder" : p.startsWith("terminal") ? "terminal" : p === "net" ? "globe" : p === "shell.exec" ? "zap" : p === "claude.usage" ? "gauge" : p.startsWith("process") ? "cpu" : p === "eventlog.read" ? "logs" : p === "sqlite" ? "database" : p.startsWith("agents") ? "bot" : "shield"} size={14} />
             <span>{PERMISSION_TEXT[p] ?? p}</span>
             <code>{p}</code>
           </li>

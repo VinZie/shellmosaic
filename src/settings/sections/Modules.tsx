@@ -34,7 +34,10 @@ function ModuleBarList() {
   const modules = useModules((s) => s.modules);
   const bar = useSetting<string[]>("modules.bar");
   const hidden = useSetting<string[]>("modules.barHidden");
-  const order = useMemo(() => [...bar.filter((id) => modules[id]), ...Object.keys(modules).filter((id) => !bar.includes(id))], [bar, modules]);
+  const order = useMemo(
+    () => [...bar.filter((id) => modules[id] && !modules[id].hidden), ...Object.keys(modules).filter((id) => !bar.includes(id) && !modules[id].hidden)],
+    [bar, modules],
+  );
   // non-plugin modules missing from `bar` aren't shown by the module bar
   const shown = (id: string) => (bar.includes(id) || !!modules[id]?.plugin) && !hidden.includes(id);
 

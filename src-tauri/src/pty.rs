@@ -68,6 +68,9 @@ struct Session {
     title: Mutex<Option<String>>,
     exit_code: Mutex<Option<u32>>,
     size: Mutex<(u16, u16)>,
+    /// scrollback and cwd are saved for restarts (not for Orchestrator agents: their TUI's
+    /// output is redraw noise, and `claude --resume` draws the conversation again itself)
+    persist: bool,
 }
 
 enum Backend {
@@ -215,7 +218,7 @@ impl PtyManager {
     pub fn persist(&self) {
         let _persisting = self.persisting.lock();
         let scrollback = self.persist_scrollback.load(Ordering::Relaxed);
-        let sessions: Vec<Arc<Session>> = self.sessions.lock().values().cloned().collect();
+        let sessions: Vec<Arc<Session>> = self.sessions.lock().values().filter(|s| s.persist).cloned().collect();
         {
             let mut meta = self.meta.lock();
             for s in &sessions {
@@ -275,6 +278,7 @@ impl PtyManager {
             title: Mutex::new(None),
             exit_code: Mutex::new(None),
             size: Mutex::new((cols, rows)),
+            persist: true,
         });
         if dormant {
             return session;
@@ -302,14 +306,45 @@ impl PtyManager {
         // the last cwd we saw for this pane beats the pane's initial directory
         let saved = self.meta.lock().get(id).cloned().unwrap_or_default();
         let cwd = saved.cwd.or_else(|| spec.cwd.clone());
+        let cmd = build_command(spec, cwd.as_deref());
+        let (ring, restored) = self.restored_ring(id, spec);
+        let local = LocalSpec { id, profile_id: &spec.profile_id, command: &spec.command, cwd, persist: true };
+        self.start_local(local, cmd, cols, rows, ring, restored)
+    }
 
+    /// An Orchestrator agent's terminal, started without a view (its workspace may not be on
+    /// screen). A view attaches later; the agent's command, environment and folder come from
+    /// the Orchestrator, never from the pane. Returns the process id.
+    pub fn spawn_agent(&self, pane_id: &str, spec: &crate::agents::Launch) -> Result<Option<u32>, String> {
+        safe_key(pane_id)?;
+        if let Some(s) = self.sessions.lock().get(pane_id) {
+            if s.alive.load(Ordering::SeqCst) {
+                return Err("the agent's terminal is already running".into());
+            }
+        }
+        let mut cmd = portable_pty::CommandBuilder::new(&spec.program);
+        cmd.args(&spec.args);
+        cmd.cwd(&spec.cwd);
+        cmd.env_clear();
+        for (k, v) in &spec.env {
+            cmd.env(k, v);
+        }
+        let local = LocalSpec { id: pane_id, profile_id: "agent", command: &spec.program, cwd: Some(spec.cwd.clone()), persist: false };
+        let session = self.start_local(local, cmd, spec.cols.max(2), spec.rows.max(1), Vec::new(), None)?;
+        let pid = session.pid;
+        self.sessions.lock().insert(pane_id.to_string(), session);
+        // a view showing the pane's previous session attaches to this one
+        let _ = self.app.emit("pty://spawned", json!({ "paneId": pane_id, "pid": pid }));
+        Ok(pid)
+    }
+
+    fn start_local(&self, l: LocalSpec<'_>, cmd: portable_pty::CommandBuilder, cols: u16, rows: u16, ring: Vec<u8>, restored: Option<Restored>) -> Result<Arc<Session>, String> {
         let pty = native_pty_system();
         let pair = pty
             .openpty(PtySize { rows, cols, pixel_width: 0, pixel_height: 0 })
             .s()?;
-        let cmd = build_command(spec, cwd.as_deref());
         let mut child = pair.slave.spawn_command(cmd).map_err(|e| {
-            format!("failed to start {}: {e}", spec.command)
+            format!("failed to start {}: {e}", l.command)
         })?;
         drop(pair.slave);
 
@@ -326,21 +361,21 @@ impl PtyManager {
         });
         let killer = child.clone_killer();
         let pid = child.process_id();
-        let (ring, restored) = self.restored_ring(id, spec);
 
         let session = Arc::new(Session {
-            id: id.to_string(),
-            profile_id: spec.profile_id.clone(),
+            id: l.id.to_string(),
+            profile_id: l.profile_id.to_string(),
             backend: Backend::Local { master: Mutex::new(Some(pair.master)), killer: Mutex::new(killer) },
             input: Mutex::new(Some(input)),
             out: Mutex::new(Output { ring, channel: None, restored }),
             alive: AtomicBool::new(true),
             dirty: AtomicBool::new(true),
             pid,
-            cwd: Mutex::new(cwd.filter(|c| !c.is_empty())),
+            cwd: Mutex::new(l.cwd.filter(|c| !c.is_empty())),
             title: Mutex::new(None),
             exit_code: Mutex::new(None),
             size: Mutex::new((cols, rows)),
+            persist: l.persist,
         });
 
         // Waiter: ConPTY keeps the output pipe open after the child exits, so once
@@ -369,6 +404,67 @@ impl PtyManager {
 
         Ok(session)
     }
+
+    /// Type into a session (a view's keystrokes, or the Orchestrator's messages).
+    pub fn write_to(&self, pane_id: &str, data: &str) -> Result<(), String> {
+        let s = self.sessions.lock().get(pane_id).cloned();
+        let Some(s) = s else { return Err("no such terminal".into()) };
+        let input = s.input.lock();
+        match input.as_ref() {
+            Some(tx) if tx.send(data.as_bytes().to_vec()).is_ok() => Ok(()),
+            _ => Err("terminal has exited".into()),
+        }
+    }
+
+    /// Terminate a session. `forget` also deletes its saved scrollback (pane closed).
+    pub fn kill_session(&self, pane_id: &str, forget: bool) {
+        // the id becomes a file name below ("..\x" would delete outside sessions/)
+        if safe_key(pane_id).is_err() {
+            return;
+        }
+        let s = self.sessions.lock().remove(pane_id);
+        if let Some(s) = s {
+            s.kill();
+            s.out.lock().channel = None;
+            if !forget && s.persist {
+                // restarting: remember where the shell was so the new one starts there
+                self.meta.lock().insert(pane_id.to_string(), s.meta());
+            }
+        }
+        if forget {
+            let _ = fs::remove_file(self.bin_path(pane_id));
+            self.meta.lock().remove(pane_id);
+        }
+    }
+
+    /// The process id of a running local session.
+    pub fn running_pid(&self, pane_id: &str) -> Option<u32> {
+        let s = self.sessions.lock().get(pane_id).cloned()?;
+        if s.alive.load(Ordering::SeqCst) {
+            s.pid
+        } else {
+            None
+        }
+    }
+
+    /// Plain text of a session's most recent output.
+    pub fn text_tail(&self, pane_id: &str, max_bytes: usize) -> Option<String> {
+        let s = self.sessions.lock().get(pane_id).cloned()?;
+        let tail = {
+            let out = s.out.lock();
+            out.ring[out.ring.len().saturating_sub(max_bytes)..].to_vec()
+        };
+        Some(strip_ansi(&tail))
+    }
+}
+
+/// Who a local session is for.
+struct LocalSpec<'a> {
+    id: &'a str,
+    profile_id: &'a str,
+    command: &'a str,
+    cwd: Option<String>,
+    persist: bool,
 }
 
 /// A chunk of terminal output: OSC scanning (cwd, title), ring buffer, live view.
@@ -414,7 +510,7 @@ fn on_exit(s: &Session, app: &AppHandle, code: Option<u32>) {
     if let Some((_, ch)) = &s.out.lock().channel {
         send_json(ch, json!({ "t": "exit", "code": code }));
     }
-    let _ = app.emit("pty://exit", json!({ "paneId": s.id, "code": code }));
+    let _ = app.emit("pty://exit", json!({ "paneId": s.id, "code": code, "pid": s.pid }));
 }
 
 fn reader_loop(mut reader: Box<dyn Read + Send>, s: Arc<Session>, app: AppHandle, cap: Arc<AtomicUsize>) {
@@ -457,6 +553,8 @@ pub fn pty_attach(
     let existing = mgr.sessions.lock().get(&pane_id).cloned();
     let (session, spawned) = match existing {
         Some(s) => (s, false),
+        // an agent's terminal is started by the Orchestrator only (Resume), never by a view
+        None if spec.agent.is_some() => return Err("agent-stopped".into()),
         None => {
             let s = mgr.spawn(&pane_id, &spec, cols, rows)?;
             mgr.sessions.lock().insert(pane_id.clone(), s.clone());
@@ -533,13 +631,7 @@ pub fn pty_detach(mgr: State<'_, PtyManager>, pane_id: String, token: u64) {
 
 #[tauri::command]
 pub fn pty_write(mgr: State<'_, PtyManager>, pane_id: String, data: String) -> Result<(), String> {
-    let s = mgr.sessions.lock().get(&pane_id).cloned();
-    let Some(s) = s else { return Err("no such terminal".into()) };
-    let input = s.input.lock();
-    match input.as_ref() {
-        Some(tx) if tx.send(data.into_bytes()).is_ok() => Ok(()),
-        _ => Err("terminal has exited".into()),
-    }
+    mgr.write_to(&pane_id, &data)
 }
 
 #[tauri::command]
@@ -554,24 +646,7 @@ pub fn pty_resize(mgr: State<'_, PtyManager>, pane_id: String, cols: u16, rows: 
 /// Terminate a session. `forget` also deletes its saved scrollback (pane closed).
 #[tauri::command]
 pub fn pty_kill(mgr: State<'_, PtyManager>, pane_id: String, forget: Option<bool>) {
-    // the id becomes a file name below ("..\x" would delete outside sessions/)
-    if safe_key(&pane_id).is_err() {
-        return;
-    }
-    let forget = forget.unwrap_or(true);
-    let s = mgr.sessions.lock().remove(&pane_id);
-    if let Some(s) = s {
-        s.kill();
-        s.out.lock().channel = None;
-        if !forget {
-            // restarting: remember where the shell was so the new one starts there
-            mgr.meta.lock().insert(pane_id.clone(), s.meta());
-        }
-    }
-    if forget {
-        let _ = fs::remove_file(mgr.bin_path(&pane_id));
-        mgr.meta.lock().remove(&pane_id);
-    }
+    mgr.kill_session(&pane_id, forget.unwrap_or(true));
 }
 
 #[tauri::command]

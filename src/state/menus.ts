@@ -167,7 +167,7 @@ export function paneMenu(paneId: Id): MenuItem[] {
     },
     ...(def?.menu ? [sep, ...def.menu(pane, tab.id)] : []),
     sep,
-    { label: "Change module", icon: "layout-grid", submenu: moduleItems((id) => A.changeModule(paneId, id)) },
+    ...(pane.module === "agent" ? [] : [{ label: "Change module", icon: "layout-grid", submenu: moduleItems((id) => A.changeModule(paneId, id)) }]),
     { label: "Rename pane…", icon: "pencil", onSelect: () => A.renamePane(paneId) },
     { label: "Move to new tab", icon: "square", disabled: count < 2, onSelect: () => A.movePaneToNewTab(paneId) },
     {
@@ -205,6 +205,8 @@ export async function terminalMenu(paneId: Id): Promise<MenuItem[]> {
   const cwd = A.knownCwd(paneId);
   const hasSel = !!e?.term.hasSelection();
   const fontSizes = [10, 11, 12, 13, 14, 15, 16, 18, 20, 24];
+  // an agent's session is the Orchestrator's to restart, not a shell to swap
+  const agent = pane?.module === "agent";
   return [
     { label: "Copy", icon: "copy", shortcut: "Ctrl+C", disabled: !hasSel, onSelect: () => e && t.copySelection(e) },
     { label: "Paste", icon: "clipboard-paste", shortcut: "Ctrl+V", onSelect: () => e && t.pasteInto(e) },
@@ -218,22 +220,26 @@ export async function terminalMenu(paneId: Id): Promise<MenuItem[]> {
     { label: "Open folder in Explorer", icon: "external-link", disabled: !cwd, onSelect: () => cwd && revealItemInDir(cwd) },
     { label: "Copy working directory", icon: "clipboard-copy", disabled: !cwd, onSelect: () => cwd && writeText(cwd) },
     sep,
-    { label: "Restart shell", icon: "rotate-cw", onSelect: () => t.restartTerm(paneId) },
-    {
-      label: "Change shell",
-      icon: "terminal",
-      submenu: allProfiles()
-        .filter((p) => !p.hidden)
-        .map<MenuItem>((p) => ({
-          label: p.name,
-          checked: !pane?.meta.ssh && pane?.meta.profile === p.id,
-          onSelect: async () => {
-            // (on an SSH pane this swaps the remote session for a local shell)
-            await A.setPaneMeta(paneId, { profile: p.id, ssh: null, sshName: null });
-            t.restartTerm(paneId);
+    ...(agent
+      ? []
+      : [
+          { label: "Restart shell", icon: "rotate-cw", onSelect: () => t.restartTerm(paneId) },
+          {
+            label: "Change shell",
+            icon: "terminal",
+            submenu: allProfiles()
+              .filter((p) => !p.hidden)
+              .map<MenuItem>((p) => ({
+                label: p.name,
+                checked: !pane?.meta.ssh && pane?.meta.profile === p.id,
+                onSelect: async () => {
+                  // (on an SSH pane this swaps the remote session for a local shell)
+                  await A.setPaneMeta(paneId, { profile: p.id, ssh: null, sshName: null });
+                  t.restartTerm(paneId);
+                },
+              })),
           },
-        })),
-    },
+        ]),
     {
       label: "Pane theme",
       icon: "palette",

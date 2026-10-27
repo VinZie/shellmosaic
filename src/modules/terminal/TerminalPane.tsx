@@ -81,7 +81,7 @@ function FindBar({ paneId }: { paneId: string }) {
   );
 }
 
-function TerminalPane({ pane, visible, focused }: ModuleProps) {
+export function TerminalPane({ pane, visible, focused }: ModuleProps) {
   const ref = useRef<HTMLDivElement>(null);
   const findOpen = useUi((s) => !!s.findOpen[pane.id]);
 

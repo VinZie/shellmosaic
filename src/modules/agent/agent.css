@@ -1,0 +1,47 @@
+.agent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--text-dim);
+  background: var(--hover);
+  white-space: nowrap;
+}
+.agent-chip .agent-state {
+  color: color-mix(in srgb, var(--text-dim) 70%, transparent);
+}
+.agent-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-dim) 70%, transparent);
+  flex: none;
+}
+.agent-working .agent-dot {
+  background: var(--accent);
+  animation: agent-pulse 1.4s ease-in-out infinite;
+}
+.agent-idle .agent-dot {
+  background: var(--success);
+}
+.agent-waiting .agent-dot {
+  background: var(--warning);
+}
+.agent-waiting .agent-state {
+  color: var(--warning);
+}
+.agent-paused .agent-dot,
+.agent-starting .agent-dot {
+  background: var(--text-dim);
+}
+.agent-exited .agent-dot {
+  background: var(--danger);
+}
+@keyframes agent-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}

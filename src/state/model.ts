@@ -65,6 +65,8 @@ export interface PaneSpec {
   module: string;
   meta?: Record<string, any>;
   title?: string | null;
+  /** a given id (an agent pane: the Orchestrator already runs its terminal under it) */
+  id?: Id;
 }
 
 export const WORKSPACE_COLORS = [
@@ -218,7 +220,7 @@ export function setWindowWorkspace(m: Model, label: string, wsId: Id) {
 // ── tabs ────────────────────────────────────────────────────────────────
 
 function newPane(m: Model, spec: PaneSpec): Pane {
-  const pane: Pane = { id: uid(12), module: spec.module, meta: { ...(spec.meta ?? {}) }, title: spec.title ?? null };
+  const pane: Pane = { id: spec.id ?? uid(12), module: spec.module, meta: { ...(spec.meta ?? {}) }, title: spec.title ?? null };
   m.panes[pane.id] = pane;
   return pane;
 }
@@ -308,7 +310,9 @@ export function duplicateTab(m: Model, tabId: Id, cwdOf: (paneId: Id) => string 
     const src = m.panes[old];
     const meta = { ...src.meta };
     if (src.module === "terminal") meta.cwd = cwdOf(old) ?? meta.cwd;
-    const p = newPane(m, { module: src.module, meta, title: src.title });
+    // an agent belongs to its pane: the copy is a plain terminal in the agent's folder
+    const agent = src.module === "agent";
+    const p = agent ? newPane(m, { module: "terminal", meta: { cwd: cwdOf(old) } }) : newPane(m, { module: src.module, meta, title: src.title });
     map.set(old, p.id);
     return p.id;
   });

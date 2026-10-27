@@ -52,6 +52,8 @@ permissions that the user approves.
 | `process.control` | `process.suspend/resume/setPriority/setAffinity`, `thread.suspend/resume/terminate` |
 | `eventlog.read` | `shellmosaic.eventlog.*`: Windows event logs (queries, paging, live subscriptions) |
 | `sqlite` | `shellmosaic.sqlite.*`: open local SQLite databases, read-only unless the plugin asks to write |
+| `agents.read` | `shellmosaic.agents.snapshot/activity/taskDiff/mergePreview/reveal`: the Orchestrator's teams of Claude Code agents |
+| `agents.manage` | The rest of `shellmosaic.agents.*`: start and stop teams, instruct agents, answer their requests, manage tasks, merge |
 
 Without `net`, a plugin can't use `fetch`, XHR or WebSockets (the CSP sets `connect-src 'none'`)
 and can't load remote images. That is not a complete offline sandbox, though: a page can still
@@ -85,7 +87,8 @@ Include it from your HTML (it's served by Shellmosaic):
 | `shellmosaic.ui.setState(obj)` | Saved with the pane (64 KB of JSON) and handed back as `context().state`, also after a restart |
 | `shellmosaic.ui.confirm(title, message, {okLabel, danger})` | The app's confirmation dialog → `true`/`false` |
 | `shellmosaic.ui.pickFile({title, filters})` | The Open dialog → a path or `null` |
-| `shellmosaic.ui.openModule(target)` | Open `{module: "processes"\|"ports", filter}`, `{module: "files", path}` or `{module: "plugin:<id>", args}` next to the pane |
+| `shellmosaic.ui.pickFolder({title})` | The folder picker → a path or `null` |
+| `shellmosaic.ui.openModule(target)` | Open `{module: "processes"\|"ports", filter}`, `{module: "files"\|"git", path}` or `{module: "plugin:<id>", args}` next to the pane |
 | `shellmosaic.ui.reveal(path)` | Show a local file selected in Explorer |
 | `shellmosaic.app.info()` | `{version, elevated}` |
 | `shellmosaic.app.restartAsAdmin()` | Asks the user, then relaunches Shellmosaic as administrator (`false` when declined) |
@@ -124,6 +127,25 @@ The exact result types are in [`modules/shared/api.ts`](modules/shared/api.ts). 
   `.interrupt(db)`, `.close(db)`.
 
 Queries and databases belong to the pane: they're closed when it's closed or reloaded.
+
+### Agents (the Orchestrator)
+
+A team is a lead Claude Code agent and up to three workers, each a real Claude Code session in
+its own pane (workers in their own git worktree next to the repository). Shellmosaic runs them;
+plugins see and steer them through `shellmosaic.agents` (types in
+[`modules/shared/api.ts`](modules/shared/api.ts)):
+
+- `snapshot()` → `{rev, runs, agents, tasks, requests, usage, routing, elevated}`; the `agents`
+  event (`{rev}`) arrives on every change. `activity({runId, after, limit})` pages the log.
+- `start({cwd, name})` starts a team in the plugin's workspace (errors start with `not-a-repo:`
+  or `no-commits:`; `gitInit(cwd)` makes a folder a repository). `send(agentId, text)` types into
+  an agent's session: that's how the lead gets its goal.
+- `answer(requestId, {allow, always})` for permission prompts, `{text}` for a worker's question;
+  `createTask`, `assign`, `review(taskId, accept, note)`, `cancelTask`; `mergePreview(runId)` and
+  `mergeToBase(runId)` bring the team's `orch/integration` branch into the user's branch.
+
+Agents use the signed-in Claude account and run commands on this computer, so `agents.manage`
+counts as risky. Nothing runs while Shellmosaic is elevated.
 
 ### Matching the user's theme
 

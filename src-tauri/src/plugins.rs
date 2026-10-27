@@ -46,6 +46,8 @@ pub const KNOWN_PERMISSIONS: &[&str] = &[
     "process.control",
     "eventlog.read",
     "sqlite",
+    "agents.read",
+    "agents.manage",
 ];
 
 #[derive(Serialize)]
