@@ -34,7 +34,7 @@ files, git, processes, ports, logs, notes, saved SSH hosts and SFTP.
 </div>
 
 > [!NOTE]
-> Shellmosaic 0.3 is an early release for Windows 10 and 11 (64-bit). The installer is not
+> Shellmosaic 0.4 is an early release for Windows 10 and 11 (64-bit). The installer is not
 > code-signed yet, so SmartScreen may warn the first time you run it.
 
 Shellmosaic puts real ConPTY shells (PowerShell, cmd, Git Bash, WSL, your own profiles) and
