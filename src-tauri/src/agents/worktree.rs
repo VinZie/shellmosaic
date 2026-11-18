@@ -104,7 +104,16 @@ pub fn base(root: &Path) -> PathBuf {
 }
 
 fn is_worktree_root(path: &Path) -> bool {
-    path.is_dir() && git(path, &["rev-parse", "--show-toplevel"]).is_ok_and(|t| win_path(&t) == path)
+    path.is_dir() && git(path, &["rev-parse", "--show-toplevel"]).is_ok_and(|t| same_dir(&win_path(&t), path))
+}
+
+/// Git reports long, resolved paths; `path` may use 8.3 short names (C:\Users\RUNNER~1),
+/// another case or a junction, so compare what both resolve to.
+fn same_dir(a: &Path, b: &Path) -> bool {
+    match (a.canonicalize(), b.canonicalize()) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => a == b,
+    }
 }
 
 /// A worker slot's worktree (created detached at the integration branch; every task gets
