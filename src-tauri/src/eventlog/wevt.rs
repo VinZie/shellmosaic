@@ -558,7 +558,7 @@ impl Query {
             };
             page.scanned += 1;
             if let Some(xml) = render.event_xml(&event) {
-                if self.filter.as_ref().map_or(true, |f| f.matches(&xml)) {
+                if self.filter.as_ref().is_none_or(|f| f.matches(&xml)) {
                     page.events.push(xml);
                 }
             }
@@ -625,7 +625,7 @@ impl Subscription {
             };
             for event in batch {
                 if let Some(xml) = render.event_xml(&event) {
-                    if self.filter.as_ref().map_or(true, |f| f.matches(&xml)) {
+                    if self.filter.as_ref().is_none_or(|f| f.matches(&xml)) {
                         events.push(xml);
                     }
                 }

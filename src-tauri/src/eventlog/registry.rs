@@ -117,7 +117,7 @@ impl<T> Table<T> {
     }
 
     fn remove(&mut self, owner: &str, id: u32, trash: &mut Vec<T>) -> bool {
-        if self.slots.get(&id).map_or(true, |s| s.owner != owner) {
+        if self.slots.get(&id).is_none_or(|s| s.owner != owner) {
             return false;
         }
         trash.extend(self.slots.remove(&id).and_then(|s| s.item));

@@ -43,7 +43,7 @@ impl SysMon {
 impl Inner {
     /// Refresh processes at most every 500 ms (CPU% needs two samples anyway).
     fn refresh_procs(&mut self) {
-        let due = self.last_procs.map_or(true, |t| t.elapsed().as_millis() >= 500);
+        let due = self.last_procs.is_none_or(|t| t.elapsed().as_millis() >= 500);
         if due {
             self.sys.refresh_processes(ProcessesToUpdate::All, true);
             self.last_procs = Some(Instant::now());
