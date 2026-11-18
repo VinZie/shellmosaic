@@ -11,6 +11,7 @@ files, git, processes, ports, logs, notes, saved SSH hosts and SFTP.
 
 <p>
   <a href="https://github.com/VinZie/shellmosaic/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/VinZie/shellmosaic/ci.yml?branch=main&label=CI&logo=github" alt="CI status"></a>
+  <a href="https://github.com/VinZie/shellmosaic/actions/workflows/codeql.yml"><img src="https://img.shields.io/github/actions/workflow/status/VinZie/shellmosaic/codeql.yml?branch=main&label=CodeQL&logo=github" alt="CodeQL status"></a>
   <a href="https://github.com/VinZie/shellmosaic/releases/latest"><img src="https://img.shields.io/github/v/release/VinZie/shellmosaic?include_prereleases&label=release" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2a78d6" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6?logo=windows" alt="Windows 10 and 11">
