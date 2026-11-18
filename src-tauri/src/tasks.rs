@@ -201,7 +201,7 @@ fn scripts(dir: &Path) -> Option<TaskGroup> {
             tasks.push(task(&name, cmd, None));
         }
     }
-    tasks.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    tasks.sort_by_key(|t| t.name.to_lowercase());
     (!tasks.is_empty()).then(|| TaskGroup {
         source: "scripts".into(),
         file: dir.to_string_lossy().into(),

@@ -331,9 +331,7 @@ impl Screen {
 
     fn clear(&mut self, y: usize, from: usize, to: usize) {
         let to = to.min(self.cols);
-        for x in from.min(to)..to {
-            self.cells[y][x] = ' ';
-        }
+        self.cells[y][from.min(to)..to].fill(' ');
     }
 
     fn csi(&mut self, params: &str, f: char) {

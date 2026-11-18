@@ -331,10 +331,12 @@ pub async fn connect(
             .map_err(|e| format!("can't reach {}:{}: {e}", host.host, host.port))?;
     let _ = tcp.set_nodelay(true);
 
-    let mut config = client::Config::default();
-    config.keepalive_interval = Some(Duration::from_secs(30));
-    config.keepalive_max = 4;
-    config.inactivity_timeout = None;
+    let config = client::Config {
+        keepalive_interval: Some(Duration::from_secs(30)),
+        keepalive_max: 4,
+        inactivity_timeout: None,
+        ..Default::default()
+    };
     let handler = Client {
         app: app.clone(),
         host_id: host.id.clone(),
@@ -466,10 +468,10 @@ async fn authenticate(
         }
     }
 
-    if allows(&methods, MethodKind::KeyboardInteractive) {
-        if keyboard_interactive(h, &user, stored.as_deref().map(String::as_str), p).await? {
-            return Ok(());
-        }
+    if allows(&methods, MethodKind::KeyboardInteractive)
+        && keyboard_interactive(h, &user, stored.as_deref().map(String::as_str), p).await?
+    {
+        return Ok(());
     }
 
     if allows(&methods, MethodKind::Password) {

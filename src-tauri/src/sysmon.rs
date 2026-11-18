@@ -102,7 +102,7 @@ fn task_counts() -> Option<(usize, usize)> {
         let mut info: PERFORMANCE_INFORMATION = std::mem::zeroed();
         let size = std::mem::size_of::<PERFORMANCE_INFORMATION>() as u32;
         info.cb = size;
-        (K32GetPerformanceInfo(&mut info, size) != 0).then(|| (info.ProcessCount as usize, info.ThreadCount as usize))
+        (K32GetPerformanceInfo(&mut info, size) != 0).then_some((info.ProcessCount as usize, info.ThreadCount as usize))
     }
 }
 
@@ -122,7 +122,7 @@ fn snapshot(mon: &SysMon, with_disks: Option<bool>) -> Snapshot {
     g.nets.refresh(true);
     g.last_net = Instant::now();
     let (mut rx, mut tx, mut rx_total, mut tx_total) = (0u64, 0u64, 0u64, 0u64);
-    for (_, data) in g.nets.iter() {
+    for data in g.nets.values() {
         rx += data.received();
         tx += data.transmitted();
         rx_total += data.total_received();

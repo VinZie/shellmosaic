@@ -244,7 +244,7 @@ impl DosPaths {
             }
         }
         // longest first: \Device\HarddiskVolume1 must not match \Device\HarddiskVolume10
-        devices.sort_by(|a, b| b.0.len().cmp(&a.0.len()));
+        devices.sort_by_key(|d| std::cmp::Reverse(d.0.len()));
         Self { devices }
     }
 
