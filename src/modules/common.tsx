@@ -49,10 +49,14 @@ export function useTabCwd(tabId: string): string | undefined {
  * Directory a folder-based module (files, git, tasks) should show: follows the
  * tab's terminal when `pane.meta.follow !== false`, else `pane.meta.path`.
  */
-export function useModuleDir(pane: Pane, tabId: string, fallback?: string): { dir: string | undefined; following: boolean } {
+export function useModuleDir(
+  pane: Pane,
+  tabId: string,
+  fallback?: string,
+): { dir: string | undefined; following: boolean } {
   const cwd = useTabCwd(tabId);
   const following = pane.meta.follow !== false;
-  const dir = following ? cwd ?? pane.meta.path ?? fallback : pane.meta.path ?? cwd ?? fallback;
+  const dir = following ? (cwd ?? pane.meta.path ?? fallback) : (pane.meta.path ?? cwd ?? fallback);
   return { dir, following };
 }
 
@@ -97,7 +101,10 @@ export function DataTable<T>({
     return [...rows].sort((a, b) => {
       const va = val(a);
       const vb = val(b);
-      const c = typeof va === "number" && typeof vb === "number" ? va - vb : String(va ?? "").localeCompare(String(vb ?? ""), undefined, { numeric: true });
+      const c =
+        typeof va === "number" && typeof vb === "number"
+          ? va - vb
+          : String(va ?? "").localeCompare(String(vb ?? ""), undefined, { numeric: true });
       return sort.desc ? -c : c;
     });
   }, [rows, sort, columns]);
@@ -111,10 +118,18 @@ export function DataTable<T>({
                 key={c.key}
                 className={cx(c.num && "num")}
                 style={c.width !== undefined ? { width: c.width } : undefined}
-                onClick={() => setSort((s) => (s?.key === c.key ? { key: c.key, desc: !s.desc } : { key: c.key, desc: !!c.num }))}
+                onClick={() =>
+                  setSort((s) => (s?.key === c.key ? { key: c.key, desc: !s.desc } : { key: c.key, desc: !!c.num }))
+                }
               >
                 {c.label}
-                {sort?.key === c.key && <Icon name={sort.desc ? "chevron-down" : "chevron-up"} size={11} style={{ marginLeft: 3, verticalAlign: -1 }} />}
+                {sort?.key === c.key && (
+                  <Icon
+                    name={sort.desc ? "chevron-down" : "chevron-up"}
+                    size={11}
+                    style={{ marginLeft: 3, verticalAlign: -1 }}
+                  />
+                )}
               </th>
             ))}
           </tr>
@@ -152,7 +167,15 @@ export function DataTable<T>({
 }
 
 /** Inline error/empty message for a module. */
-export function ModuleMessage({ icon = "info", title, children }: { icon?: string; title: string; children?: ReactNode }) {
+export function ModuleMessage({
+  icon = "info",
+  title,
+  children,
+}: {
+  icon?: string;
+  title: string;
+  children?: ReactNode;
+}) {
   return (
     <div className="empty-state">
       <Icon name={icon} size={26} />
@@ -163,11 +186,24 @@ export function ModuleMessage({ icon = "info", title, children }: { icon?: strin
 }
 
 /** Toolbar search box with an icon. */
-export function SearchBox({ value, onChange, placeholder = "Filter" }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+export function SearchBox({
+  value,
+  onChange,
+  placeholder = "Filter",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
   return (
     <div className="search-box">
       <Icon name="search" size={13} />
-      <input value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => e.key === "Escape" && onChange("")} />
+      <input
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => e.key === "Escape" && onChange("")}
+      />
     </div>
   );
 }

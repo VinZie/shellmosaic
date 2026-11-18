@@ -17,7 +17,11 @@ function ago(ms: number): string {
   if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
   if (s < 2 * 86400) return "yesterday";
   if (s < 7 * 86400) return `${Math.floor(s / 86400)} days ago`;
-  return new Date(ms).toLocaleDateString(undefined, { month: "short", day: "numeric", year: s > 300 * 86400 ? "numeric" : undefined });
+  return new Date(ms).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: s > 300 * 86400 ? "numeric" : undefined,
+  });
 }
 
 export function StartScreen({
@@ -102,7 +106,10 @@ export function StartScreen({
           <Button kind="primary" onClick={onPick}>
             <FolderOpen size={14} /> Open a database…
           </Button>
-          <label className="sqlb-checkbox" title="Shellmosaic copies the file to a temporary folder and opens the copy, so the original (and its -wal/-shm files) is never touched">
+          <label
+            className="sqlb-checkbox"
+            title="Shellmosaic copies the file to a temporary folder and opens the copy, so the original (and its -wal/-shm files) is never touched"
+          >
             <input type="checkbox" checked={asCopy} onChange={(e) => setAsCopy(e.target.checked)} />
             Open a copy (leave the original untouched)
           </label>
@@ -115,7 +122,13 @@ export function StartScreen({
             if (path.trim()) onOpen(path);
           }}
         >
-          <input className="sm-input mono wide" placeholder="…or paste a path and press Enter" value={path} spellCheck={false} onChange={(e) => setPath(e.target.value)} />
+          <input
+            className="sm-input mono wide"
+            placeholder="…or paste a path and press Enter"
+            value={path}
+            spellCheck={false}
+            onChange={(e) => setPath(e.target.value)}
+          />
           <Button type="submit" disabled={!path.trim()}>
             Open
           </Button>

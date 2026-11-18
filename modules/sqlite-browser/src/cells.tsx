@@ -118,8 +118,18 @@ export function highlightJson(json: string): ReactNode[] {
         </span>,
       );
       if (m[2]) out.push(m[2]);
-    } else if (m[3]) out.push(<span key={k++} className="tk-num">{m[3]}</span>);
-    else out.push(<span key={k++} className="tk-kw">{m[4]}</span>);
+    } else if (m[3])
+      out.push(
+        <span key={k++} className="tk-num">
+          {m[3]}
+        </span>,
+      );
+    else
+      out.push(
+        <span key={k++} className="tk-kw">
+          {m[4]}
+        </span>,
+      );
     last = re.lastIndex;
   }
   if (last < json.length) out.push(json.slice(last));

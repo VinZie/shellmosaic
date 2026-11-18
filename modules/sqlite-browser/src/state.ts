@@ -93,7 +93,10 @@ export function fileOf(path: string): string {
 export async function copyOut(text: string, what: string, partial = false) {
   try {
     await sm.clipboard.writeText(text);
-    sm.ui.notify(partial ? `Copied ${what}; long text and blobs over 256 bytes are cut short` : `Copied ${what}`, partial ? "warning" : "success");
+    sm.ui.notify(
+      partial ? `Copied ${what}; long text and blobs over 256 bytes are cut short` : `Copied ${what}`,
+      partial ? "warning" : "success",
+    );
   } catch (e) {
     sm.ui.notify(`Couldn't copy: ${errorText(e)}`, "error");
   }

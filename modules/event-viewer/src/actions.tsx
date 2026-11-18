@@ -44,12 +44,21 @@ export function rowMenu(evs: Ev[], f: FilterActions, tsv: () => string): MenuIte
   const levels = uniq(evs.map((x) => (x.level === 0 ? 4 : x.level)));
   const pid = evs.length === 1 ? eventPid(e) : null;
   const items: MenuItem[] = [
-    { label: evs.length === 1 ? "Copy message" : `Copy ${evs.length} messages`, icon: <ScrollText size={14} />, onSelect: () => copyMessages(evs) },
+    {
+      label: evs.length === 1 ? "Copy message" : `Copy ${evs.length} messages`,
+      icon: <ScrollText size={14} />,
+      onSelect: () => copyMessages(evs),
+    },
     {
       label: "Copy",
       icon: <Copy size={14} />,
       submenu: [
-        { label: evs.length === 1 ? "Row" : `${evs.length} rows`, hint: "Ctrl+C", icon: <Rows3 size={14} />, onSelect: () => copy(tsv(), evs.length === 1 ? "row" : `${evs.length} rows`) },
+        {
+          label: evs.length === 1 ? "Row" : `${evs.length} rows`,
+          hint: "Ctrl+C",
+          icon: <Rows3 size={14} />,
+          onSelect: () => copy(tsv(), evs.length === 1 ? "row" : `${evs.length} rows`),
+        },
         { label: "XML", icon: <FileCode size={14} />, onSelect: () => copyXml(evs) },
         { label: "JSON", icon: <Braces size={14} />, onSelect: () => copyJson(evs) },
       ],
@@ -62,10 +71,23 @@ export function rowMenu(evs: Ev[], f: FilterActions, tsv: () => string): MenuIte
       { label: `Exclude event ID ${ids[0]}`, icon: <Ban size={14} />, onSelect: () => f.excludeId(ids[0]) },
     );
   }
-  if (providers.length === 1 && providers[0]) items.push({ label: `Filter: source ${providers[0]}`, icon: <Tag size={14} />, onSelect: () => f.filterSource(providers[0]) });
-  if (levels.length === 1) items.push({ label: `Filter: level ${e.level === 0 ? "Information" : e.levelName}`, icon: <LevelIcon kind={e.kind === "auditSuccess" || e.kind === "auditFailure" ? "info" : e.kind} />, onSelect: () => f.filterLevel(levels[0]) });
+  if (providers.length === 1 && providers[0])
+    items.push({
+      label: `Filter: source ${providers[0]}`,
+      icon: <Tag size={14} />,
+      onSelect: () => f.filterSource(providers[0]),
+    });
+  if (levels.length === 1)
+    items.push({
+      label: `Filter: level ${e.level === 0 ? "Information" : e.levelName}`,
+      icon: <LevelIcon kind={e.kind === "auditSuccess" || e.kind === "auditFailure" ? "info" : e.kind} />,
+      onSelect: () => f.filterLevel(levels[0]),
+    });
   if (pid) {
-    items.push({ separator: true }, { label: `Inspect process ${pid}`, icon: <Cpu size={14} />, onSelect: () => inspectProcess(pid) });
+    items.push(
+      { separator: true },
+      { label: `Inspect process ${pid}`, icon: <Cpu size={14} />, onSelect: () => inspectProcess(pid) },
+    );
   }
   return items;
 }

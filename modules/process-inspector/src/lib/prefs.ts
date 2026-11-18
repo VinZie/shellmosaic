@@ -40,7 +40,9 @@ export const INTERVALS = [
 /** Saved prefs from older versions (or edited by hand) made whole again. */
 export function normalizePrefs(p: Prefs): Prefs {
   const seen = new Set<TabId>();
-  const tabs = (Array.isArray(p.tabs) ? p.tabs : []).filter((t) => t && ALL_TABS.includes(t.id) && !seen.has(t.id) && seen.add(t.id));
+  const tabs = (Array.isArray(p.tabs) ? p.tabs : []).filter(
+    (t) => t && ALL_TABS.includes(t.id) && !seen.has(t.id) && seen.add(t.id),
+  );
   for (const id of ALL_TABS) if (!seen.has(id)) tabs.push({ id, visible: true });
   if (!tabs.some((t) => t.visible)) tabs[0] = { ...tabs[0], visible: true };
   const interval = INTERVALS.some((i) => Number(i.value) === p.interval) ? p.interval : DEFAULT_PREFS.interval;

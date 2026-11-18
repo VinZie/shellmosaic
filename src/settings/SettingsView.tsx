@@ -74,7 +74,12 @@ export function SettingsView() {
   useEffect(() => {
     let overlayClosedAt = 0;
     const unsub = useUi.subscribe((s, prev) => {
-      if ((prev.dialog && !s.dialog) || (prev.menu && !s.menu) || (prev.palette.open && !s.palette.open) || (prev.themeEditor.open && !s.themeEditor.open)) {
+      if (
+        (prev.dialog && !s.dialog) ||
+        (prev.menu && !s.menu) ||
+        (prev.palette.open && !s.palette.open) ||
+        (prev.themeEditor.open && !s.themeEditor.open)
+      ) {
         overlayClosedAt = performance.now();
       }
     });
@@ -133,7 +138,9 @@ export function SettingsView() {
 
   const total = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : 0;
   // queued changes and available updates of optional modules
-  const moduleNotes = useModuleStore((s) => (s.state?.pending.length ?? 0) + availableUpdates(s.state, s.catalog).length);
+  const moduleNotes = useModuleStore(
+    (s) => (s.state?.pending.length ?? 0) + availableUpdates(s.state, s.catalog).length,
+  );
 
   return (
     <NavCtx.Provider value={go}>
@@ -155,7 +162,10 @@ export function SettingsView() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && counts) {
                   const first = SECTIONS.find((s) => counts[s.id]);
-                  if (first) contentRef.current?.querySelector(`[data-section="${first.id}"] .setting-hit`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+                  if (first)
+                    contentRef.current
+                      ?.querySelector(`[data-section="${first.id}"] .setting-hit`)
+                      ?.scrollIntoView({ block: "center", behavior: "smooth" });
                 }
               }}
             />
@@ -173,7 +183,10 @@ export function SettingsView() {
                   key={s.id}
                   className={cx("settings-nav-item", !q && s.id === current.id && "active", q && n === 0 && "no-hits")}
                   onClick={() => {
-                    if (q && n > 0) contentRef.current?.querySelector(`[data-section="${s.id}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" });
+                    if (q && n > 0)
+                      contentRef.current
+                        ?.querySelector(`[data-section="${s.id}"]`)
+                        ?.scrollIntoView({ block: "start", behavior: "smooth" });
                     else go(s.id);
                   }}
                   title={q && n > 0 ? `Jump to ${s.title} results` : s.title}
@@ -182,7 +195,9 @@ export function SettingsView() {
                   <span className="grow">{s.title}</span>
                   {q && n > 0 && <span className="settings-nav-count">{n}</span>}
                   {!q && s.id === "optional-modules" && moduleNotes > 0 && (
-                    <span className="settings-nav-count" title="Changes waiting for a restart, and updates">{moduleNotes}</span>
+                    <span className="settings-nav-count" title="Changes waiting for a restart, and updates">
+                      {moduleNotes}
+                    </span>
                   )}
                 </button>
               );
@@ -198,7 +213,11 @@ export function SettingsView() {
           <div className="settings-topbar" data-tauri-drag-region>
             {q && (
               <span className="settings-results" data-tauri-drag-region>
-                {counts ? (total ? `${total} result${total === 1 ? "" : "s"} for “${q}”` : `No results for “${q}”`) : ""}
+                {counts
+                  ? total
+                    ? `${total} result${total === 1 ? "" : "s"} for “${q}”`
+                    : `No results for “${q}”`
+                  : ""}
               </span>
             )}
             <span className="grow" data-tauri-drag-region />

@@ -47,7 +47,15 @@ export function HandlesTab(p: TabProps) {
   );
 }
 
-function HandlesTable({ handles, pid, inspect }: { handles: ProcHandle[]; pid: number; inspect: (pid: number) => void }) {
+function HandlesTable({
+  handles,
+  pid,
+  inspect,
+}: {
+  handles: ProcHandle[];
+  pid: number;
+  inspect: (pid: number) => void;
+}) {
   const [cols, setCols] = useColumnState("handles");
   const [sort, setSort] = useStored<SortState | null>("sort:handles", { id: "type", desc: false });
   const [hideUnnamed, setHideUnnamed] = useStored("handles:hideUnnamed", true);
@@ -68,12 +76,19 @@ function HandlesTable({ handles, pid, inspect }: { handles: ProcHandle[]; pid: n
     const s = q.trim().toLowerCase();
     let list = onlyRisky ? risky : named;
     if (type) list = list.filter((h) => h.type === type);
-    if (s) list = list.filter((h) => h.name?.toLowerCase().includes(s) || h.handle.toLowerCase().includes(s) || h.type.toLowerCase().includes(s));
+    if (s)
+      list = list.filter(
+        (h) =>
+          h.name?.toLowerCase().includes(s) || h.handle.toLowerCase().includes(s) || h.type.toLowerCase().includes(s),
+      );
     return list;
   }, [named, risky, onlyRisky, type, q]);
 
   const typeOptions = useMemo(() => {
-    const opts = [{ value: "", label: `All types (${formatNumber(named.length)})` }, ...counts.map(([t, n]) => ({ value: t, label: `${t} (${formatNumber(n)})` }))];
+    const opts = [
+      { value: "", label: `All types (${formatNumber(named.length)})` },
+      ...counts.map(([t, n]) => ({ value: t, label: `${t} (${formatNumber(n)})` })),
+    ];
     if (type && !counts.some(([t]) => t === type)) opts.push({ value: type, label: `${type} (0)` });
     return opts;
   }, [counts, named.length, type]);
@@ -89,7 +104,10 @@ function HandlesTable({ handles, pid, inspect }: { handles: ProcHandle[]; pid: n
         text: (h) => h.name ?? "",
         render: (h) =>
           h.risk ? (
-            <span className={cx("pi-cell-flag", h.risk === 2 ? "sm-danger-text" : "sm-warning-text")} title={riskText(h, h.risk)}>
+            <span
+              className={cx("pi-cell-flag", h.risk === 2 ? "sm-danger-text" : "sm-warning-text")}
+              title={riskText(h, h.risk)}
+            >
               <TriangleAlert size={12} />
               <span className="sm-cell-text">{h.name}</span>
             </span>
@@ -114,11 +132,50 @@ function HandlesTable({ handles, pid, inspect }: { handles: ProcHandle[]; pid: n
           </span>
         ),
       },
-      { id: "granted", label: "Granted access", width: 280, hidden: true, sort: (h) => accessNames(h.type, h.access), text: (h) => accessNames(h.type, h.access) },
-      { id: "attributes", label: "Attributes", width: 130, sort: (h) => h.attributes, text: (h) => attributeNames(h.attributes) },
-      { id: "targetPid", label: "Target PID", width: 86, align: "right", hidden: true, sort: (h) => h.targetPid, text: (h) => (h.targetPid === null ? "" : String(h.targetPid)) },
-      { id: "handleCount", label: "Handles", width: 74, align: "right", hidden: true, title: "Open handles to the object", sort: (h) => h.handleCount, text: (h) => formatNumber(h.handleCount) },
-      { id: "pointerCount", label: "Pointers", width: 74, align: "right", hidden: true, title: "References to the object", sort: (h) => h.pointerCount, text: (h) => formatNumber(h.pointerCount) },
+      {
+        id: "granted",
+        label: "Granted access",
+        width: 280,
+        hidden: true,
+        sort: (h) => accessNames(h.type, h.access),
+        text: (h) => accessNames(h.type, h.access),
+      },
+      {
+        id: "attributes",
+        label: "Attributes",
+        width: 130,
+        sort: (h) => h.attributes,
+        text: (h) => attributeNames(h.attributes),
+      },
+      {
+        id: "targetPid",
+        label: "Target PID",
+        width: 86,
+        align: "right",
+        hidden: true,
+        sort: (h) => h.targetPid,
+        text: (h) => (h.targetPid === null ? "" : String(h.targetPid)),
+      },
+      {
+        id: "handleCount",
+        label: "Handles",
+        width: 74,
+        align: "right",
+        hidden: true,
+        title: "Open handles to the object",
+        sort: (h) => h.handleCount,
+        text: (h) => formatNumber(h.handleCount),
+      },
+      {
+        id: "pointerCount",
+        label: "Pointers",
+        width: 74,
+        align: "right",
+        hidden: true,
+        title: "References to the object",
+        sort: (h) => h.pointerCount,
+        text: (h) => formatNumber(h.pointerCount),
+      },
     ],
     [],
   );
@@ -127,21 +184,46 @@ function HandlesTable({ handles, pid, inspect }: { handles: ProcHandle[]; pid: n
     const h = sel[0];
     if (!h) return;
     const items: MenuItem[] = [
-      { label: "Copy name", icon: <Copy size={14} />, disabled: !sel.some((x) => x.name), onSelect: () => copy(sel.map((x) => x.name ?? "").join("\n"), "name") },
-      { label: "Copy handle", icon: <Hash size={14} />, onSelect: () => copy(sel.map((x) => x.handle).join("\n"), "handle") },
-      { label: "Copy access", icon: <KeyRound size={14} />, onSelect: () => copy(sel.map((x) => `${hex(x.access)} ${accessNames(x.type, x.access)}`).join("\n"), "access") },
+      {
+        label: "Copy name",
+        icon: <Copy size={14} />,
+        disabled: !sel.some((x) => x.name),
+        onSelect: () => copy(sel.map((x) => x.name ?? "").join("\n"), "name"),
+      },
+      {
+        label: "Copy handle",
+        icon: <Hash size={14} />,
+        onSelect: () => copy(sel.map((x) => x.handle).join("\n"), "handle"),
+      },
+      {
+        label: "Copy access",
+        icon: <KeyRound size={14} />,
+        onSelect: () => copy(sel.map((x) => `${hex(x.access)} ${accessNames(x.type, x.access)}`).join("\n"), "access"),
+      },
     ];
-    if (sel.length === 1 && (h.type === "Process" || h.type === "Thread") && h.targetPid !== null && h.targetPid !== pid) {
+    if (
+      sel.length === 1 &&
+      (h.type === "Process" || h.type === "Thread") &&
+      h.targetPid !== null &&
+      h.targetPid !== pid
+    ) {
       const target = h.targetPid;
       items.push(
         { separator: true },
         { label: "Inspect target process", icon: <Crosshair size={14} />, onSelect: () => inspect(target) },
-        { label: "Open in a new inspector", icon: <ExternalLink size={14} />, onSelect: () => openModule({ module: "plugin:process-inspector", args: { pid: target } }) },
+        {
+          label: "Open in a new inspector",
+          icon: <ExternalLink size={14} />,
+          onSelect: () => openModule({ module: "plugin:process-inspector", args: { pid: target } }),
+        },
       );
     }
     if (sel.length === 1 && h.type === "File" && isLocalPath(h.name)) {
       const path = h.name;
-      items.push({ separator: true }, { label: "Open file location", icon: <FolderOpen size={14} />, onSelect: () => reveal(path) });
+      items.push(
+        { separator: true },
+        { label: "Open file location", icon: <FolderOpen size={14} />, onSelect: () => reveal(path) },
+      );
     }
     openMenu(at, items);
   };
@@ -179,7 +261,11 @@ function HandlesTable({ handles, pid, inspect }: { handles: ProcHandle[]; pid: n
         empty={onlyRisky ? "No cross-process handles match" : q || type ? "No handles match the filter" : "No handles"}
       />
       <Footer>
-        <span>{rows.length === all.length ? pluralize(all.length, "handle") : `${formatNumber(rows.length)} of ${pluralize(all.length, "handle")}`}</span>
+        <span>
+          {rows.length === all.length
+            ? pluralize(all.length, "handle")
+            : `${formatNumber(rows.length)} of ${pluralize(all.length, "handle")}`}
+        </span>
         {hideUnnamed && all.length > named.length && (
           <>
             <span>·</span>

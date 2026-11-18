@@ -131,7 +131,9 @@ button {
   color: var(--text);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
 }
 .sm-btn:hover {
   border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
@@ -181,7 +183,9 @@ button {
   color: var(--dim);
   cursor: pointer;
   flex: none;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
 }
 .sm-icon-btn:hover:not(:disabled) {
   background: var(--hover-strong);

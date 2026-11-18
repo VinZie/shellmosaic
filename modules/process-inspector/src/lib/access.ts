@@ -100,7 +100,10 @@ export function accessNames(type: string, access: number): string {
 export function accessTooltip(type: string, access: number): string {
   const parts = accessParts(type, access);
   if (!parts.length) return `${hx(access)}: no access`;
-  return [`${type} access ${hx(access)}`, ...parts.map(([n, b]) => `  ${n === "other" || n === "specific" ? `${n} rights` : n}  ${hx(b)}`)].join("\n");
+  return [
+    `${type} access ${hx(access)}`,
+    ...parts.map(([n, b]) => `  ${n === "other" || n === "specific" ? `${n} rights` : n}  ${hx(b)}`),
+  ].join("\n");
 }
 
 export function attributeNames(attr: number): string {
@@ -137,5 +140,7 @@ export function handleRisk(h: ProcHandle, ownPid: number): 0 | 1 | 2 {
 export function riskText(h: ProcHandle, risk: number): string {
   if (!risk) return "";
   if (h.type === "Thread") return "Can change the context of another process's thread (thread hijacking)";
-  return risk === 2 ? "Can write another process's memory (or has full access to it)" : "Can read another process's memory";
+  return risk === 2
+    ? "Can write another process's memory (or has full access to it)"
+    : "Can read another process's memory";
 }

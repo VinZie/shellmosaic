@@ -1,6 +1,18 @@
 // Run SQL: an editor with highlighting above the results, a cancel button, history.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { CircleAlert, CircleCheck, Clock, Copy, LoaderCircle, LockOpen, Play, Square, Trash, TriangleAlert, X } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  Clock,
+  Copy,
+  LoaderCircle,
+  LockOpen,
+  Play,
+  Square,
+  Trash,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 import {
   Button,
   IconButton,
@@ -22,7 +34,21 @@ import {
   type QueryResult,
 } from "../../shared";
 import { CellView, cellTitle, highlightSql } from "./cells";
-import { affinity, guessTable, hasPartial, isBigInt, isBlob, isInterrupted, isNumeric, isReadOnlyError, mayChangeSchema, toInserts, toJson, toTsv, stripComments } from "./sql";
+import {
+  affinity,
+  guessTable,
+  hasPartial,
+  isBigInt,
+  isBlob,
+  isInterrupted,
+  isNumeric,
+  isReadOnlyError,
+  mayChangeSchema,
+  toInserts,
+  toJson,
+  toTsv,
+  stripComments,
+} from "./sql";
 import { copyOut, useDb, type SqlRequest } from "./state";
 
 interface HistoryEntry {
@@ -47,7 +73,15 @@ const MAX_ROWS = [
 const MAX_HISTORY = 50;
 const WRITES = /\b(insert|update|delete|replace|create|drop|alter|vacuum|reindex|analyze)\b/i;
 
-export function SqlTab({ initial, onText, request }: { initial: string; onText: (s: string) => void; request: SqlRequest | null }) {
+export function SqlTab({
+  initial,
+  onText,
+  request,
+}: {
+  initial: string;
+  onText: (s: string) => void;
+  request: SqlRequest | null;
+}) {
   const { db, bump, forgetCounts, reloadSchema, setWritable, narrow } = useDb();
   const [text, setText] = useState(initial);
   const textRef = useRef(text);
@@ -85,7 +119,8 @@ export function SqlTab({ initial, onText, request }: { initial: string; onText: 
   const run = useCallback(
     async (given?: string) => {
       const ta = taRef.current;
-      const sel = ta && ta.selectionStart !== ta.selectionEnd ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : null;
+      const sel =
+        ta && ta.selectionStart !== ta.selectionEnd ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : null;
       const sql = given ?? sel ?? textRef.current;
       if (!stripComments(sql).trim() || runningRef.current) return;
       runningRef.current = true;
@@ -96,7 +131,10 @@ export function SqlTab({ initial, onText, request }: { initial: string; onText: 
       const remember = (e: Omit<HistoryEntry, "sql" | "at" | "file">) =>
         setHistory((list) => {
           const s = sql.trim();
-          return [{ sql: s, at: Date.now(), file: db.file, ...e }, ...list.filter((h) => h.sql !== s)].slice(0, MAX_HISTORY);
+          return [{ sql: s, at: Date.now(), file: db.file, ...e }, ...list.filter((h) => h.sql !== s)].slice(
+            0,
+            MAX_HISTORY,
+          );
         });
       try {
         const res = await sm.sqlite.query(db.id, sql, [], { maxRows: +maxRows });
@@ -197,7 +235,11 @@ export function SqlTab({ initial, onText, request }: { initial: string; onText: 
         {!narrow && <span className="sqlb-hint">Ctrl+Enter runs the selection, or everything</span>}
         <div className="sm-grow" />
         <Select value={maxRows} onChange={setMaxRows} options={MAX_ROWS} title="Show at most this many rows" />
-        <IconButton title="History" on={!!histAnchor} onClick={(e) => setHistAnchor(histAnchor ? null : e.currentTarget)}>
+        <IconButton
+          title="History"
+          on={!!histAnchor}
+          onClick={(e) => setHistAnchor(histAnchor ? null : e.currentTarget)}
+        >
           <Clock size={14} />
         </IconButton>
       </Toolbar>
@@ -215,11 +257,27 @@ export function SqlTab({ initial, onText, request }: { initial: string; onText: 
           {history.length ? (
             <div className="sqlb-hist">
               {history.map((h) => (
-                <button key={h.at + h.sql} type="button" className="sqlb-hist-item" onClick={() => loadSql(h.sql)} title={h.sql}>
+                <button
+                  key={h.at + h.sql}
+                  type="button"
+                  className="sqlb-hist-item"
+                  onClick={() => loadSql(h.sql)}
+                  title={h.sql}
+                >
                   <code className="sqlb-hist-sql">{h.sql}</code>
                   <span className="sqlb-hist-meta">
-                    {h.ok ? <CircleCheck size={11} className="sqlb-ok" /> : <CircleAlert size={11} className="sm-danger-text" />}
-                    {h.file} · {new Date(h.at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    {h.ok ? (
+                      <CircleCheck size={11} className="sqlb-ok" />
+                    ) : (
+                      <CircleAlert size={11} className="sm-danger-text" />
+                    )}
+                    {h.file} ·{" "}
+                    {new Date(h.at).toLocaleString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                     {h.rows !== undefined && ` · ${pluralize(h.rows, "row")}`}
                     {h.changes ? ` · ${formatNumber(h.changes)} changed` : ""}
                   </span>
@@ -237,7 +295,16 @@ export function SqlTab({ initial, onText, request }: { initial: string; onText: 
         onSize={setEditorH}
         min={70}
         first={<SqlEditor value={text} onChange={setText} onRun={() => run()} taRef={taRef} />}
-        second={<Results outcome={outcome} running={running !== null} elapsed={elapsed} onAllow={() => setWritable(true)} writable={db.writable} copied={db.copied} />}
+        second={
+          <Results
+            outcome={outcome}
+            running={running !== null}
+            elapsed={elapsed}
+            onAllow={() => setWritable(true)}
+            writable={db.writable}
+            copied={db.copied}
+          />
+        }
       />
       <div className="sm-footer">
         <Status outcome={outcome} running={running !== null} elapsed={elapsed} />
@@ -268,14 +335,19 @@ function Status({ outcome, running, elapsed }: { outcome: Outcome | null; runnin
     );
   const r = outcome.res;
   const parts: string[] = [];
-  if (r.returnedRows) parts.push(r.truncated ? `first ${formatNumber(r.rows.length)} rows` : pluralize(r.rows.length, "row"));
+  if (r.returnedRows)
+    parts.push(r.truncated ? `first ${formatNumber(r.rows.length)} rows` : pluralize(r.rows.length, "row"));
   if (r.changes) parts.push(`${pluralize(r.changes, "row")} changed`);
   if (r.changes && r.lastInsertRowid) parts.push(`last insert rowid ${r.lastInsertRowid}`);
   if (r.statements > 1) parts.push(pluralize(r.statements, "statement"));
   parts.push(fmtMs(r.elapsedMs));
   return (
     <>
-      {r.truncated ? <TriangleAlert size={12} className="sm-warning-text" /> : <CircleCheck size={12} className="sqlb-ok" />}
+      {r.truncated ? (
+        <TriangleAlert size={12} className="sm-warning-text" />
+      ) : (
+        <CircleCheck size={12} className="sqlb-ok" />
+      )}
       <span className="sm-ellipsis">{parts.join(" · ")}</span>
     </>
   );
@@ -285,7 +357,17 @@ const fmtMs = (ms: number) => (ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 100
 
 // ── editor ──────────────────────────────────────────────────────────────
 
-function SqlEditor({ value, onChange, onRun, taRef }: { value: string; onChange: (v: string) => void; onRun: () => void; taRef: React.RefObject<HTMLTextAreaElement | null> }) {
+function SqlEditor({
+  value,
+  onChange,
+  onRun,
+  taRef,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onRun: () => void;
+  taRef: React.RefObject<HTMLTextAreaElement | null>;
+}) {
   const preRef = useRef<HTMLPreElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
   const lines = useMemo(() => value.split("\n").length, [value]);
@@ -430,7 +512,17 @@ function Results({
   );
 }
 
-function SqlError({ message, onAllow, writable, copied }: { message: string; onAllow: () => void; writable: boolean; copied: boolean }) {
+function SqlError({
+  message,
+  onAllow,
+  writable,
+  copied,
+}: {
+  message: string;
+  onAllow: () => void;
+  writable: boolean;
+  copied: boolean;
+}) {
   const ro = isReadOnlyError(message) && !writable;
   return (
     <div className="sm-scroll">
@@ -444,7 +536,10 @@ function SqlError({ message, onAllow, writable, copied }: { message: string; onA
           <>
             <p>
               This statement would change the database. To run it, turn on <b>Allow changes</b>
-              {copied ? " (the changes go to the temporary copy, not the original file)" : " (the file on disk is changed right away; there is no undo)"}.
+              {copied
+                ? " (the changes go to the temporary copy, not the original file)"
+                : " (the file on disk is changed right away; there is no undo)"}
+              .
             </p>
             <Button small onClick={onAllow}>
               <LockOpen size={12} /> Allow changes…
@@ -463,7 +558,9 @@ function ResultTable({ res, sql }: { res: QueryResult; sql: string }) {
     return res.columns.map((c, ci) => {
       const sample = res.rows.slice(0, 50).map((r) => r[ci]);
       const nonNull = sample.filter((v) => v !== null);
-      const right = (c.declType ? isNumeric(affinity(c.declType)) : false) || (nonNull.length > 0 && nonNull.every((v) => typeof v === "number" || isBigInt(v)));
+      const right =
+        (c.declType ? isNumeric(affinity(c.declType)) : false) ||
+        (nonNull.length > 0 && nonNull.every((v) => typeof v === "number" || isBigInt(v)));
       // a column of whole numbers sorts exactly (big integers too); anything else as numbers/text
       // (the table compares BigInts only with BigInts, so never mix them with other values)
       const integral = res.rows.every((r) => {
@@ -472,7 +569,18 @@ function ResultTable({ res, sql }: { res: QueryResult; sql: string }) {
       });
       let chars = c.name.length + 3;
       for (const v of sample) {
-        const len = v === null ? 4 : typeof v === "number" ? String(v).length : typeof v === "string" ? Math.min(v.length, 48) : isBlob(v) ? 22 : isBigInt(v) ? v.$int.length : 40;
+        const len =
+          v === null
+            ? 4
+            : typeof v === "number"
+              ? String(v).length
+              : typeof v === "string"
+                ? Math.min(v.length, 48)
+                : isBlob(v)
+                  ? 22
+                  : isBigInt(v)
+                    ? v.$int.length
+                    : 40;
         if (len > chars) chars = len;
       }
       return {
@@ -504,7 +612,11 @@ function ResultTable({ res, sql }: { res: QueryResult; sql: string }) {
   const copyRows = (list: ResRow[], fmt: "tsv" | "tsvh" | "json" | "insert") => {
     const data = list.map((r) => r.cells);
     const text =
-      fmt === "json" ? toJson(names, data) : fmt === "insert" ? toInserts(guessTable(sql) ?? "result", names, data) : toTsv(names, data, fmt === "tsvh");
+      fmt === "json"
+        ? toJson(names, data)
+        : fmt === "insert"
+          ? toInserts(guessTable(sql) ?? "result", names, data)
+          : toTsv(names, data, fmt === "tsvh");
     copyOut(text, list.length === 1 ? "1 row" : `${formatNumber(list.length)} rows`, data.some(hasPartial));
   };
 
@@ -512,7 +624,8 @@ function ResultTable({ res, sql }: { res: QueryResult; sql: string }) {
     <>
       {res.truncated && (
         <div className="sqlb-truncated">
-          <TriangleAlert size={13} /> Showing the first {formatNumber(res.rows.length)} rows. Raise the limit in the toolbar, or add a LIMIT / WHERE.
+          <TriangleAlert size={13} /> Showing the first {formatNumber(res.rows.length)} rows. Raise the limit in the
+          toolbar, or add a LIMIT / WHERE.
         </div>
       )}
       <Table<ResRow>
@@ -530,7 +643,12 @@ function ResultTable({ res, sql }: { res: QueryResult; sql: string }) {
         }
         onContextMenu={(at, list) =>
           openMenu(at, [
-            { label: list.length === 1 ? "Copy row (TSV)" : `Copy ${formatNumber(list.length)} rows (TSV)`, icon: <Copy size={14} />, hint: "Ctrl+C", onSelect: () => copyRows(list, "tsv") },
+            {
+              label: list.length === 1 ? "Copy row (TSV)" : `Copy ${formatNumber(list.length)} rows (TSV)`,
+              icon: <Copy size={14} />,
+              hint: "Ctrl+C",
+              onSelect: () => copyRows(list, "tsv"),
+            },
             { label: "Copy as TSV with header", onSelect: () => copyRows(list, "tsvh") },
             { label: "Copy as JSON", onSelect: () => copyRows(list, "json") },
             { label: "Copy as INSERT statements", onSelect: () => copyRows(list, "insert") },

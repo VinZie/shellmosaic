@@ -10,22 +10,39 @@ function walk(el: Element, depth: number, out: Tok[]) {
   const ind = "  ".repeat(depth);
   out.push({ k: "plain", s: ind }, { k: "tag", s: `<${el.tagName}` });
   for (const a of Array.from(el.attributes)) {
-    out.push({ k: "plain", s: " " }, { k: "attr", s: a.name }, { k: "plain", s: "=" }, { k: "val", s: `"${escAttr(a.value)}"` });
+    out.push(
+      { k: "plain", s: " " },
+      { k: "attr", s: a.name },
+      { k: "plain", s: "=" },
+      { k: "val", s: `"${escAttr(a.value)}"` },
+    );
   }
-  const kids = Array.from(el.childNodes).filter((n) => n.nodeType === 1 || ((n.nodeType === 3 || n.nodeType === 4) && (n.textContent ?? "").trim()));
+  const kids = Array.from(el.childNodes).filter(
+    (n) => n.nodeType === 1 || ((n.nodeType === 3 || n.nodeType === 4) && (n.textContent ?? "").trim()),
+  );
   if (!kids.length) {
     out.push({ k: "tag", s: "/>" }, { k: "plain", s: "\n" });
     return;
   }
   if (kids.every((n) => n.nodeType !== 1)) {
     const text = kids.map((n) => n.textContent ?? "").join("");
-    out.push({ k: "tag", s: ">" }, { k: "text", s: esc(text.replace(/\r\n?/g, "\n")) }, { k: "tag", s: `</${el.tagName}>` }, { k: "plain", s: "\n" });
+    out.push(
+      { k: "tag", s: ">" },
+      { k: "text", s: esc(text.replace(/\r\n?/g, "\n")) },
+      { k: "tag", s: `</${el.tagName}>` },
+      { k: "plain", s: "\n" },
+    );
     return;
   }
   out.push({ k: "tag", s: ">" }, { k: "plain", s: "\n" });
   for (const n of kids) {
     if (n.nodeType === 1) walk(n as Element, depth + 1, out);
-    else out.push({ k: "plain", s: "  ".repeat(depth + 1) }, { k: "text", s: esc((n.textContent ?? "").trim()) }, { k: "plain", s: "\n" });
+    else
+      out.push(
+        { k: "plain", s: "  ".repeat(depth + 1) },
+        { k: "text", s: esc((n.textContent ?? "").trim()) },
+        { k: "plain", s: "\n" },
+      );
   }
   out.push({ k: "plain", s: ind }, { k: "tag", s: `</${el.tagName}>` }, { k: "plain", s: "\n" });
 }
@@ -40,7 +57,12 @@ function tokens(xml: string): Tok[] | null {
 
 export function prettyXml(xml: string): string {
   const t = tokens(xml);
-  return t ? t.map((x) => x.s).join("").trimEnd() : xml;
+  return t
+    ? t
+        .map((x) => x.s)
+        .join("")
+        .trimEnd()
+    : xml;
 }
 
 export function XmlView({ xml }: { xml: string }) {
@@ -48,7 +70,15 @@ export function XmlView({ xml }: { xml: string }) {
   let body: ReactNode;
   if (!t) body = xml;
   else {
-    body = t.map((x, i) => (x.k === "plain" ? x.s : <span key={i} className={`x-${x.k}`}>{x.s}</span>));
+    body = t.map((x, i) =>
+      x.k === "plain" ? (
+        x.s
+      ) : (
+        <span key={i} className={`x-${x.k}`}>
+          {x.s}
+        </span>
+      ),
+    );
   }
   return <pre className="sm-code ev-xml">{body}</pre>;
 }

@@ -109,7 +109,7 @@ function crumbs(p: string): { label: string; path: string }[] {
 const INVALID_NAME = /[<>:"/\\|?*\u0000-\u001f]/;
 function validName(n: string): string | null {
   if (!n) return "Enter a name";
-  if (INVALID_NAME.test(n)) return 'Names can\'t contain  < > : " / \\ | ? *';
+  if (INVALID_NAME.test(n)) return "Names can't contain  < > : \" / \\ | ? *";
   if (n === "." || n === ".." || /[. ]$/.test(n)) return "Names can't end with a dot or a space";
   return null;
 }
@@ -117,14 +117,20 @@ function validName(n: string): string | null {
 // ── entry types ─────────────────────────────────────────────────────────
 
 const CODE_EXT = new Set(
-  ("js jsx ts tsx mjs cjs mts cts py pyw rs go java kt kts c h cpp cc cxx hpp hh cs fs fsx vb rb php swift scala lua pl pm r dart " +
+  (
+    "js jsx ts tsx mjs cjs mts cts py pyw rs go java kt kts c h cpp cc cxx hpp hh cs fs fsx vb rb php swift scala lua pl pm r dart " +
     "vue svelte astro html htm xhtml css scss sass less styl json jsonc json5 yaml yml toml xml xaml ini cfg conf properties sh bash zsh " +
     "fish ps1 psm1 psd1 bat cmd sql graphql gql proto gradle cmake tf hcl nix zig ex exs erl hs ml clj cljs elm sol wat ipynb lock " +
-    "csproj sln vcxproj props targets mk").split(" "),
+    "csproj sln vcxproj props targets mk"
+  ).split(" "),
 );
 const CODE_NAMES = new Set(["dockerfile", "makefile", "rakefile", "gemfile", "procfile", "justfile", "cmakelists.txt"]);
 const IMG_EXT = new Set("png jpg jpeg gif webp bmp svg ico avif tif tiff heic".split(" "));
-const TEXT_EXT = new Set("txt md markdown mdx log csv tsv rst adoc org rtf env gitignore gitattributes gitmodules editorconfig npmrc nvmrc".split(" "));
+const TEXT_EXT = new Set(
+  "txt md markdown mdx log csv tsv rst adoc org rtf env gitignore gitattributes gitmodules editorconfig npmrc nvmrc".split(
+    " ",
+  ),
+);
 const MD_EXT = new Set(["md", "markdown", "mdx"]);
 
 function extOf(name: string): string {
@@ -142,7 +148,13 @@ function entryIcon(e: { name: string; isDir: boolean }): string {
   return "file";
 }
 
-const dateFmt = new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateFmt = new Intl.DateTimeFormat(undefined, {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
 function formatDate(ms: number): string {
   if (!ms) return "";
@@ -158,7 +170,8 @@ interface Sort {
   desc: boolean;
 }
 
-const nameCmp = (a: FsEntry, b: FsEntry) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+const nameCmp = (a: FsEntry, b: FsEntry) =>
+  a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
 
 function sortEntries(list: FsEntry[], sort: Sort): FsEntry[] {
   const by =
@@ -174,7 +187,9 @@ function nameMatcher(q: string): ((name: string) => boolean) | null {
   const s = q.trim();
   if (!s) return null;
   if (/[*?]/.test(s)) {
-    const src = [...s].map((c) => (c === "*" ? ".*" : c === "?" ? "." : c.replace(/[.+^${}()|[\]\\]/g, "\\$&"))).join("");
+    const src = [...s]
+      .map((c) => (c === "*" ? ".*" : c === "?" ? "." : c.replace(/[.+^${}()|[\]\\]/g, "\\$&")))
+      .join("");
     const re = new RegExp(`^${src}$`, "i");
     return (n) => re.test(n);
   }
@@ -183,7 +198,10 @@ function nameMatcher(q: string): ((name: string) => boolean) | null {
 }
 
 const sameEntries = (a: FsEntry[], b: FsEntry[]) =>
-  a.length === b.length && a.every((e, i) => e.path === b[i].path && e.size === b[i].size && e.modified === b[i].modified && e.isDir === b[i].isDir);
+  a.length === b.length &&
+  a.every(
+    (e, i) => e.path === b[i].path && e.size === b[i].size && e.modified === b[i].modified && e.isDir === b[i].isDir,
+  );
 
 // ── terminal helpers ────────────────────────────────────────────────────
 
@@ -217,7 +235,9 @@ function cdCommand(dir: string, tabId: string): string {
 }
 
 function cdInTerminal(dir: string, tabId: string) {
-  sendToTerminal(cdCommand(dir, tabId), { tabId, enter: true, local: true }).catch((e) => ui.toast(errorText(e), "error"));
+  sendToTerminal(cdCommand(dir, tabId), { tabId, enter: true, local: true }).catch((e) =>
+    ui.toast(errorText(e), "error"),
+  );
 }
 
 function openTerminalAt(dir: string, tabId: string, paneId: string) {
@@ -316,7 +336,9 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
         const list = await ipc.fsList(dir, showHidden);
         if (id !== reqId.current) return;
         setListing((prev) =>
-          prev && prev.dir === dir && prev.hidden === showHidden && sameEntries(prev.entries, list) ? prev : { dir, hidden: showHidden, entries: list },
+          prev && prev.dir === dir && prev.hidden === showHidden && sameEntries(prev.entries, list)
+            ? prev
+            : { dir, hidden: showHidden, entries: list },
         );
         setError(null);
       } catch (e) {
@@ -370,7 +392,7 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
   }, [dir, drives, pane.id]);
 
   // ── history ──
-  const viewKey = drives ? DRIVES : dir ?? "";
+  const viewKey = drives ? DRIVES : (dir ?? "");
   const [back, setBack] = useState<string[]>([]);
   const [fwd, setFwd] = useState<string[]>([]);
   const prevView = useRef<string>("");
@@ -452,7 +474,8 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
     if (!el || i < 0) return;
     const top = i * ROW_H;
     if (top < el.scrollTop) el.scrollTop = top;
-    else if (HEADER_H + top + ROW_H > el.scrollTop + el.clientHeight) el.scrollTop = HEADER_H + top + ROW_H - el.clientHeight;
+    else if (HEADER_H + top + ROW_H > el.scrollTop + el.clientHeight)
+      el.scrollTop = HEADER_H + top + ROW_H - el.clientHeight;
   }, []);
 
   // select a remembered entry once it shows up (the folder we came from, a new file…)
@@ -556,7 +579,9 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
   const trash = async (e: FsEntry) => {
     const ok = await ui.confirm(
       `Move "${e.name}" to the Recycle Bin?`,
-      e.isDir ? "The folder and everything in it can be restored from the Recycle Bin." : "You can restore it from the Recycle Bin.",
+      e.isDir
+        ? "The folder and everything in it can be restored from the Recycle Bin."
+        : "You can restore it from the Recycle Bin.",
       { okLabel: "Move to Recycle Bin", danger: true },
     );
     refocus();
@@ -588,7 +613,12 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
             { label: "Open in new Files pane", icon: "columns-2", onSelect: () => openFilesAt(e.path, pane.id) },
           ]
         : [
-            { label: "Open with default app", icon: "external-link", shortcut: "Ctrl+Enter", onSelect: () => openPath(e.path).catch(toastErr) },
+            {
+              label: "Open with default app",
+              icon: "external-link",
+              shortcut: "Ctrl+Enter",
+              onSelect: () => openPath(e.path).catch(toastErr),
+            },
             { label: "Preview", icon: "eye", shortcut: "Enter", onSelect: () => setPreview(e.path, true) },
             // databases (and, with the module installed, extensionless files like a browser's History)
             ...(SQLITE_FILE.test(e.name) || (hasOptional("sqlite-browser") && !/\.[^.\\]+$/.test(e.name))
@@ -596,7 +626,8 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
                   {
                     label: "Open in SQLite Browser",
                     icon: "database",
-                    onSelect: () => openOptional("sqlite-browser", "SQLite Browser", { path: e.path }, { tabId, paneId: pane.id }),
+                    onSelect: () =>
+                      openOptional("sqlite-browser", "SQLite Browser", { path: e.path }, { tabId, paneId: pane.id }),
                   },
                 ]
               : []),
@@ -605,7 +636,11 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
       { type: "separator" },
       { label: "Copy path", icon: "copy", shortcut: "Ctrl+C", onSelect: () => copyText(e.path) },
       { label: "Copy name", icon: "clipboard-copy", onSelect: () => copyText(e.name, "Name") },
-      { label: "Insert path into terminal", icon: "terminal", onSelect: () => sendToTerminal(shellQuote(e.path, targetKind(tabId)) + " ", { tabId, local: true }) },
+      {
+        label: "Insert path into terminal",
+        icon: "terminal",
+        onSelect: () => sendToTerminal(shellQuote(e.path, targetKind(tabId)) + " ", { tabId, local: true }),
+      },
       { type: "separator" },
       { label: "cd here in terminal", icon: "enter", hint: basename(here), onSelect: () => cdInTerminal(here, tabId) },
       { label: "Open terminal here", icon: "square-terminal", onSelect: () => openTerminalAt(here, tabId, pane.id) },
@@ -785,7 +820,10 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
   const first = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN);
   const last = Math.min(rows.length, Math.ceil((scrollTop + viewH - HEADER_H) / ROW_H) + OVERSCAN);
   // memoized: every scroll event re-renders the pane, and these walk the whole folder
-  const previewEntry = useMemo(() => (previewPath ? entries?.find((e) => samePath(e.path, previewPath)) : undefined), [entries, previewPath]);
+  const previewEntry = useMemo(
+    () => (previewPath ? entries?.find((e) => samePath(e.path, previewPath)) : undefined),
+    [entries, previewPath],
+  );
   const folders = useMemo(() => rows.filter((r) => r.isDir).length, [rows]);
 
   let listBody: React.ReactNode;
@@ -834,19 +872,32 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
               ["modified", "Modified"],
             ] as [SortKey, string][]
           ).map(([k, label]) => (
-            <button key={k} className={cx("files-cell", `files-col-${k}`, sort.key === k && "sorted")} onClick={() => setSort(k)}>
+            <button
+              key={k}
+              className={cx("files-cell", `files-col-${k}`, sort.key === k && "sorted")}
+              onClick={() => setSort(k)}
+            >
               {label}
               {sort.key === k && <Icon name={sort.desc ? "chevron-down" : "chevron-up"} size={11} />}
             </button>
           ))}
         </div>
-        <div className="files-rows" style={{ height: rows.length * ROW_H }} onClick={(e) => e.target === e.currentTarget && setSelected(null)}>
+        <div
+          className="files-rows"
+          style={{ height: rows.length * ROW_H }}
+          onClick={(e) => e.target === e.currentTarget && setSelected(null)}
+        >
           {rows.slice(first, last).map((r, k) => {
             const i = first + k;
             return (
               <div
                 key={r.path}
-                className={cx("files-row", r.path === selected && "selected", r.hidden && "files-hidden", previewPath === r.path && "previewing")}
+                className={cx(
+                  "files-row",
+                  r.path === selected && "selected",
+                  r.hidden && "files-hidden",
+                  previewPath === r.path && "previewing",
+                )}
                 style={{ top: i * ROW_H, height: ROW_H }}
                 onClick={() => select(r)}
                 onDoubleClick={() => open(r)}
@@ -890,14 +941,26 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
         </button>
         <PathBar dir={dir ?? ""} drives={drives} onNavigate={(p) => navigate(p)} onSubmit={submitPath} />
         {!narrow && (
-          <button className={cx("icon-btn", drives && "on")} title="This PC — drives and quick access" onClick={() => (drives ? dir && navigate(dir) : navigate(DRIVES))}>
+          <button
+            className={cx("icon-btn", drives && "on")}
+            title="This PC — drives and quick access"
+            onClick={() => (drives ? dir && navigate(dir) : navigate(DRIVES))}
+          >
             <Icon name="hard-drive" size={15} />
           </button>
         )}
-        <button className={cx("icon-btn", following && "on")} title={following ? "Following the terminal's folder (click to stop)" : "Follow the terminal's folder"} onClick={toggleFollow}>
+        <button
+          className={cx("icon-btn", following && "on")}
+          title={following ? "Following the terminal's folder (click to stop)" : "Follow the terminal's folder"}
+          onClick={toggleFollow}
+        >
           <Icon name={following ? "plug" : "unplug"} size={15} />
         </button>
-        <button className={cx("icon-btn", showHidden && "on")} title={showHidden ? "Hide hidden files" : "Show hidden files"} onClick={toggleHidden}>
+        <button
+          className={cx("icon-btn", showHidden && "on")}
+          title={showHidden ? "Hide hidden files" : "Show hidden files"}
+          onClick={toggleHidden}
+        >
           <Icon name={showHidden ? "eye" : "eye-off"} size={15} />
         </button>
         {!drives && (
@@ -954,7 +1017,8 @@ function FilesPane({ pane, tabId, visible, focused }: ModuleProps) {
             </span>
             {folders > 0 && folders < rows.length && (
               <span className="dim">
-                {folders} {folders === 1 ? "folder" : "folders"}, {rows.length - folders} {rows.length - folders === 1 ? "file" : "files"}
+                {folders} {folders === 1 ? "folder" : "folders"}, {rows.length - folders}{" "}
+                {rows.length - folders === 1 ? "file" : "files"}
               </span>
             )}
             {current && !current.isDir && (
@@ -1032,15 +1096,28 @@ function PathBar({
 
   const parts = drives ? [] : crumbs(dir);
   return (
-    <div className="files-path" ref={ref} onClick={(e) => e.target === e.currentTarget && startEdit()} title="Click an empty spot to type a path">
-      <button className={cx("files-crumb files-crumb-pc", drives && "current")} title="This PC" onClick={() => onNavigate(DRIVES)}>
+    <div
+      className="files-path"
+      ref={ref}
+      onClick={(e) => e.target === e.currentTarget && startEdit()}
+      title="Click an empty spot to type a path"
+    >
+      <button
+        className={cx("files-crumb files-crumb-pc", drives && "current")}
+        title="This PC"
+        onClick={() => onNavigate(DRIVES)}
+      >
         <Icon name="monitor" size={13} />
         {drives && <span>This PC</span>}
       </button>
       {parts.map((c, i) => (
         <Fragment key={c.path}>
           <Icon name="chevron-right" size={12} className="files-crumb-sep" />
-          <button className={cx("files-crumb", i === parts.length - 1 && "current")} onClick={() => onNavigate(c.path)} title={c.path}>
+          <button
+            className={cx("files-crumb", i === parts.length - 1 && "current")}
+            onClick={() => onNavigate(c.path)}
+            title={c.path}
+          >
             {c.label}
           </button>
         </Fragment>
@@ -1052,7 +1129,15 @@ function PathBar({
 
 // ── This PC ─────────────────────────────────────────────────────────────
 
-function ThisPC({ home, selectPath, onOpen }: { home?: string; selectPath: string | null; onOpen: (p: string) => void }) {
+function ThisPC({
+  home,
+  selectPath,
+  onOpen,
+}: {
+  home?: string;
+  selectPath: string | null;
+  onOpen: (p: string) => void;
+}) {
   const [drives, setDrives] = useState<string[] | null>(null);
   const [disks, setDisks] = useState<SysSnapshot["disks"]>([]);
   const [quick, setQuick] = useState<{ label: string; path: string; icon: string }[]>([]);
@@ -1074,7 +1159,9 @@ function ThisPC({ home, selectPath, onOpen }: { home?: string; selectPath: strin
         { label: "Documents", path: joinPath(home, "Documents"), icon: "file-text" },
         { label: "Downloads", path: joinPath(home, "Downloads"), icon: "download" },
       ];
-      Promise.all(cands.map((c) => ipc.fsIsDir(c.path).catch(() => false))).then((ok) => alive && setQuick(cands.filter((_, i) => ok[i])));
+      Promise.all(cands.map((c) => ipc.fsIsDir(c.path).catch(() => false))).then(
+        (ok) => alive && setQuick(cands.filter((_, i) => ok[i])),
+      );
     }
     return () => {
       alive = false;
@@ -1110,7 +1197,11 @@ function ThisPC({ home, selectPath, onOpen }: { home?: string; selectPath: strin
             const disk = diskFor(d);
             const used = disk && disk.total ? 1 - disk.available / disk.total : null;
             return (
-              <button key={d} className={cx("files-pc-item", samePath(selectPath, d) && "selected")} onClick={() => onOpen(d)}>
+              <button
+                key={d}
+                className={cx("files-pc-item", samePath(selectPath, d) && "selected")}
+                onClick={() => onOpen(d)}
+              >
                 <Icon name="hard-drive" size={18} />
                 <span className="files-pc-text">
                   <span className="ellipsis">
@@ -1260,7 +1351,11 @@ function PreviewPanel({
         {size !== undefined && <span className="dim files-preview-size">{formatBytes(size)}</span>}
         <span className="grow" />
         {isMd && data?.kind === "text" && (
-          <button className={cx("icon-btn", source && "on")} title={source ? "Show rendered" : "Show source"} onClick={() => setSource((s) => !s)}>
+          <button
+            className={cx("icon-btn", source && "on")}
+            title={source ? "Show rendered" : "Show source"}
+            onClick={() => setSource((s) => !s)}
+          >
             <Icon name="code" size={14} />
           </button>
         )}
@@ -1325,8 +1420,17 @@ function ImageView({ src }: { src: string }) {
     setActual(false);
   }, [src]);
   return (
-    <div className={cx("module-scroll files-image", actual && "actual")} onClick={() => setActual((a) => !a)} title={actual ? "Click to fit" : "Click for actual size"}>
-      <img src={src} alt="" draggable={false} onLoad={(e) => setDim([e.currentTarget.naturalWidth, e.currentTarget.naturalHeight])} />
+    <div
+      className={cx("module-scroll files-image", actual && "actual")}
+      onClick={() => setActual((a) => !a)}
+      title={actual ? "Click to fit" : "Click for actual size"}
+    >
+      <img
+        src={src}
+        alt=""
+        draggable={false}
+        onLoad={(e) => setDim([e.currentTarget.naturalWidth, e.currentTarget.naturalHeight])}
+      />
       {dim && (
         <span className="files-image-dim">
           {dim[0]} × {dim[1]}
@@ -1377,9 +1481,18 @@ export const filesModule: ModuleDef = {
         label: "Follow terminal folder",
         icon: "plug",
         checked: following,
-        onSelect: () => setPaneMeta(pane.id, following ? { follow: false, path: ui.get().cwds[pane.id] ?? pane.meta.path } : { follow: true }),
+        onSelect: () =>
+          setPaneMeta(
+            pane.id,
+            following ? { follow: false, path: ui.get().cwds[pane.id] ?? pane.meta.path } : { follow: true },
+          ),
       },
-      { label: "Show hidden files", icon: "eye", checked: hidden, onSelect: () => setPaneMeta(pane.id, { showHidden: !hidden }) },
+      {
+        label: "Show hidden files",
+        icon: "eye",
+        checked: hidden,
+        onSelect: () => setPaneMeta(pane.id, { showHidden: !hidden }),
+      },
     ];
   },
 };

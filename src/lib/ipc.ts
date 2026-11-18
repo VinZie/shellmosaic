@@ -151,7 +151,15 @@ export interface AgentSnapshot {
 }
 
 export type AgentPaneRequest =
-  | { op: "add"; runId: string; workspaceId: string; tabId: string | null; paneId: string; agentId: string; title: string }
+  | {
+      op: "add";
+      runId: string;
+      workspaceId: string;
+      tabId: string | null;
+      paneId: string;
+      agentId: string;
+      title: string;
+    }
   | { op: "remove"; paneId: string };
 
 export interface AttachInfo {
@@ -417,7 +425,14 @@ export interface StoreState {
   installed: Record<string, { version: string; installedAt: number; branch?: string | null }>;
   pending: StoreOp[];
   /** what happened to the changes queued before the last start */
-  lastApply: { op: "install" | "remove"; id: string; name: string; ok: boolean; error?: string | null; permissions: string[] }[];
+  lastApply: {
+    op: "install" | "remove";
+    id: string;
+    name: string;
+    ok: boolean;
+    error?: string | null;
+    permissions: string[];
+  }[];
   appVersion: string;
   /** plugin folders the store doesn't manage */
   local: string[];
@@ -521,7 +536,11 @@ export const ipc = {
     invoke<ExecResult>("run_command", { program, args, cwd, timeoutMs }),
   /** Claude plan usage for plugins with `claude.usage`; `usage` is Anthropic's answer as is. */
   claudeUsage: () =>
-    invoke<{ fetchedAt: number; plan: { subscription: string | null; tier: string | null }; usage: Record<string, unknown> }>("claude_usage"),
+    invoke<{
+      fetchedAt: number;
+      plan: { subscription: string | null; tier: string | null };
+      usage: Record<string, unknown>;
+    }>("claude_usage"),
 
   // saved SSH hosts (secrets go in, never come back out)
   vaultStatus: () => invoke<VaultStatus>("vault_status"),
@@ -538,7 +557,8 @@ export const ipc = {
   sshPromptAnswer: (id: number, value: string | null) => invoke<void>("ssh_prompt_answer", { id, value }),
 
   // sftp (one connection per pane; remote paths are POSIX)
-  sftpConnect: (paneId: string, hostId: string) => invoke<{ home: string; hostName: string }>("sftp_connect", { paneId, hostId }),
+  sftpConnect: (paneId: string, hostId: string) =>
+    invoke<{ home: string; hostName: string }>("sftp_connect", { paneId, hostId }),
   sftpClose: (paneId: string) => invoke<void>("sftp_close", { paneId }),
   sftpList: (paneId: string, path: string) => invoke<RemoteEntry[]>("sftp_list", { paneId, path }),
   sftpMkdir: (paneId: string, path: string) => invoke<void>("sftp_mkdir", { paneId, path }),
@@ -546,8 +566,13 @@ export const ipc = {
   sftpDelete: (paneId: string, paths: string[]) => invoke<void>("sftp_delete", { paneId, paths }),
   sftpDownload: (paneId: string, paths: string[], localDir: string, onEvent: Channel<TransferEvent>) =>
     invoke<number>("sftp_download", { paneId, paths, localDir, onEvent }),
-  sftpUpload: (paneId: string, paths: string[], remoteDir: string, overwrite: boolean, onEvent: Channel<TransferEvent>) =>
-    invoke<number>("sftp_upload", { paneId, paths, remoteDir, overwrite, onEvent }),
+  sftpUpload: (
+    paneId: string,
+    paths: string[],
+    remoteDir: string,
+    overwrite: boolean,
+    onEvent: Channel<TransferEvent>,
+  ) => invoke<number>("sftp_upload", { paneId, paths, remoteDir, overwrite, onEvent }),
   sftpCancel: (id: number) => invoke<void>("sftp_cancel", { id }),
   /** save layout and scrollback now (before the updater's installer closes the app) */
   appPersist: () => invoke<void>("app_persist"),
@@ -556,7 +581,13 @@ export const ipc = {
   appElevated: () => invoke<boolean>("app_elevated"),
   /** metadata for the updater's `new Update(…)`, or null when there's nothing newer on the channel */
   updateCheck: (channel: UpdateChannel) =>
-    invoke<{ rid: number; currentVersion: string; version: string; body?: string; rawJson: Record<string, unknown> } | null>("update_check", { channel }),
+    invoke<{
+      rid: number;
+      currentVersion: string;
+      version: string;
+      body?: string;
+      rawJson: Record<string, unknown>;
+    } | null>("update_check", { channel }),
 
   // optional modules
   storeState: () => invoke<StoreState>("store_state"),
@@ -577,23 +608,32 @@ export const ipc = {
   processToken: (pid: number) => invoke<unknown>("process_token", { pid }),
   processMemory: (pid: number) => invoke<unknown>("process_memory", { pid }),
   processSignature: (path: string) => invoke<unknown>("process_signature", { path }),
-  processControl: (pid: number, action: string, value?: string) => invoke<void>("process_control", { pid, action, value }),
+  processControl: (pid: number, action: string, value?: string) =>
+    invoke<void>("process_control", { pid, action, value }),
   threadControl: (pid: number, tid: number, action: string) => invoke<void>("thread_control", { pid, tid, action }),
   eventlogChannels: () => invoke<unknown>("eventlog_channels"),
   eventlogInfo: (channel: string) => invoke<unknown>("eventlog_info", { channel }),
-  eventlogQuery: (owner: string, q: { channel: string; xpath?: string; reverse?: boolean; text?: string; max?: number }) =>
-    invoke<unknown>("eventlog_query", { owner, ...q }),
-  eventlogMore: (owner: string, cursor: number, max?: number) => invoke<unknown>("eventlog_more", { owner, cursor, max }),
+  eventlogQuery: (
+    owner: string,
+    q: { channel: string; xpath?: string; reverse?: boolean; text?: string; max?: number },
+  ) => invoke<unknown>("eventlog_query", { owner, ...q }),
+  eventlogMore: (owner: string, cursor: number, max?: number) =>
+    invoke<unknown>("eventlog_more", { owner, cursor, max }),
   eventlogClose: (owner: string, cursor: number) => invoke<void>("eventlog_close", { owner, cursor }),
-  eventlogSubscribe: (owner: string, q: { channel: string; xpath?: string; text?: string }) => invoke<number>("eventlog_subscribe", { owner, ...q }),
-  eventlogPoll: (owner: string, subscription: number, max?: number) => invoke<string[]>("eventlog_poll", { owner, subscription, max }),
-  eventlogUnsubscribe: (owner: string, subscription: number) => invoke<void>("eventlog_unsubscribe", { owner, subscription }),
-  sqliteOpen: (owner: string, path: string, writable?: boolean, copy?: boolean) => invoke<unknown>("sqlite_open", { owner, path, writable, copy }),
+  eventlogSubscribe: (owner: string, q: { channel: string; xpath?: string; text?: string }) =>
+    invoke<number>("eventlog_subscribe", { owner, ...q }),
+  eventlogPoll: (owner: string, subscription: number, max?: number) =>
+    invoke<string[]>("eventlog_poll", { owner, subscription, max }),
+  eventlogUnsubscribe: (owner: string, subscription: number) =>
+    invoke<void>("eventlog_unsubscribe", { owner, subscription }),
+  sqliteOpen: (owner: string, path: string, writable?: boolean, copy?: boolean) =>
+    invoke<unknown>("sqlite_open", { owner, path, writable, copy }),
   sqliteSchema: (owner: string, id: number) => invoke<unknown>("sqlite_schema", { owner, id }),
   sqliteCount: (owner: string, id: number, table: string) => invoke<number>("sqlite_count", { owner, id, table }),
   sqliteQuery: (owner: string, id: number, sql: string, params?: unknown[], maxRows?: number) =>
     invoke<unknown>("sqlite_query", { owner, id, sql, params, maxRows }),
-  sqliteSetWritable: (owner: string, id: number, writable: boolean) => invoke<unknown>("sqlite_set_writable", { owner, id, writable }),
+  sqliteSetWritable: (owner: string, id: number, writable: boolean) =>
+    invoke<unknown>("sqlite_set_writable", { owner, id, writable }),
   sqliteInterrupt: (owner: string, id: number) => invoke<void>("sqlite_interrupt", { owner, id }),
   sqliteClose: (owner: string, id: number) => invoke<void>("sqlite_close", { owner, id }),
 
@@ -601,7 +641,8 @@ export const ipc = {
   agentsSnapshot: () => invoke<AgentSnapshot>("agents_snapshot"),
   agentsActivity: (runId?: string | null, after?: number, limit?: number, latest?: boolean) =>
     invoke<AgentActivity[]>("agents_activity", { runId, after, limit, latest }),
-  agentsStart: (workspaceId: string, cwd: string, name?: string | null) => invoke<AgentRun>("agents_start", { workspaceId, cwd, name }),
+  agentsStart: (workspaceId: string, cwd: string, name?: string | null) =>
+    invoke<AgentRun>("agents_start", { workspaceId, cwd, name }),
   agentsGitInit: (cwd: string) => invoke<void>("agents_git_init", { cwd }),
   agentsSetTab: (runId: string, tabId: string) => invoke<void>("agents_set_tab", { runId, tabId }),
   agentsStopRun: (runId: string) => invoke<void>("agents_stop_run", { runId }),
@@ -613,12 +654,24 @@ export const ipc = {
   agentsSend: (agentId: string, text: string) => invoke<void>("agents_send", { agentId, text }),
   agentsAnswer: (requestId: string, a: { allow?: boolean; always?: boolean; text?: string }) =>
     invoke<void>("agents_answer", { requestId, allow: a.allow, always: a.always, text: a.text }),
-  agentsTaskCreate: (runId: string, t: { title: string; description: string; difficulty: number; followUpOf?: string | null }) =>
-    invoke<AgentTask>("agents_task_create", { runId, title: t.title, description: t.description, difficulty: t.difficulty, followUpOf: t.followUpOf }),
-  agentsTaskAssign: (taskId: string, agentId?: string | null) => invoke<string>("agents_task_assign", { taskId, agentId }),
+  agentsTaskCreate: (
+    runId: string,
+    t: { title: string; description: string; difficulty: number; followUpOf?: string | null },
+  ) =>
+    invoke<AgentTask>("agents_task_create", {
+      runId,
+      title: t.title,
+      description: t.description,
+      difficulty: t.difficulty,
+      followUpOf: t.followUpOf,
+    }),
+  agentsTaskAssign: (taskId: string, agentId?: string | null) =>
+    invoke<string>("agents_task_assign", { taskId, agentId }),
   agentsTaskCancel: (taskId: string) => invoke<void>("agents_task_cancel", { taskId }),
-  agentsTaskReview: (taskId: string, accept: boolean, note?: string) => invoke<string>("agents_task_review", { taskId, accept, note }),
-  agentsSetRouting: (routing: Routing, base?: Routing | null) => invoke<Routing>("agents_set_routing", { routing, base }),
+  agentsTaskReview: (taskId: string, accept: boolean, note?: string) =>
+    invoke<string>("agents_task_review", { taskId, accept, note }),
+  agentsSetRouting: (routing: Routing, base?: Routing | null) =>
+    invoke<Routing>("agents_set_routing", { routing, base }),
   agentsTaskDiff: (taskId: string) => invoke<unknown>("agents_task_diff", { taskId }),
   agentsMergePreview: (runId: string) => invoke<unknown>("agents_merge_preview", { runId }),
   agentsMergeBase: (runId: string) => invoke<string>("agents_merge_base", { runId }),

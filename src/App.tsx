@@ -134,7 +134,12 @@ export function App() {
       flushSettings();
       if (confirmQuit && w.label === "main") {
         e.preventDefault();
-        if (await ui.confirm("Quit Shellmosaic?", "Your workspaces and sessions will be restored next time.", { okLabel: "Quit" })) w.destroy();
+        if (
+          await ui.confirm("Quit Shellmosaic?", "Your workspaces and sessions will be restored next time.", {
+            okLabel: "Quit",
+          })
+        )
+          w.destroy();
       }
     });
     return () => {
@@ -144,7 +149,12 @@ export function App() {
 
   return (
     <div
-      className={cx("app", `rail-${appearance.railPosition}`, `modbar-${appearance.moduleBar}`, `density-${appearance.density}`)}
+      className={cx(
+        "app",
+        `rail-${appearance.railPosition}`,
+        `modbar-${appearance.moduleBar}`,
+        `density-${appearance.density}`,
+      )}
       onContextMenu={(e) => {
         // no browser menu except in text fields
         const t = e.target as HTMLElement;
@@ -168,7 +178,9 @@ export function App() {
               <div className="empty-state" style={{ flex: 1 }}>
                 <Icon name="warning" size={26} />
                 <h2 style={{ fontSize: 14 }}>Settings stopped working</h2>
-                <p className="dim selectable" style={{ maxWidth: 420 }}>{err.message}</p>
+                <p className="dim selectable" style={{ maxWidth: 420 }}>
+                  {err.message}
+                </p>
                 <div className="row">
                   <button className="btn" onClick={retry}>
                     <Icon name="rotate-cw" size={14} /> Try again

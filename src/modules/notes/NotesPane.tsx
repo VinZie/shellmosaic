@@ -327,7 +327,10 @@ function NotesPane({ pane, tabId, visible, focused }: ModuleProps) {
   const insertCode = async () => {
     const ta = editorRef.current;
     if (!ta || mode === "preview") {
-      const cmd = await ui.prompt("New code block", "", { placeholder: "A command you can run from the preview", okLabel: "Add" });
+      const cmd = await ui.prompt("New code block", "", {
+        placeholder: "A command you can run from the preview",
+        okLabel: "Add",
+      });
       if (cmd?.trim()) appendBlock("```\n" + cmd.trim() + "\n```");
       return;
     }
@@ -346,7 +349,10 @@ function NotesPane({ pane, tabId, visible, focused }: ModuleProps) {
 
   // ── preview ──
   const deferred = useDeferredValue(text);
-  const rendered = useMemo(() => (mode === "edit" ? null : renderMarkdown(deferred, { tasks: true })), [deferred, mode]);
+  const rendered = useMemo(
+    () => (mode === "edit" ? null : renderMarkdown(deferred, { tasks: true })),
+    [deferred, mode],
+  );
 
   const onPreviewClick = (e: React.MouseEvent) => {
     if (!rendered) return;
@@ -403,7 +409,12 @@ function NotesPane({ pane, tabId, visible, focused }: ModuleProps) {
     <div className={cx("module notes", `notes-mode-${mode}`, narrow && "notes-narrow")} ref={rootRef}>
       <div className="toolbar notes-toolbar">
         {narrow ? (
-          <select className="input notes-scope-select" value={scope} title={SCOPE_HINT[scope]} onChange={(e) => setScope(e.target.value as Scope)}>
+          <select
+            className="input notes-scope-select"
+            value={scope}
+            title={SCOPE_HINT[scope]}
+            onChange={(e) => setScope(e.target.value as Scope)}
+          >
             {SCOPES.map((s) => (
               <option key={s} value={s}>
                 {SCOPE_LABEL[s]}
@@ -429,10 +440,20 @@ function NotesPane({ pane, tabId, visible, focused }: ModuleProps) {
           ))}
         </div>
         <div className="grow" />
-        <button className="icon-btn" title="Insert checklist item" onMouseDown={(e) => e.preventDefault()} onClick={insertChecklist}>
+        <button
+          className="icon-btn"
+          title="Insert checklist item"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={insertChecklist}
+        >
           <Icon name="list-checks" size={15} />
         </button>
-        <button className="icon-btn" title="Insert code block (runnable from the preview)" onMouseDown={(e) => e.preventDefault()} onClick={insertCode}>
+        <button
+          className="icon-btn"
+          title="Insert code block (runnable from the preview)"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={insertCode}
+        >
           <Icon name="code" size={15} />
         </button>
       </div>
@@ -446,7 +467,11 @@ function NotesPane({ pane, tabId, visible, focused }: ModuleProps) {
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="off"
-            placeholder={loading ? "" : `Notes for this ${scope === "global" ? "app" : scope} — Markdown supported.\n\n- [ ] a checklist item\n\n\`\`\`\nnpm run dev\n\`\`\``}
+            placeholder={
+              loading
+                ? ""
+                : `Notes for this ${scope === "global" ? "app" : scope} — Markdown supported.\n\n- [ ] a checklist item\n\n\`\`\`\nnpm run dev\n\`\`\``
+            }
             onChange={(e) => onEdit(e.target.value)}
             onKeyDown={onKeyDown}
             onBlur={() => void flush()}
@@ -460,7 +485,9 @@ function NotesPane({ pane, tabId, visible, focused }: ModuleProps) {
             ) : (
               !loading && (
                 <ModuleMessage icon="notebook" title="Nothing here yet">
-                  <p>{mode === "preview" ? "Switch to Edit or Split to start writing." : "Start typing on the left."}</p>
+                  <p>
+                    {mode === "preview" ? "Switch to Edit or Split to start writing." : "Start typing on the left."}
+                  </p>
                 </ModuleMessage>
               )
             )}

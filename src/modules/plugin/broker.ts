@@ -13,7 +13,15 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { errorText, ipc, type Routing } from "../../lib/ipc";
 import { isPlainObject } from "../../lib/util";
-import { addModule, focusPane, runInNewTerminal, sendToTerminal, setPaneMeta, switchTab, switchWorkspace } from "../../state/actions";
+import {
+  addModule,
+  focusPane,
+  runInNewTerminal,
+  sendToTerminal,
+  setPaneMeta,
+  switchTab,
+  switchWorkspace,
+} from "../../state/actions";
 import { useModules } from "../registry";
 import { restartApp } from "../../state/moduleStore";
 import { commandForEvent } from "../../state/commands";
@@ -33,7 +41,8 @@ const MAX_MESSAGE = 1024 * 1024;
  * SDK. A plugin could forge these, so only navigation-style commands are honoured
  * (never paste, close, run or anything that moves data).
  */
-const FORWARDABLE = /^(palette\.(open|modules)|settings\.open|tab\.(next|prev|goto\.\d)|workspace\.(next|prev|goto\.\d)|pane\.(focus\w+|zoom)|view\.moduleBar)$/;
+const FORWARDABLE =
+  /^(palette\.(open|modules)|settings\.open|tab\.(next|prev|goto\.\d)|workspace\.(next|prev|goto\.\d)|pane\.(focus\w+|zoom)|view\.moduleBar)$/;
 
 function forwardShortcut(k: Record<string, unknown>) {
   if (typeof k.code !== "string" || k.code.length > 32) return;
@@ -136,7 +145,9 @@ const METHOD_PERMISSION: Record<string, string | null> = {
 /** The app's version and whether it runs elevated, read once. */
 let appInfo: Promise<{ version: string; elevated: boolean }> | null = null;
 function appInfoOnce() {
-  appInfo ??= Promise.all([getVersion().catch(() => ""), ipc.appElevated().catch(() => false)]).then(([version, elevated]) => ({ version, elevated }));
+  appInfo ??= Promise.all([getVersion().catch(() => ""), ipc.appElevated().catch(() => false)]).then(
+    ([version, elevated]) => ({ version, elevated }),
+  );
   return appInfo;
 }
 
@@ -228,7 +239,8 @@ function install() {
 /** An event for every ready plugin pane that declared and was granted `perm`. */
 function pushToGranted(perm: string, event: string, data: unknown) {
   for (const s of sessions) {
-    if (s.ready && s.info.permissions.includes(perm) && grantedPermissions(s.info.pluginId).includes(perm)) push(s, event, data);
+    if (s.ready && s.info.permissions.includes(perm) && grantedPermissions(s.info.pluginId).includes(perm))
+      push(s, event, data);
   }
 }
 
@@ -366,7 +378,12 @@ function dialogFree(): Promise<void> {
  * prompts for different plugins queue instead of replacing each other.
  * After "Don't allow" the plugin isn't asked again this run unless `force`.
  */
-export function requestPermissions(pluginId: string, name: string, declared: string[], opts: { force?: boolean } = {}): Promise<boolean> {
+export function requestPermissions(
+  pluginId: string,
+  name: string,
+  declared: string[],
+  opts: { force?: boolean } = {},
+): Promise<boolean> {
   const existing = prompts.get(pluginId);
   if (existing) return existing;
   if (!missingPermissions(pluginId, declared).length) return Promise.resolve(true);
@@ -385,7 +402,13 @@ export function requestPermissions(pluginId: string, name: string, declared: str
         unsub();
         resolve(v);
       };
-      const dialog: Dialog = { kind: "plugin-permissions", pluginId, name, permissions: missing, resolve: (ok) => finish(ok) };
+      const dialog: Dialog = {
+        kind: "plugin-permissions",
+        pluginId,
+        name,
+        permissions: missing,
+        resolve: (ok) => finish(ok),
+      };
       // if something else replaces our dialog, treat it as dismissed. The dialog
       // closes itself right before calling resolve, so check a tick later.
       const unsub = useUi.subscribe((s) => {
@@ -455,7 +478,10 @@ const storageQueue = new Map<string, Promise<unknown>>();
 
 function storageOp<T>(pluginId: string, fn: () => Promise<T>): Promise<T> {
   const p = (storageQueue.get(pluginId) ?? Promise.resolve()).then(fn, fn);
-  storageQueue.set(pluginId, p.catch(() => {}));
+  storageQueue.set(
+    pluginId,
+    p.catch(() => {}),
+  );
   return p;
 }
 
@@ -503,7 +529,8 @@ function optInt(p: Params, key: string, min: number, max: number, fallback: numb
 /** A whole number in range (process and thread ids, database and query ids). */
 function reqInt(p: Params, key: string, min = 0, max = 0xffff_ffff): number {
   const v = p[key];
-  if (typeof v !== "number" || !Number.isInteger(v) || v < min || v > max) throw new Error(`"${key}" must be a whole number`);
+  if (typeof v !== "number" || !Number.isInteger(v) || v < min || v > max)
+    throw new Error(`"${key}" must be a whole number`);
   return v;
 }
 
@@ -517,7 +544,8 @@ function optBool(p: Params, key: string): boolean | undefined {
 /** `C:\…` only: a `\\host\share` path would make Windows log in to that host. */
 function localPath(p: Params, key: string): string {
   const v = reqStr(p, key);
-  if (!/^[a-zA-Z]:[\\/]/.test(v) || v.includes("..") || v.length > 32_767) throw new Error("only files on this computer (C:\\…) can be used");
+  if (!/^[a-zA-Z]:[\\/]/.test(v) || v.includes("..") || v.length > 32_767)
+    throw new Error("only files on this computer (C:\\…) can be used");
   return v;
 }
 
@@ -540,7 +568,8 @@ async function openModule(info: SessionInfo, p: Params): Promise<boolean> {
     const def = useModules.getState().modules[module];
     if (!def?.plugin) throw new Error(`${module.slice(7)} isn't installed (Settings → Optional modules)`);
     const args = p.args === undefined || p.args === null ? null : p.args;
-    if (args !== null && (!isPlainObject(args) || !fitsIn(args, 16 * 1024))) throw new Error('"args" must be a small object');
+    if (args !== null && (!isPlainObject(args) || !fitsIn(args, 16 * 1024)))
+      throw new Error('"args" must be a small object');
     await addModule(module, { ...near, meta: args ? { args: JSON.parse(JSON.stringify(args)) } : undefined });
     return true;
   }
@@ -623,11 +652,16 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
 
     case "terminal.write":
       // (never opens a terminal of its own: that would run the text, which needs terminal.run)
-      if (!(await sendToTerminal(reqStr(p, "text"), { tabId: info.tabId }))) throw new Error("there's no running terminal in this tab");
+      if (!(await sendToTerminal(reqStr(p, "text"), { tabId: info.tabId })))
+        throw new Error("there's no running terminal in this tab");
       return true;
     case "terminal.run": {
       const side = SIDES.includes(p.side as Side) ? (p.side as Side) : undefined;
-      const paneId = await runInNewTerminal(reqStr(p, "command"), { tabId: info.tabId, cwd: optStr(p, "cwd") ?? info.cwd, side });
+      const paneId = await runInNewTerminal(reqStr(p, "command"), {
+        tabId: info.tabId,
+        cwd: optStr(p, "cwd") ?? info.cwd,
+        side,
+      });
       return { paneId: paneId ?? null };
     }
     case "terminal.read": {
@@ -646,8 +680,14 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
 
     case "shell.exec": {
       const args = p.args ?? [];
-      if (!Array.isArray(args) || !args.every((a) => typeof a === "string")) throw new Error('"args" must be an array of strings');
-      return ipc.runCommand(reqStr(p, "program"), args, optStr(p, "cwd") ?? info.cwd, optInt(p, "timeoutMs", 100, 600_000, 30_000));
+      if (!Array.isArray(args) || !args.every((a) => typeof a === "string"))
+        throw new Error('"args" must be an array of strings');
+      return ipc.runCommand(
+        reqStr(p, "program"),
+        args,
+        optStr(p, "cwd") ?? info.cwd,
+        optInt(p, "timeoutMs", 100, 600_000, 30_000),
+      );
     }
     case "system.stats":
       return ipc.sysSnapshot(p.disks === true);
@@ -684,7 +724,8 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
       return true;
     case "ui.setState": {
       const value = p.state ?? null;
-      if (value !== null && (!isPlainObject(value) || !fitsIn(value, 64 * 1024))) throw new Error("state must be an object of at most 64 KB");
+      if (value !== null && (!isPlainObject(value) || !fitsIn(value, 64 * 1024)))
+        throw new Error("state must be an object of at most 64 KB");
       savePaneState(info.paneId, value === null ? null : JSON.parse(JSON.stringify(value)));
       return true;
     }
@@ -702,11 +743,19 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
             .slice(0, 10)
             .map((f) => ({
               name: String(f.name ?? "Files").slice(0, 60),
-              extensions: (Array.isArray(f.extensions) ? f.extensions : []).map(String).filter((x) => /^(\*|[a-z0-9]{1,16})$/i.test(x)).slice(0, 20),
+              extensions: (Array.isArray(f.extensions) ? f.extensions : [])
+                .map(String)
+                .filter((x) => /^(\*|[a-z0-9]{1,16})$/i.test(x))
+                .slice(0, 20),
             }))
             .filter((f) => f.extensions.length)
         : undefined;
-      const picked = await open({ multiple: false, directory: false, title: optStr(p, "title")?.slice(0, 120), filters });
+      const picked = await open({
+        multiple: false,
+        directory: false,
+        title: optStr(p, "title")?.slice(0, 120),
+        filters,
+      });
       return typeof picked === "string" ? picked : null;
     }
     case "ui.pickFolder": {
@@ -775,14 +824,26 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
         max: p.max === undefined ? undefined : reqInt(p, "max", 1, 1000),
       });
     case "eventlog.more":
-      return ipc.eventlogMore(info.paneId, reqInt(p, "cursor"), p.max === undefined ? undefined : reqInt(p, "max", 1, 1000));
+      return ipc.eventlogMore(
+        info.paneId,
+        reqInt(p, "cursor"),
+        p.max === undefined ? undefined : reqInt(p, "max", 1, 1000),
+      );
     case "eventlog.close":
       await ipc.eventlogClose(info.paneId, reqInt(p, "cursor"));
       return true;
     case "eventlog.subscribe":
-      return ipc.eventlogSubscribe(info.paneId, { channel: reqStr(p, "channel"), xpath: optStr(p, "xpath"), text: optStr(p, "text") });
+      return ipc.eventlogSubscribe(info.paneId, {
+        channel: reqStr(p, "channel"),
+        xpath: optStr(p, "xpath"),
+        text: optStr(p, "text"),
+      });
     case "eventlog.poll":
-      return ipc.eventlogPoll(info.paneId, reqInt(p, "subscription"), p.max === undefined ? undefined : reqInt(p, "max", 1, 1000));
+      return ipc.eventlogPoll(
+        info.paneId,
+        reqInt(p, "subscription"),
+        p.max === undefined ? undefined : reqInt(p, "max", 1, 1000),
+      );
     case "eventlog.unsubscribe":
       await ipc.eventlogUnsubscribe(info.paneId, reqInt(p, "subscription"));
       return true;
@@ -796,7 +857,13 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
     case "sqlite.query": {
       const params = p.params ?? [];
       if (!Array.isArray(params) || params.length > 999) throw new Error('"params" must be a list');
-      return ipc.sqliteQuery(info.paneId, reqInt(p, "db"), reqStr(p, "sql"), params, p.maxRows === undefined ? undefined : reqInt(p, "maxRows", 1, 50_000));
+      return ipc.sqliteQuery(
+        info.paneId,
+        reqInt(p, "db"),
+        reqStr(p, "sql"),
+        params,
+        p.maxRows === undefined ? undefined : reqInt(p, "maxRows", 1, 50_000),
+      );
     }
     case "sqlite.setWritable":
       return ipc.sqliteSetWritable(info.paneId, reqInt(p, "db"), optBool(p, "writable") ?? false);
@@ -852,7 +919,11 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
       return true;
     }
     case "agents.answer":
-      await ipc.agentsAnswer(reqStr(p, "requestId"), { allow: optBool(p, "allow"), always: optBool(p, "always"), text: optStr(p, "text") });
+      await ipc.agentsAnswer(reqStr(p, "requestId"), {
+        allow: optBool(p, "allow"),
+        always: optBool(p, "always"),
+        text: optStr(p, "text"),
+      });
       return true;
     case "agents.createTask":
       return ipc.agentsTaskCreate(reqStr(p, "runId"), {
@@ -869,7 +940,8 @@ async function handle(s: Internal, method: string, p: Params): Promise<unknown> 
     case "agents.review":
       return ipc.agentsTaskReview(reqStr(p, "taskId"), optBool(p, "accept") ?? false, optStr(p, "note"));
     case "agents.setRouting": {
-      if (!isPlainObject(p.routing) || !fitsIn(p.routing, 16 * 1024)) throw new Error('"routing" must be a routing object');
+      if (!isPlainObject(p.routing) || !fitsIn(p.routing, 16 * 1024))
+        throw new Error('"routing" must be a routing object');
       const base = isPlainObject(p.base) ? (p.base as unknown as Routing) : null;
       return ipc.agentsSetRouting(p.routing as unknown as Routing, base);
     }

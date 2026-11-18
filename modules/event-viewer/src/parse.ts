@@ -131,13 +131,15 @@ function firstLineOf(s: string): string {
 
 /** UserData holds one element with arbitrary children: flatten them to name/value pairs. */
 function flatten(el: Element, prefix: string, out: [string, string][]) {
-  for (const a of Array.from(el.attributes)) if (a.name !== "xmlns" && !a.name.startsWith("xmlns:")) out.push([`${prefix}@${a.name}`, a.value]);
+  for (const a of Array.from(el.attributes))
+    if (a.name !== "xmlns" && !a.name.startsWith("xmlns:")) out.push([`${prefix}@${a.name}`, a.value]);
   for (const c of Array.from(el.children)) {
     const name = prefix ? `${prefix}/${c.localName}` : c.localName;
     if (c.childElementCount) flatten(c, name, out);
     else {
       out.push([name, c.textContent ?? ""]);
-      for (const a of Array.from(c.attributes)) if (a.name !== "xmlns" && !a.name.startsWith("xmlns:")) out.push([`${name}@${a.name}`, a.value]);
+      for (const a of Array.from(c.attributes))
+        if (a.name !== "xmlns" && !a.name.startsWith("xmlns:")) out.push([`${name}@${a.name}`, a.value]);
     }
   }
 }
@@ -239,7 +241,9 @@ export function parseEvent(xml: string, fallbackChannel = ""): Ev {
   const hi = hiKeywords(keywords);
   if ((level === 0 || level === 4) && hi & 0x0010) kind = "auditFailure";
   else if ((level === 0 || level === 4) && hi & 0x0020) kind = "auditSuccess";
-  else kind = level === 1 ? "critical" : level === 2 ? "error" : level === 3 ? "warning" : level === 5 ? "verbose" : "info";
+  else
+    kind =
+      level === 1 ? "critical" : level === 2 ? "error" : level === 3 ? "warning" : level === 5 ? "verbose" : "info";
   const levelName = rt("Level") || LEVEL_NAMES[level] || `Level ${level}`;
 
   const kwNames = r.Keywords

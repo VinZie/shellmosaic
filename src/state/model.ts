@@ -2,8 +2,19 @@
 // a draft (already cloned by the store) and mutates it in place.
 import { isPlainObject, uid } from "../lib/util";
 import {
-  autoInsert, contains, insertOuter, insertPane, leaf, leaves, mapPanes, normalize, removePane, swapPanes,
-  type Id, type LayoutNode, type Side,
+  autoInsert,
+  contains,
+  insertOuter,
+  insertPane,
+  leaf,
+  leaves,
+  mapPanes,
+  normalize,
+  removePane,
+  swapPanes,
+  type Id,
+  type LayoutNode,
+  type Side,
 } from "./layout";
 
 export type { Id, LayoutNode, Side } from "./layout";
@@ -70,7 +81,16 @@ export interface PaneSpec {
 }
 
 export const WORKSPACE_COLORS = [
-  "#6c8cff", "#3fd39a", "#f6b958", "#ef6b7b", "#b07cff", "#4cc9f0", "#ff8c42", "#e2e86c", "#ff6ec7", "#9aa4b2",
+  "#6c8cff",
+  "#3fd39a",
+  "#f6b958",
+  "#ef6b7b",
+  "#b07cff",
+  "#4cc9f0",
+  "#ff8c42",
+  "#e2e86c",
+  "#ff6ec7",
+  "#9aa4b2",
 ];
 
 export function emptyModel(): Model {
@@ -80,7 +100,8 @@ export function emptyModel(): Model {
 /** The object entries of a record from disk, each given its key as id (anything else is dropped). */
 function records<T>(v: unknown, withId = true): Record<Id, T> {
   const out: Record<Id, T> = {};
-  if (isPlainObject(v)) for (const [k, x] of Object.entries(v)) if (isPlainObject(x)) out[k] = (withId ? { ...x, id: k } : x) as T;
+  if (isPlainObject(v))
+    for (const [k, x] of Object.entries(v)) if (isPlainObject(x)) out[k] = (withId ? { ...x, id: k } : x) as T;
   return out;
 }
 
@@ -98,7 +119,13 @@ function cleanLayout(n: any): LayoutNode | null {
     sizes.push(typeof s === "number" && Number.isFinite(s) && s > 0 ? s : 1 / n.children.length);
   });
   if (!children.length) return null;
-  return normalize({ kind: "split", id: typeof n.id === "string" ? n.id : uid(), dir: n.dir === "col" ? "col" : "row", children, sizes });
+  return normalize({
+    kind: "split",
+    id: typeof n.id === "string" ? n.id : uid(),
+    dir: n.dir === "col" ? "col" : "row",
+    children,
+    sizes,
+  });
 }
 
 /**
@@ -185,7 +212,11 @@ export function createWorkspace(
   return id;
 }
 
-export function updateWorkspace(m: Model, id: Id, patch: Partial<Pick<Workspace, "name" | "icon" | "color" | "background">>) {
+export function updateWorkspace(
+  m: Model,
+  id: Id,
+  patch: Partial<Pick<Workspace, "name" | "icon" | "color" | "background">>,
+) {
   const ws = m.workspaces[id];
   if (ws) Object.assign(ws, patch);
 }
@@ -220,16 +251,33 @@ export function setWindowWorkspace(m: Model, label: string, wsId: Id) {
 // ── tabs ────────────────────────────────────────────────────────────────
 
 function newPane(m: Model, spec: PaneSpec): Pane {
-  const pane: Pane = { id: spec.id ?? uid(12), module: spec.module, meta: { ...(spec.meta ?? {}) }, title: spec.title ?? null };
+  const pane: Pane = {
+    id: spec.id ?? uid(12),
+    module: spec.module,
+    meta: { ...(spec.meta ?? {}) },
+    title: spec.title ?? null,
+  };
   m.panes[pane.id] = pane;
   return pane;
 }
 
-export function createTab(m: Model, wsId: Id, first: PaneSpec, opts: { activate?: boolean; index?: number; name?: string } = {}): Id {
+export function createTab(
+  m: Model,
+  wsId: Id,
+  first: PaneSpec,
+  opts: { activate?: boolean; index?: number; name?: string } = {},
+): Id {
   const ws = m.workspaces[wsId];
   const pane = newPane(m, first);
   const id = uid();
-  m.tabs[id] = { id, name: opts.name ?? "", userNamed: !!opts.name, root: leaf(pane.id), focused: pane.id, zoomed: null };
+  m.tabs[id] = {
+    id,
+    name: opts.name ?? "",
+    userNamed: !!opts.name,
+    root: leaf(pane.id),
+    focused: pane.id,
+    zoomed: null,
+  };
   const index = opts.index ?? ws.tabs.length;
   ws.tabs.splice(index, 0, id);
   if (opts.activate !== false) ws.activeTab = id;
@@ -241,7 +289,11 @@ export function setActiveTab(m: Model, wsId: Id, tabId: Id) {
   if (ws?.tabs.includes(tabId)) ws.activeTab = tabId;
 }
 
-export function updateTab(m: Model, tabId: Id, patch: Partial<Pick<Tab, "name" | "userNamed" | "color" | "icon" | "pinned" | "background">>) {
+export function updateTab(
+  m: Model,
+  tabId: Id,
+  patch: Partial<Pick<Tab, "name" | "userNamed" | "color" | "icon" | "pinned" | "background">>,
+) {
   const tab = m.tabs[tabId];
   if (!tab) return;
   Object.assign(tab, patch);
@@ -312,7 +364,9 @@ export function duplicateTab(m: Model, tabId: Id, cwdOf: (paneId: Id) => string 
     if (src.module === "terminal") meta.cwd = cwdOf(old) ?? meta.cwd;
     // an agent belongs to its pane: the copy is a plain terminal in the agent's folder
     const agent = src.module === "agent";
-    const p = agent ? newPane(m, { module: "terminal", meta: { cwd: cwdOf(old) } }) : newPane(m, { module: src.module, meta, title: src.title });
+    const p = agent
+      ? newPane(m, { module: "terminal", meta: { cwd: cwdOf(old) } })
+      : newPane(m, { module: src.module, meta, title: src.title });
     map.set(old, p.id);
     return p.id;
   });
@@ -321,7 +375,7 @@ export function duplicateTab(m: Model, tabId: Id, cwdOf: (paneId: Id) => string 
     ...structuredClone(tab),
     id,
     root,
-    focused: tab.focused ? map.get(tab.focused) ?? null : null,
+    focused: tab.focused ? (map.get(tab.focused) ?? null) : null,
     zoomed: null,
     pinned: false,
     name: tab.userNamed ? `${tab.name} copy` : tab.name,
@@ -333,7 +387,12 @@ export function duplicateTab(m: Model, tabId: Id, cwdOf: (paneId: Id) => string 
 
 // ── panes ───────────────────────────────────────────────────────────────
 
-export function addPane(m: Model, tabId: Id, spec: PaneSpec, place?: { target?: Id | null; side?: Side; outer?: boolean }): Id {
+export function addPane(
+  m: Model,
+  tabId: Id,
+  spec: PaneSpec,
+  place?: { target?: Id | null; side?: Side; outer?: boolean },
+): Id {
   const tab = m.tabs[tabId];
   const pane = newPane(m, spec);
   if (place?.outer) tab.root = insertOuter(tab.root, pane.id, place.side ?? "right");
@@ -375,7 +434,11 @@ export function toggleZoom(m: Model, tabId: Id, paneId?: Id) {
  * Move a pane somewhere else: next to another pane (any tab), swapped with it
  * (side "center"), or to the outer edge of a tab.
  */
-export function movePane(m: Model, paneId: Id, dest: { tab: Id; target?: Id | null; side: Side | "center"; outer?: boolean }) {
+export function movePane(
+  m: Model,
+  paneId: Id,
+  dest: { tab: Id; target?: Id | null; side: Side | "center"; outer?: boolean },
+) {
   const fromTab = tabOfPane(m, paneId);
   const toTab = m.tabs[dest.tab];
   if (!fromTab || !toTab || paneId === dest.target) return;
@@ -397,7 +460,9 @@ export function movePane(m: Model, paneId: Id, dest: { tab: Id; target?: Id | nu
   if (fromTab.focused === paneId) fromTab.focused = leaves(fromTab.root)[0] ?? null;
   if (fromTab.zoomed === paneId || leaves(fromTab.root).length < 2) fromTab.zoomed = null;
   const side: Side = dest.side === "center" ? "right" : dest.side;
-  toTab.root = dest.outer ? insertOuter(toTab.root, paneId, side) : insertPane(toTab.root, dest.target ?? null, paneId, side);
+  toTab.root = dest.outer
+    ? insertOuter(toTab.root, paneId, side)
+    : insertPane(toTab.root, dest.target ?? null, paneId, side);
   toTab.focused = paneId;
   toTab.zoomed = null;
   if (!fromTab.root && fromTab.id !== toTab.id) closeTab(m, fromTab.id);

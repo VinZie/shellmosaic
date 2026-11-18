@@ -5,7 +5,16 @@ import { Channel } from "@tauri-apps/api/core";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Icon } from "../../lib/icons";
 import { errorText, ipc } from "../../lib/ipc";
 import { basename, cx, dirname } from "../../lib/util";
@@ -246,7 +255,12 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
     try {
       const src = regex ? deferredQuery : escapeRe(deferredQuery);
       const flags = caseSensitive ? "" : "i";
-      return { test: new RegExp(src, flags), global: new RegExp(src, flags + "g"), key: `${regex}|${caseSensitive}|${deferredQuery}`, error: null };
+      return {
+        test: new RegExp(src, flags),
+        global: new RegExp(src, flags + "g"),
+        key: `${regex}|${caseSensitive}|${deferredQuery}`,
+        error: null,
+      };
     } catch (e) {
       return { test: null, global: null, key: "", error: errorText(e) };
     }
@@ -270,7 +284,10 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
     scrollObserver.current = null;
     if (!el) return;
     const update = () => {
-      if (el.clientWidth && el.clientHeight) setBox((b) => (b.w === el.clientWidth && b.h === el.clientHeight ? b : { w: el.clientWidth, h: el.clientHeight }));
+      if (el.clientWidth && el.clientHeight)
+        setBox((b) =>
+          b.w === el.clientWidth && b.h === el.clientHeight ? b : { w: el.clientWidth, h: el.clientHeight },
+        );
     };
     const ro = new ResizeObserver(update);
     ro.observe(el);
@@ -458,7 +475,8 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
     const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < ROW_H;
     setAtBottom(bottom);
     // scrolled up by the user (not because the content changed) → stop following
-    if (el.scrollHeight === lastScrollH.current && el.scrollTop < lastTop.current - 1 && followRef.current && !bottom) setFollow(false);
+    if (el.scrollHeight === lastScrollH.current && el.scrollTop < lastTop.current - 1 && followRef.current && !bottom)
+      setFollow(false);
     lastScrollH.current = el.scrollHeight;
     lastTop.current = el.scrollTop;
   };
@@ -552,11 +570,28 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
       { type: "separator" },
       ...(sel
         ? [
-            { label: `Filter by “${short(sel)}”`, icon: "filter", onSelect: () => applyFilter(sel, "filter") } as MenuItem,
-            { label: `Highlight “${short(sel)}”`, icon: "search", onSelect: () => applyFilter(sel, "highlight") } as MenuItem,
+            {
+              label: `Filter by “${short(sel)}”`,
+              icon: "filter",
+              onSelect: () => applyFilter(sel, "filter"),
+            } as MenuItem,
+            {
+              label: `Highlight “${short(sel)}”`,
+              icon: "search",
+              onSelect: () => applyFilter(sel, "highlight"),
+            } as MenuItem,
           ]
         : []),
-      ...(msg ? [{ label: `Filter by this line's text`, icon: "filter", hint: short(msg), onSelect: () => applyFilter(msg, "filter") } as MenuItem] : []),
+      ...(msg
+        ? [
+            {
+              label: `Filter by this line's text`,
+              icon: "filter",
+              hint: short(msg),
+              onSelect: () => applyFilter(msg, "filter"),
+            } as MenuItem,
+          ]
+        : []),
       ...(query ? [{ label: "Clear filter", icon: "x", onSelect: () => setQuery("") } as MenuItem] : []),
     ];
     ui.openMenu(e, items);
@@ -627,7 +662,12 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
     const top = view.offs ? view.offs[i] * ROW_H : i * ROW_H;
     const h = view.offs ? (view.offs[i + 1] - view.offs[i]) * ROW_H : ROW_H;
     rowsOut.push(
-      <div key={buf.dropped + li} className="logs-row" style={{ top, height: h }} onContextMenu={(e) => onRowMenu(e, text)}>
+      <div
+        key={buf.dropped + li}
+        className="logs-row"
+        style={{ top, height: h }}
+        onContextMenu={(e) => onRowMenu(e, text)}
+      >
         {lineNumbers && (
           <span className="logs-ln" style={{ width: gutterW }}>
             {buf.dropped + li + 1}
@@ -641,7 +681,11 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
   const fileMenu: MenuItem[] = [
     { label: "Open another file…", icon: "folder-open", onSelect: pickAndOpen },
     { label: "Reopen", icon: "refresh", hint: "re-read the tail", onSelect: () => setReopen((n) => n + 1) },
-    { label: "Reveal in Explorer", icon: "external-link", onSelect: () => revealItemInDir(path).catch((e) => ui.toast(errorText(e), "error")) },
+    {
+      label: "Reveal in Explorer",
+      icon: "external-link",
+      onSelect: () => revealItemInDir(path).catch((e) => ui.toast(errorText(e), "error")),
+    },
     { label: "Copy file path", icon: "copy", onSelect: () => copy(path, "Path copied") },
   ];
   const secondary: MenuItem[] = [
@@ -669,9 +713,20 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
         >
           <Icon name="scroll" size={13} />
           <span className="ellipsis">{name}</span>
-          <span className={cx("logs-dot", status === "live" && !paused && "live", paused && "paused", status === "error" && "error")} />
+          <span
+            className={cx(
+              "logs-dot",
+              status === "live" && !paused && "live",
+              paused && "paused",
+              status === "error" && "error",
+            )}
+          />
         </button>
-        <button className={cx("icon-btn", paused && "on")} title={paused ? "Resume (Space)" : "Pause (Space)"} onClick={togglePause}>
+        <button
+          className={cx("icon-btn", paused && "on")}
+          title={paused ? "Resume (Space)" : "Pause (Space)"}
+          onClick={togglePause}
+        >
           <Icon name={paused ? "play" : "pause"} size={14} />
         </button>
         {paused && pendingCount > 0 && (
@@ -690,26 +745,46 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
         <div className={cx("logs-filter", matcher?.error && "invalid")} title={matcher?.error ?? undefined}>
           <SearchBox value={query} onChange={setQuery} placeholder={regex ? "Regex filter" : "Filter"} />
         </div>
-        <button className={cx("icon-btn", regex && "on")} title="Regular expression" onClick={() => setRegex((r) => !r)}>
+        <button
+          className={cx("icon-btn", regex && "on")}
+          title="Regular expression"
+          onClick={() => setRegex((r) => !r)}
+        >
           <Icon name="regex" size={14} />
         </button>
-        <button className={cx("icon-btn", caseSensitive && "on")} title="Match case" onClick={() => setCaseSensitive((c) => !c)}>
+        <button
+          className={cx("icon-btn", caseSensitive && "on")}
+          title="Match case"
+          onClick={() => setCaseSensitive((c) => !c)}
+        >
           <Icon name="case-sensitive" size={14} />
         </button>
         {compact ? (
           <button
             className={cx("icon-btn", filterMode === "filter" && "on")}
-            title={filterMode === "filter" ? "Showing only matching lines (click to highlight instead)" : "Highlighting matches (click to show only matching lines)"}
+            title={
+              filterMode === "filter"
+                ? "Showing only matching lines (click to highlight instead)"
+                : "Highlighting matches (click to show only matching lines)"
+            }
             onClick={() => setFilterMode(filterMode === "filter" ? "highlight" : "filter")}
           >
             <Icon name="filter" size={14} />
           </button>
         ) : (
           <div className="segmented logs-mode">
-            <button className={cx(filterMode === "filter" && "on")} title="Show only matching lines" onClick={() => setFilterMode("filter")}>
+            <button
+              className={cx(filterMode === "filter" && "on")}
+              title="Show only matching lines"
+              onClick={() => setFilterMode("filter")}
+            >
               Only matching
             </button>
-            <button className={cx(filterMode === "highlight" && "on")} title="Show every line, highlight matches" onClick={() => setFilterMode("highlight")}>
+            <button
+              className={cx(filterMode === "highlight" && "on")}
+              title="Show every line, highlight matches"
+              onClick={() => setFilterMode("highlight")}
+            >
               Highlight
             </button>
           </div>
@@ -741,7 +816,11 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
             <button className="icon-btn" title="Open another file…" onClick={pickAndOpen}>
               <Icon name="folder-open" size={14} />
             </button>
-            <button className="icon-btn" title="Reveal in Explorer" onClick={() => revealItemInDir(path).catch((e) => ui.toast(errorText(e), "error"))}>
+            <button
+              className="icon-btn"
+              title="Reveal in Explorer"
+              onClick={() => revealItemInDir(path).catch((e) => ui.toast(errorText(e), "error"))}
+            >
               <Icon name="external-link" size={14} />
             </button>
           </>
@@ -769,7 +848,8 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
             onScroll={onScroll}
             onWheel={(e) => {
               const el = e.currentTarget;
-              if (e.deltaY < 0 && followRef.current && el.scrollHeight > el.clientHeight && el.scrollTop > 0) setFollow(false);
+              if (e.deltaY < 0 && followRef.current && el.scrollHeight > el.clientHeight && el.scrollTop > 0)
+                setFollow(false);
             }}
           >
             <div className="logs-sizer" style={{ height: Math.max(totalH, 1), width: sizerW, minWidth: "100%" }}>
@@ -805,7 +885,10 @@ function LogsPane({ pane, visible, focused }: ModuleProps) {
           </span>
         )}
         {buf.dropped > 0 && (
-          <span className="dim" title={`Only the last ${settings().modules.logs.maxLines.toLocaleString()} lines are kept (Settings → Modules)`}>
+          <span
+            className="dim"
+            title={`Only the last ${settings().modules.logs.maxLines.toLocaleString()} lines are kept (Settings → Modules)`}
+          >
             {buf.dropped.toLocaleString()} earlier hidden
           </span>
         )}

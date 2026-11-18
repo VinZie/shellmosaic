@@ -33,11 +33,29 @@ const valueOf = (r: InputRef) => r.current?.value ?? "";
 const wipe = (...refs: InputRef[]) => refs.forEach((r) => r.current && (r.current.value = ""));
 const length = (s: string) => [...s].length;
 
-function SecretField({ inputRef, label, placeholder, disabled }: { inputRef: InputRef; label?: string; placeholder?: string; disabled?: boolean }) {
+function SecretField({
+  inputRef,
+  label,
+  placeholder,
+  disabled,
+}: {
+  inputRef: InputRef;
+  label?: string;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
   return (
     <>
       {label && <label className="field-label">{label}</label>}
-      <input ref={inputRef} className="input wide" type="password" autoComplete="off" spellCheck={false} placeholder={placeholder} disabled={disabled} />
+      <input
+        ref={inputRef}
+        className="input wide"
+        type="password"
+        autoComplete="off"
+        spellCheck={false}
+        placeholder={placeholder}
+        disabled={disabled}
+      />
     </>
   );
 }
@@ -94,15 +112,23 @@ export function CreateVaultForm({ autoFocus }: { autoFocus?: boolean }) {
   return (
     <Gate icon="key-round" title="Create a vault for your hosts">
       <p className="dim">
-        Saved hosts, their passwords and private keys are encrypted with a master password. You enter it once per session; the vault locks
-        itself when you haven't used it for a while.
+        Saved hosts, their passwords and private keys are encrypted with a master password. You enter it once per
+        session; the vault locks itself when you haven't used it for a while.
       </p>
       <p className="vault-warn">
         <Icon name="warning" size={13} />
-        <span>The master password can't be recovered. If you forget it, the vault has to be reset and everything in it is lost.</span>
+        <span>
+          The master password can't be recovered. If you forget it, the vault has to be reset and everything in it is
+          lost.
+        </span>
       </p>
       <form onSubmit={submit} autoComplete="off">
-        <SecretField inputRef={pw} label="Master password" placeholder={`At least ${MIN_MASTER_PASSWORD} characters`} disabled={busy} />
+        <SecretField
+          inputRef={pw}
+          label="Master password"
+          placeholder={`At least ${MIN_MASTER_PASSWORD} characters`}
+          disabled={busy}
+        />
         <SecretField inputRef={again} label="Repeat it" disabled={busy} />
         {error && (
           <div className="vault-error" role="alert">
@@ -119,7 +145,15 @@ export function CreateVaultForm({ autoFocus }: { autoFocus?: boolean }) {
   );
 }
 
-export function UnlockVaultForm({ autoFocus, message, extra }: { autoFocus?: boolean; message?: string; extra?: ReactNode }) {
+export function UnlockVaultForm({
+  autoFocus,
+  message,
+  extra,
+}: {
+  autoFocus?: boolean;
+  message?: string;
+  extra?: ReactNode;
+}) {
   const pw = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -171,7 +205,15 @@ export function UnlockVaultForm({ autoFocus, message, extra }: { autoFocus?: boo
 }
 
 /** `card`: a full-pane form (Hosts module); `inline`: fields only (Settings). */
-export function ChangePasswordForm({ onDone, autoFocus, variant = "card" }: { onDone: () => void; autoFocus?: boolean; variant?: "card" | "inline" }) {
+export function ChangePasswordForm({
+  onDone,
+  autoFocus,
+  variant = "card",
+}: {
+  onDone: () => void;
+  autoFocus?: boolean;
+  variant?: "card" | "inline";
+}) {
   const current = useRef<HTMLInputElement>(null);
   const next = useRef<HTMLInputElement>(null);
   const again = useRef<HTMLInputElement>(null);
@@ -231,7 +273,12 @@ export function ChangePasswordForm({ onDone, autoFocus, variant = "card" }: { on
       }}
     >
       <SecretField inputRef={current} label="Current master password" disabled={busy} />
-      <SecretField inputRef={next} label="New master password" placeholder={`At least ${MIN_MASTER_PASSWORD} characters`} disabled={busy} />
+      <SecretField
+        inputRef={next}
+        label="New master password"
+        placeholder={`At least ${MIN_MASTER_PASSWORD} characters`}
+        disabled={busy}
+      />
       <SecretField inputRef={again} label="Repeat the new password" disabled={busy} />
       {error && (
         <div className="vault-error" role="alert">
@@ -251,7 +298,9 @@ export function ChangePasswordForm({ onDone, autoFocus, variant = "card" }: { on
   if (variant === "inline") return form;
   return (
     <Gate icon="key-round" title="Change master password">
-      <p className="dim">Everything in the vault is re-encrypted with the new password. Terminals that are connected stay connected.</p>
+      <p className="dim">
+        Everything in the vault is re-encrypted with the new password. Terminals that are connected stay connected.
+      </p>
       {form}
     </Gate>
   );

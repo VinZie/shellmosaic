@@ -61,7 +61,9 @@ function KeyRecorder({ cmd }: { cmd: Command }) {
       setHeld("");
       if (!usable(e, combo)) {
         setPending(null);
-        setHint(`${formatCombo(combo)} alone would get in the way of typing. Add Ctrl or Alt (F1–F12 work on their own).`);
+        setHint(
+          `${formatCombo(combo)} alone would get in the way of typing. Add Ctrl or Alt (F1–F12 work on their own).`,
+        );
         return;
       }
       const kb = settings().keybindings;
@@ -128,7 +130,9 @@ function KeyRecorder({ cmd }: { cmd: Command }) {
           </div>
         </div>
       ) : (
-        <p className={cx("key-recorder-hint", hint && "warn-text")}>{hint || "Hold Ctrl, Alt or Shift and press a key. Esc cancels."}</p>
+        <p className={cx("key-recorder-hint", hint && "warn-text")}>
+          {hint || "Hold Ctrl, Alt or Shift and press a key. Esc cancels."}
+        </p>
       )}
       <p className="key-recorder-meta">
         Now: {current ? <Keys combo={formatCombo(current)} /> : <span>none</span>}
@@ -144,11 +148,23 @@ function KeyRecorder({ cmd }: { cmd: Command }) {
 }
 
 async function record(cmd: Command) {
-  const clear = await ui.confirm(`Shortcut for “${cmd.title}”`, <KeyRecorder cmd={cmd} />, { okLabel: "Clear shortcut" });
+  const clear = await ui.confirm(`Shortcut for “${cmd.title}”`, <KeyRecorder cmd={cmd} />, {
+    okLabel: "Clear shortcut",
+  });
   if (clear) setBinding(cmd.id, "");
 }
 
-function KbRow({ cmd, combo, overridden, conflicts }: { cmd: Command; combo?: string; overridden: boolean; conflicts: string[] }) {
+function KbRow({
+  cmd,
+  combo,
+  overridden,
+  conflicts,
+}: {
+  cmd: Command;
+  combo?: string;
+  overridden: boolean;
+  conflicts: string[];
+}) {
   const pretty = combo ? formatCombo(combo) : "";
   const match = useMatch(cmd.title, cmd.category, cmd.id, pretty, "shortcut keybinding hotkey");
   if (!match) return null;
@@ -161,11 +177,14 @@ function KbRow({ cmd, combo, overridden, conflicts }: { cmd: Command; combo?: st
           <span className="ellipsis">
             <Hl text={cmd.title} />
           </span>
-          {overridden && <span className="kb-modified" title={`Changed (default: ${def ? formatCombo(def) : "none"})`} />}
+          {overridden && (
+            <span className="kb-modified" title={`Changed (default: ${def ? formatCombo(def) : "none"})`} />
+          )}
         </div>
         {conflicts.length > 0 && (
           <div className="kb-conflict">
-            <Icon name="warning" size={12} /> Also used by {conflicts.map(titleOf).join(", ")} — only the first one runs.
+            <Icon name="warning" size={12} /> Also used by {conflicts.map(titleOf).join(", ")} — only the first one
+            runs.
           </div>
         )}
       </div>
@@ -173,7 +192,12 @@ function KbRow({ cmd, combo, overridden, conflicts }: { cmd: Command; combo?: st
         {combo ? <Keys combo={pretty} /> : <span className="kb-none">Add shortcut</span>}
       </button>
       <div className="kb-actions">
-        <button className="icon-btn" title={`Reset to default (${def ? formatCombo(def) : "none"})`} disabled={!overridden} onClick={() => resetBinding(cmd.id)}>
+        <button
+          className="icon-btn"
+          title={`Reset to default (${def ? formatCombo(def) : "none"})`}
+          disabled={!overridden}
+          onClick={() => resetBinding(cmd.id)}
+        >
           <Icon name="undo" size={14} />
         </button>
         <button className="icon-btn" title="Remove shortcut" disabled={!combo} onClick={() => setBinding(cmd.id, "")}>
@@ -225,7 +249,12 @@ export function KeybindingsSection() {
         <div className="kb-toolbar">
           <div className="search-box kb-search">
             <Icon name="search" size={13} />
-            <input value={q} placeholder="Filter commands or keys" spellCheck={false} onChange={(e) => setQ(e.target.value)} />
+            <input
+              value={q}
+              placeholder="Filter commands or keys"
+              spellCheck={false}
+              onChange={(e) => setQ(e.target.value)}
+            />
             {q && (
               <button className="icon-btn" onClick={() => setQ("")} title="Clear">
                 <Icon name="x" size={12} />
@@ -238,7 +267,11 @@ export function KeybindingsSection() {
             options={[
               { value: "all", label: "All" },
               { value: "changed", label: `Changed${changedCount ? ` (${changedCount})` : ""}` },
-              { value: "conflicts", label: `Conflicts${conflictCount ? ` (${conflictCount})` : ""}`, icon: conflictCount ? "warning" : undefined },
+              {
+                value: "conflicts",
+                label: `Conflicts${conflictCount ? ` (${conflictCount})` : ""}`,
+                icon: conflictCount ? "warning" : undefined,
+              },
             ]}
           />
         </div>
@@ -248,14 +281,21 @@ export function KeybindingsSection() {
           {visible
             .filter((c) => c.category === cat)
             .map((c) => (
-              <KbRow key={c.id} cmd={c} combo={eff[c.id]} overridden={kb[c.id] !== undefined} conflicts={conflictsOf(c.id)} />
+              <KbRow
+                key={c.id}
+                cmd={c}
+                combo={eff[c.id]}
+                overridden={kb[c.id] !== undefined}
+                conflicts={conflictsOf(c.id)}
+              />
             ))}
         </Group>
       ))}
       {!globalQ && visible.length === 0 && <div className="settings-empty">No commands match.</div>}
       {!globalQ && (
         <p className="settings-footnote">
-          Shortcuts with Ctrl or Alt work everywhere, even while a terminal has focus. Typing keys alone (letters, Shift+letter) can't be bound, but F1–F12 can.
+          Shortcuts with Ctrl or Alt work everywhere, even while a terminal has focus. Typing keys alone (letters,
+          Shift+letter) can't be bound, but F1–F12 can.
         </p>
       )}
     </Section>

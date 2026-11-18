@@ -88,7 +88,14 @@ export function useStored<T>(key: string, initial: T): [T, (v: T | ((prev: T) =>
 
 /** Saved objects get new default keys added in later versions. */
 function mergeDefaults<T>(initial: T, saved: unknown): T {
-  if (initial && typeof initial === "object" && !Array.isArray(initial) && saved && typeof saved === "object" && !Array.isArray(saved)) {
+  if (
+    initial &&
+    typeof initial === "object" &&
+    !Array.isArray(initial) &&
+    saved &&
+    typeof saved === "object" &&
+    !Array.isArray(saved)
+  ) {
     return { ...initial, ...(saved as object) } as T;
   }
   return saved as T;
@@ -98,7 +105,10 @@ function mergeDefaults<T>(initial: T, saved: unknown): T {
  * State saved with the pane itself (ui.setState): restored when the layout comes back
  * after a restart, unlike useStored which every pane of the module shares.
  */
-export function usePaneState<T extends Record<string, unknown>>(ctx: PaneContext | null, initial: T): [T, (patch: Partial<T>) => void] {
+export function usePaneState<T extends Record<string, unknown>>(
+  ctx: PaneContext | null,
+  initial: T,
+): [T, (patch: Partial<T>) => void] {
   const [state, setState] = useState<T>(initial);
   const seeded = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);

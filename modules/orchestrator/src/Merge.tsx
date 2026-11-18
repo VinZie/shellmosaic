@@ -53,9 +53,10 @@ function MergeDialog({ run, canManage }: { run: AgentRun; canManage: boolean }) 
               </>
             ) : (
               <>
-                <code>{p.integration}</code> has {pluralize(p.commits, "commit")} that {base} doesn't: {pluralize(p.files.length, "file")} changed,{" "}
-                <span className="orc-plus">+{p.added}</span> <span className="orc-minus">−{p.removed}</span>. Accepted tasks are merged there; this brings them into {base} in your own
-                working tree.
+                <code>{p.integration}</code> has {pluralize(p.commits, "commit")} that {base} doesn't:{" "}
+                {pluralize(p.files.length, "file")} changed, <span className="orc-plus">+{p.added}</span>{" "}
+                <span className="orc-minus">−{p.removed}</span>. Accepted tasks are merged there; this brings them into{" "}
+                {base} in your own working tree.
               </>
             )}
           </p>
@@ -63,7 +64,8 @@ function MergeDialog({ run, canManage }: { run: AgentRun; canManage: boolean }) 
             <div className="orc-blocker">
               <TriangleAlert size={14} />
               <span>
-                Your repository is on <b>{p.current ?? "a detached HEAD"}</b> now. Switch it back to <b>{p.base}</b> to merge (Shellmosaic never checks out in your working tree).
+                Your repository is on <b>{p.current ?? "a detached HEAD"}</b> now. Switch it back to <b>{p.base}</b> to
+                merge (Shellmosaic never checks out in your working tree).
               </span>
             </div>
           )}
@@ -71,7 +73,8 @@ function MergeDialog({ run, canManage }: { run: AgentRun; canManage: boolean }) 
             <div className="orc-blocker">
               <TriangleAlert size={14} />
               <span>
-                These files conflict with {base}: <span className="mono">{p.conflicts.join(", ")}</span>. Ask the lead for a task that merges {base} into the team's work, then try again.
+                These files conflict with {base}: <span className="mono">{p.conflicts.join(", ")}</span>. Ask the lead
+                for a task that merges {base} into the team's work, then try again.
               </span>
             </div>
           )}
@@ -79,14 +82,18 @@ function MergeDialog({ run, canManage }: { run: AgentRun; canManage: boolean }) 
             <div className="orc-blocker">
               <TriangleAlert size={14} />
               <span>
-                You have uncommitted changes in files the merge changes: <span className="mono">{p.dirtyOverlap.join(", ")}</span>. Commit or stash them first.
+                You have uncommitted changes in files the merge changes:{" "}
+                <span className="mono">{p.dirtyOverlap.join(", ")}</span>. Commit or stash them first.
               </span>
             </div>
           )}
           {p.files.length > 0 && (
             <div className="orc-merge-files mono sm-selectable">
               {p.files.slice(0, 300).map((f) => (
-                <div key={f} className={p.conflicts.includes(f) || p.dirtyOverlap.includes(f) ? "sm-warning-text" : undefined}>
+                <div
+                  key={f}
+                  className={p.conflicts.includes(f) || p.dirtyOverlap.includes(f) ? "sm-warning-text" : undefined}
+                >
                   {f}
                 </div>
               ))}
@@ -100,7 +107,13 @@ function MergeDialog({ run, canManage }: { run: AgentRun; canManage: boolean }) 
         <button type="button" className="sm-btn subtle" onClick={closeModal}>
           {p && blocked ? "Close" : "Cancel"}
         </button>
-        <button type="button" className="sm-btn primary" disabled={!canManage || blocked || busy} onClick={merge} title={canManage ? "" : "Needs the agents.manage permission"}>
+        <button
+          type="button"
+          className="sm-btn primary"
+          disabled={!canManage || blocked || busy}
+          onClick={merge}
+          title={canManage ? "" : "Needs the agents.manage permission"}
+        >
           {busy ? <LoaderCircle size={13} className="sm-spin" /> : <GitMerge size={13} />} Merge into {base}
         </button>
       </div>

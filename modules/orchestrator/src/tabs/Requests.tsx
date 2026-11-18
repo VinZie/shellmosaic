@@ -33,7 +33,8 @@ const STATUS: Record<RequestStatus, [string, Tone | undefined]> = {
   closed: ["Closed", "dim"],
 };
 
-const kindText = (q: AgentRequest) => (q.tool === TRUST_TOOL ? "Trust" : q.kind === "permission" ? "Permission" : "Question");
+const kindText = (q: AgentRequest) =>
+  q.tool === TRUST_TOOL ? "Trust" : q.kind === "permission" ? "Permission" : "Question";
 
 /** Who settled it, in words. */
 function byText(q: AgentRequest): string {
@@ -64,7 +65,17 @@ function byText(q: AgentRequest): string {
   }
 }
 
-export function RequestsTab({ snap, run, canManage, now }: { snap: AgentSnapshot; run: AgentRun; canManage: boolean; now: number }) {
+export function RequestsTab({
+  snap,
+  run,
+  canManage,
+  now,
+}: {
+  snap: AgentSnapshot;
+  run: AgentRun;
+  canManage: boolean;
+  now: number;
+}) {
   const agents = runAgents(snap, run);
   const all = runRequests(snap, run);
   const pending = all.filter((q) => q.status === "pending").sort((a, b) => a.createdAt - b.createdAt);
@@ -78,9 +89,22 @@ export function RequestsTab({ snap, run, canManage, now }: { snap: AgentSnapshot
       { id: "who", label: "Agent", width: 96, text: (q) => nameOf(q.agentId), sort: (q) => nameOf(q.agentId) },
       { id: "kind", label: "Kind", width: 90, text: kindText, sort: kindText },
       { id: "summary", label: "Request", width: 300, text: (q) => q.summary },
-      { id: "status", label: "Result", width: 92, render: (q) => <Chip tone={STATUS[q.status][1]}>{STATUS[q.status][0]}</Chip>, text: (q) => STATUS[q.status][0], sort: (q) => q.status },
+      {
+        id: "status",
+        label: "Result",
+        width: 92,
+        render: (q) => <Chip tone={STATUS[q.status][1]}>{STATUS[q.status][0]}</Chip>,
+        text: (q) => STATUS[q.status][0],
+        sort: (q) => q.status,
+      },
       { id: "by", label: "By", width: 140, text: byText, sort: byText },
-      { id: "when", label: "When", width: 100, text: (q) => formatAgo(q.answeredAt ?? q.createdAt, now), sort: (q) => q.answeredAt ?? q.createdAt },
+      {
+        id: "when",
+        label: "When",
+        width: 100,
+        text: (q) => formatAgo(q.answeredAt ?? q.createdAt, now),
+        sort: (q) => q.answeredAt ?? q.createdAt,
+      },
       { id: "answer", label: "Answer", width: 220, text: (q) => q.answer ?? "", hidden: true },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,12 +118,21 @@ export function RequestsTab({ snap, run, canManage, now }: { snap: AgentSnapshot
           <div className="orc-pending-none">
             <CheckCheck size={18} />
             <span>Nothing is waiting for you.</span>
-            <span className="sm-dim">Permission and folder trust prompts and workers' questions show up here (and in the agent's pane) when they come.</span>
+            <span className="sm-dim">
+              Permission and folder trust prompts and workers' questions show up here (and in the agent's pane) when
+              they come.
+            </span>
           </div>
         ) : (
           <Section title={`Waiting (${pending.length})`} className="orc-pending-section">
             {pending.map((q) => (
-              <RequestCard key={q.id} req={q} agent={agents.find((a) => a.id === q.agentId)} canAnswer={canManage && run.status === "active"} now={now} />
+              <RequestCard
+                key={q.id}
+                req={q}
+                agent={agents.find((a) => a.id === q.agentId)}
+                canAnswer={canManage && run.status === "active"}
+                now={now}
+              />
             ))}
           </Section>
         )}
@@ -127,7 +160,12 @@ function Detail({ req }: { req: AgentRequest }) {
   const s = (k: string) => (typeof d[k] === "string" ? (d[k] as string) : "");
   if (req.kind === "question") return <div className="orc-prose sm-selectable orc-question">{req.summary}</div>;
   if (req.tool === TRUST_TOOL) {
-    return <div className="sm-dim orc-req-desc">Claude Code asks this once per folder, before the agent's session starts. Trusting it lets the agents read, edit and run files there.</div>;
+    return (
+      <div className="sm-dim orc-req-desc">
+        Claude Code asks this once per folder, before the agent's session starts. Trusting it lets the agents read, edit
+        and run files there.
+      </div>
+    );
   }
   if ((req.tool === "Bash" || req.tool === "PowerShell") && s("command")) {
     return (
@@ -189,7 +227,17 @@ function Detail({ req }: { req: AgentRequest }) {
   return <pre className="orc-code sm-selectable">{JSON.stringify(req.detail, null, 2)}</pre>;
 }
 
-function RequestCard({ req: q, agent, canAnswer, now }: { req: AgentRequest; agent: Agent | undefined; canAnswer: boolean; now: number }) {
+function RequestCard({
+  req: q,
+  agent,
+  canAnswer,
+  now,
+}: {
+  req: AgentRequest;
+  agent: Agent | undefined;
+  canAnswer: boolean;
+  now: number;
+}) {
   const [answer, setAnswer] = useState("");
   const [denying, setDenying] = useState(false);
   const [note, setNote] = useState("");
@@ -204,7 +252,11 @@ function RequestCard({ req: q, agent, canAnswer, now }: { req: AgentRequest; age
   return (
     <div className={cx("orc-req", permission ? "permission" : "question")}>
       <div className="orc-req-head">
-        {permission ? <ShieldQuestion size={15} className="orc-req-icon" /> : <CircleHelp size={15} className="orc-req-icon" />}
+        {permission ? (
+          <ShieldQuestion size={15} className="orc-req-icon" />
+        ) : (
+          <CircleHelp size={15} className="orc-req-icon" />
+        )}
         {agent ? <AgentName agent={agent} /> : <span>A removed agent</span>}
         <span className="sm-dim">{permission ? "asks to" : "asks the lead"}</span>
         {permission && (
@@ -224,21 +276,42 @@ function RequestCard({ req: q, agent, canAnswer, now }: { req: AgentRequest; age
         canAnswer ? (
           q.tool === TRUST_TOOL ? (
             <div className="orc-req-actions">
-              <Button small kind="primary" disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: true }))} title="Picks “Yes, I trust this folder” in its pane">
+              <Button
+                small
+                kind="primary"
+                disabled={busy}
+                onClick={() => run(() => sm.agents.answer(q.id, { allow: true }))}
+                title="Picks “Yes, I trust this folder” in its pane"
+              >
                 <Check size={13} /> Trust folder
               </Button>
               {agent?.role === "worker" ? (
-                <Button small disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: false }))} title="Its task goes back to the queue">
+                <Button
+                  small
+                  disabled={busy}
+                  onClick={() => run(() => sm.agents.answer(q.id, { allow: false }))}
+                  title="Its task goes back to the queue"
+                >
                   <UserMinus size={13} /> Remove worker
                 </Button>
               ) : (
-                <Button small disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: false }))} title="The team can't work in a folder Claude Code doesn't trust">
+                <Button
+                  small
+                  disabled={busy}
+                  onClick={() => run(() => sm.agents.answer(q.id, { allow: false }))}
+                  title="The team can't work in a folder Claude Code doesn't trust"
+                >
                   <CircleStop size={13} /> Stop team
                 </Button>
               )}
               <span className="sm-grow" />
               {agent && (
-                <Button small kind="subtle" onClick={() => revealAgent(agent)} title="Its pane shows the same prompt: answering there works too">
+                <Button
+                  small
+                  kind="subtle"
+                  onClick={() => revealAgent(agent)}
+                  title="Its pane shows the same prompt: answering there works too"
+                >
                   <Eye size={13} /> Show pane
                 </Button>
               )}
@@ -252,11 +325,17 @@ function RequestCard({ req: q, agent, canAnswer, now }: { req: AgentRequest; age
                 placeholder="Why not (optional, the agent reads it)"
                 onChange={(e) => setNote(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") run(() => sm.agents.answer(q.id, { allow: false, text: note.trim() || undefined }));
+                  if (e.key === "Enter")
+                    run(() => sm.agents.answer(q.id, { allow: false, text: note.trim() || undefined }));
                   if (e.key === "Escape") setDenying(false);
                 }}
               />
-              <Button small kind="danger" disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: false, text: note.trim() || undefined }))}>
+              <Button
+                small
+                kind="danger"
+                disabled={busy}
+                onClick={() => run(() => sm.agents.answer(q.id, { allow: false, text: note.trim() || undefined }))}
+              >
                 <X size={13} /> Deny
               </Button>
               <Button small kind="subtle" onClick={() => setDenying(false)}>
@@ -265,11 +344,21 @@ function RequestCard({ req: q, agent, canAnswer, now }: { req: AgentRequest; age
             </div>
           ) : (
             <div className="orc-req-actions">
-              <Button small kind="primary" disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: true }))}>
+              <Button
+                small
+                kind="primary"
+                disabled={busy}
+                onClick={() => run(() => sm.agents.answer(q.id, { allow: true }))}
+              >
                 <Check size={13} /> Allow
               </Button>
               {hasSuggestions && (
-                <Button small disabled={busy} onClick={() => run(() => sm.agents.answer(q.id, { allow: true, always: true }))} title="Allow, and let it do the same kind of thing for the rest of its session without asking (Claude Code's own suggestion)">
+                <Button
+                  small
+                  disabled={busy}
+                  onClick={() => run(() => sm.agents.answer(q.id, { allow: true, always: true }))}
+                  title="Allow, and let it do the same kind of thing for the rest of its session without asking (Claude Code's own suggestion)"
+                >
                   <CheckCheck size={13} /> Allow always
                 </Button>
               )}
@@ -278,7 +367,12 @@ function RequestCard({ req: q, agent, canAnswer, now }: { req: AgentRequest; age
               </Button>
               <span className="sm-grow" />
               {agent && (
-                <Button small kind="subtle" onClick={() => revealAgent(agent)} title="Its pane shows the same prompt: answering there works too">
+                <Button
+                  small
+                  kind="subtle"
+                  onClick={() => revealAgent(agent)}
+                  title="Its pane shows the same prompt: answering there works too"
+                >
                   <Eye size={13} /> Show pane
                 </Button>
               )}
@@ -296,10 +390,17 @@ function RequestCard({ req: q, agent, canAnswer, now }: { req: AgentRequest; age
             placeholder="Your answer (the lead may answer first)"
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && answer.trim()) run(() => sm.agents.answer(q.id, { text: answer.trim() }));
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && answer.trim())
+                run(() => sm.agents.answer(q.id, { text: answer.trim() }));
             }}
           />
-          <Button small kind="primary" disabled={busy || !answer.trim()} onClick={() => run(() => sm.agents.answer(q.id, { text: answer.trim() }))} title="Ctrl+Enter">
+          <Button
+            small
+            kind="primary"
+            disabled={busy || !answer.trim()}
+            onClick={() => run(() => sm.agents.answer(q.id, { text: answer.trim() }))}
+            title="Ctrl+Enter"
+          >
             Answer
           </Button>
         </div>

@@ -1,6 +1,37 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Code, Copy, Database, Ellipsis, FolderOpen, Info, ListTree, LoaderCircle, Lock, LockOpen, PanelLeftClose, PanelLeftOpen, RefreshCw, Rows3, X } from "lucide-react";
-import { Chip, IconButton, Sep, Split, Switch, Tabs, cx, errorText, formatBytes, openMenu, sm, useStored, type DbInfo, type SchemaObject } from "../../shared";
+import {
+  Code,
+  Copy,
+  Database,
+  Ellipsis,
+  FolderOpen,
+  Info,
+  ListTree,
+  LoaderCircle,
+  Lock,
+  LockOpen,
+  PanelLeftClose,
+  PanelLeftOpen,
+  RefreshCw,
+  Rows3,
+  X,
+} from "lucide-react";
+import {
+  Chip,
+  IconButton,
+  Sep,
+  Split,
+  Switch,
+  Tabs,
+  cx,
+  errorText,
+  formatBytes,
+  openMenu,
+  sm,
+  useStored,
+  type DbInfo,
+  type SchemaObject,
+} from "../../shared";
 import { DataTab } from "./DataTab";
 import { InfoTab } from "./InfoTab";
 import { Sidebar } from "./Sidebar";
@@ -103,7 +134,9 @@ export function DbView({
     const want = pane.table ? byName.get(pane.table.toLowerCase()) : undefined;
     if (want) return want;
     // the first table in the sidebar
-    const browsable = schema.filter((o) => o.type === "table" || o.type === "view").sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
+    const browsable = schema
+      .filter((o) => o.type === "table" || o.type === "view")
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
     return browsable.find((o) => o.type === "table" && !isSystem(o.name)) ?? browsable[0] ?? null;
   }, [pane.table, byName, schema]);
 
@@ -143,13 +176,20 @@ export function DbView({
         const where = db.copied
           ? `This is a temporary copy${db.copyReason ? ` (${db.copyReason.replace(/\.$/, "")})` : ""}: changes go to the copy only and are gone when you close it. The original file stays untouched.`
           : `Edits, new rows, deletions and SQL statements will change ${db.file} on disk right away. There is no undo — keep a backup if the data matters, and close programs that use this file first.`;
-        const ok = await sm.ui.confirm(`Allow changes to ${db.file}?`, `The database is reopened read-write. ${where}`, { okLabel: "Allow changes", danger: true });
+        const ok = await sm.ui.confirm(
+          `Allow changes to ${db.file}?`,
+          `The database is reopened read-write. ${where}`,
+          { okLabel: "Allow changes", danger: true },
+        );
         if (!ok) return false;
       }
       setToggling(true);
       try {
         onDb(await sm.sqlite.setWritable(db.id, on));
-        sm.ui.notify(on ? `Changes to ${db.file} are allowed` : `${db.file} is read-only again`, on ? "warning" : "info");
+        sm.ui.notify(
+          on ? `Changes to ${db.file} are allowed` : `${db.file} is read-only again`,
+          on ? "warning" : "info",
+        );
         return true;
       } catch (e) {
         sm.ui.notify(`Couldn't ${on ? "allow changes" : "go back to read-only"}: ${errorText(e)}`, "error");
@@ -189,7 +229,22 @@ export function DbView({
       tab,
       sendToSql,
     }),
-    [db, schema, byName, counts, wantCount, forgetCounts, version, reloadSchema, setWritable, narrow, selected, select, tab, sendToSql],
+    [
+      db,
+      schema,
+      byName,
+      counts,
+      wantCount,
+      forgetCounts,
+      version,
+      reloadSchema,
+      setWritable,
+      narrow,
+      selected,
+      select,
+      tab,
+      sendToSql,
+    ],
   );
 
   // F5 refreshes (the SQL tab runs its query instead); Ctrl+R too
@@ -209,7 +264,6 @@ export function DbView({
   const sideCollapsed = narrow || sideHidden;
   const tiny = width < 470;
 
-
   const tabs = [
     { id: "data", label: "Data", icon: <Rows3 size={14} /> },
     { id: "structure", label: "Structure", icon: <ListTree size={14} /> },
@@ -221,7 +275,10 @@ export function DbView({
     <DbContext.Provider value={api}>
       <div className={cx("sqlb-header", db.writable && "writable")}>
         {!narrow && (
-          <IconButton title={sideHidden ? "Show the schema" : "Hide the schema"} onClick={() => setSideHidden(!sideHidden)}>
+          <IconButton
+            title={sideHidden ? "Show the schema" : "Hide the schema"}
+            onClick={() => setSideHidden(!sideHidden)}
+          >
             {sideHidden ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
           </IconButton>
         )}
@@ -242,14 +299,23 @@ export function DbView({
           </Chip>
         )}
         {db.copied && (
-          <Chip tone="accent" icon={<Copy size={11} />} title={db.copyReason ?? "Opened from a temporary copy; the original file is untouched"}>
+          <Chip
+            tone="accent"
+            icon={<Copy size={11} />}
+            title={db.copyReason ?? "Opened from a temporary copy; the original file is untouched"}
+          >
             Copy
           </Chip>
         )}
         {!tiny && <Chip tone="dim">{formatBytes(db.size)}</Chip>}
         {busy && <LoaderCircle size={14} className="sm-spin sqlb-dim" />}
         <div className="sm-grow" />
-        <label className="sqlb-allow" title={db.writable ? "Go back to read-only" : "Reopen the database read-write so it can be edited (asks first)"}>
+        <label
+          className="sqlb-allow"
+          title={
+            db.writable ? "Go back to read-only" : "Reopen the database read-write so it can be edited (asks first)"
+          }
+        >
           {!tiny && <span>Allow changes</span>}
           <Switch value={db.writable} disabled={toggling} onChange={(v) => setWritable(v)} />
         </label>

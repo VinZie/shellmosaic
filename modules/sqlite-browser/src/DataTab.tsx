@@ -1,7 +1,27 @@
 // Browse a table or view a page at a time: server-side sort, quick search, a WHERE
 // box, an inspector, and (once changes are allowed) inline editing.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleSlash, Copy, Eye, Funnel, ListTree, Lock, PanelRight, Pencil, Plus, RefreshCw, Rows3, Sheet, Table2, Trash, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  CircleSlash,
+  Copy,
+  Eye,
+  Funnel,
+  ListTree,
+  Lock,
+  PanelRight,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Rows3,
+  Sheet,
+  Table2,
+  Trash,
+  X,
+} from "lucide-react";
 import {
   Button,
   Chip,
@@ -142,13 +162,14 @@ export function TablePicker({ all }: { all?: boolean }) {
     ["Tables", "table"],
     ["Views", "view"],
   ];
-  if (all)
-    groups.push(
-      ["Indexes", "index"],
-      ["Triggers", "trigger"],
-    );
+  if (all) groups.push(["Indexes", "index"], ["Triggers", "trigger"]);
   return (
-    <select className="sm-input sm-select sqlb-picker" value={selected?.name ?? ""} title="Table or view" onChange={(e) => select(e.target.value)}>
+    <select
+      className="sm-input sm-select sqlb-picker"
+      value={selected?.name ?? ""}
+      title="Table or view"
+      onChange={(e) => select(e.target.value)}
+    >
       {!selected && <option value="">Pick a table</option>}
       {groups.map(([label, type]) => {
         const objs = schema.filter((o) => o.type === type);
@@ -171,7 +192,18 @@ function defaultWidth(col: GridCol, rows: Cell[][] | undefined): number {
   if (rows)
     for (const r of rows.slice(0, 50)) {
       const c = r[col.index];
-      const len = c === null ? 4 : typeof c === "number" ? String(c).length : typeof c === "string" ? Math.min(c.length, 48) : isBlob(c) ? 22 : isBigInt(c) ? c.$int.length : 40;
+      const len =
+        c === null
+          ? 4
+          : typeof c === "number"
+            ? String(c).length
+            : typeof c === "string"
+              ? Math.min(c.length, 48)
+              : isBlob(c)
+                ? 22
+                : isBigInt(c)
+                  ? c.$int.length
+                  : 40;
       if (len > chars) chars = len;
     }
   return Math.max(64, Math.min(340, Math.round(chars * 7.2 + 24)));
@@ -216,10 +248,16 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
   const [filteredCount, setFilteredCount] = useState<CountState | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const focusGrid = useCallback(() => requestAnimationFrame(() => gridRef.current?.querySelector<HTMLElement>(".sm-table")?.focus()), []);
+  const focusGrid = useCallback(
+    () => requestAnimationFrame(() => gridRef.current?.querySelector<HTMLElement>(".sm-table")?.focus()),
+    [],
+  );
 
   // ── the query ──
-  const searchCols = useMemo(() => searchColumns(obj.columns.filter((c) => c.hidden !== 1).map((c) => ({ name: c.name, type: c.type }))), [obj]);
+  const searchCols = useMemo(
+    () => searchColumns(obj.columns.filter((c) => c.hidden !== 1).map((c) => ({ name: c.name, type: c.type }))),
+    [obj],
+  );
   const filter = useMemo(() => {
     const parts: string[] = [];
     const params: Param[] = [];
@@ -234,9 +272,10 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
   const filterKey = filter.sql + "\u0000" + JSON.stringify(filter.params);
 
   const gridCols = useMemo<GridCol[]>(() => {
-    const src =
-      result?.columns ??
-      [...(ident.kind === "rowid" ? [{ name: "__rowid", declType: "INTEGER" }] : []), ...obj.columns.filter((c) => c.hidden !== 1).map((c) => ({ name: c.name, declType: c.type }))];
+    const src = result?.columns ?? [
+      ...(ident.kind === "rowid" ? [{ name: "__rowid", declType: "INTEGER" }] : []),
+      ...obj.columns.filter((c) => c.hidden !== 1).map((c) => ({ name: c.name, declType: c.type })),
+    ];
     const used = new Set<string>();
     return src.map((c, i) => {
       let id = c.name;
@@ -248,10 +287,23 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
       const aff = affinity(declType);
       let right = isRowid || isNumeric(aff);
       if (!right && !declType && result?.rows.length) {
-        const sample = result.rows.slice(0, 50).map((r) => r[i]).filter((v) => v !== null);
+        const sample = result.rows
+          .slice(0, 50)
+          .map((r) => r[i])
+          .filter((v) => v !== null);
         right = sample.length > 0 && sample.every((v) => typeof v === "number" || isBigInt(v));
       }
-      return { index: i, id, name: c.name, label: isRowid ? "rowid" : c.name, declType, aff, schemaCol, isRowid, right };
+      return {
+        index: i,
+        id,
+        name: c.name,
+        label: isRowid ? "rowid" : c.name,
+        declType,
+        aff,
+        schemaCol,
+        isRowid,
+        right,
+      };
     });
   }, [result, obj, ident]);
   const colById = useMemo(() => new Map(gridCols.map((c) => [c.id, c])), [gridCols]);
@@ -259,7 +311,9 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
   const sortCol = sort ? colById.get(sort.id) : undefined;
   const selectSql = useMemo(() => {
     const cols = ident.kind === "rowid" ? `${ident.expr} AS "__rowid", *` : "*";
-    const order = sortCol ? `\nORDER BY ${qi(sortCol.isRowid ? "__rowid" : sortCol.name)} ${sort!.desc ? "DESC" : "ASC"}` : "";
+    const order = sortCol
+      ? `\nORDER BY ${qi(sortCol.isRowid ? "__rowid" : sortCol.name)} ${sort!.desc ? "DESC" : "ASC"}`
+      : "";
     return `SELECT ${cols} FROM ${qi(obj.name)}${filter.sql}${order}\nLIMIT ${pageSize} OFFSET ${page * pageSize}`;
   }, [ident, obj.name, filter.sql, sortCol, sort, pageSize, page]);
 
@@ -315,12 +369,21 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
   }, [pages, page]);
 
   // ── rows ──
-  const pkIdx = useMemo(() => (ident.kind === "pk" ? ident.cols.map((c) => gridCols.findIndex((g) => g.name === c.name && !g.isRowid)) : []), [ident, gridCols]);
+  const pkIdx = useMemo(
+    () =>
+      ident.kind === "pk" ? ident.cols.map((c) => gridCols.findIndex((g) => g.name === c.name && !g.isRowid)) : [],
+    [ident, gridCols],
+  );
   const identOk = ident.kind === "rowid" || (ident.kind === "pk" && pkIdx.every((x) => x >= 0));
   const rows = useMemo<Row[]>(
     () =>
       (result?.rows ?? []).map((cells, i) => ({
-        key: ident.kind === "rowid" ? cellKey(cells[0]) : identOk ? JSON.stringify(pkIdx.map((x) => cellKey(cells[x]))) : page * pageSize + i,
+        key:
+          ident.kind === "rowid"
+            ? cellKey(cells[0])
+            : identOk
+              ? JSON.stringify(pkIdx.map((x) => cellKey(cells[x])))
+              : page * pageSize + i,
         cells,
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -343,14 +406,23 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
 
   // visible columns in the user's order (for copying and ←/→)
   const visibleCols = useMemo(() => {
-    const ordered = [...layout.order.filter((id) => colById.has(id)).map((id) => colById.get(id)!), ...gridCols.filter((c) => !layout.order.includes(c.id))];
+    const ordered = [
+      ...layout.order.filter((id) => colById.has(id)).map((id) => colById.get(id)!),
+      ...gridCols.filter((c) => !layout.order.includes(c.id)),
+    ];
     const vis = ordered.filter((c) => layout.visible[c.id] ?? !c.isRowid);
     return vis.length ? vis : ordered.slice(0, 1);
   }, [layout, gridCols, colById]);
 
   // ── editing ──
   const isTable = obj.type === "table" && !obj.virtual;
-  const tableWhy = !identOk ? (ident.kind === "none" ? ident.why : "The primary key isn't in the result") : !db.writable ? "Read-only: turn on Allow changes to edit" : null;
+  const tableWhy = !identOk
+    ? ident.kind === "none"
+      ? ident.why
+      : "The primary key isn't in the result"
+    : !db.writable
+      ? "Read-only: turn on Allow changes to edit"
+      : null;
   const cellWhy = useCallback(
     (row: Row | undefined, col: GridCol | undefined, forNull = false): string | null => {
       if (tableWhy) return tableWhy;
@@ -377,14 +449,20 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
         return `${name} = ${p.sql}`;
       };
       if (ident.kind === "rowid") return { sql: eq(ident.expr, row.cells[0]), params };
-      if (ident.kind === "pk") return { sql: ident.cols.map((c, i) => eq(qi(c.name), row.cells[pkIdx[i]])).join(" AND "), params };
+      if (ident.kind === "pk")
+        return { sql: ident.cols.map((c, i) => eq(qi(c.name), row.cells[pkIdx[i]])).join(" AND "), params };
       return { sql: "0", params };
     },
     [ident, pkIdx],
   );
 
   const rowLabel = useCallback(
-    (row: Row) => (ident.kind === "rowid" ? `row ${cellText(row.cells[0])}` : ident.kind === "pk" ? `row (${pkIdx.map((x) => cellText(row.cells[x]) || "NULL").join(", ")})` : "the row"),
+    (row: Row) =>
+      ident.kind === "rowid"
+        ? `row ${cellText(row.cells[0])}`
+        : ident.kind === "pk"
+          ? `row (${pkIdx.map((x) => cellText(row.cells[x]) || "NULL").join(", ")})`
+          : "the row",
     [ident, pkIdx],
   );
 
@@ -393,8 +471,12 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
       const v = text === null ? { param: null, sql: "?" } : inputValue(text, col.aff, row.cells[col.index]);
       const w = whereFor(row);
       try {
-        const r = await sm.sqlite.query(db.id, `UPDATE ${qi(obj.name)} SET ${qi(col.name)} = ${v.sql} WHERE ${w.sql}`, [v.param, ...w.params]);
-        if (r.changes === 0) sm.ui.notify("No row was updated; it may have been changed or deleted meanwhile", "warning");
+        const r = await sm.sqlite.query(db.id, `UPDATE ${qi(obj.name)} SET ${qi(col.name)} = ${v.sql} WHERE ${w.sql}`, [
+          v.param,
+          ...w.params,
+        ]);
+        if (r.changes === 0)
+          sm.ui.notify("No row was updated; it may have been changed or deleted meanwhile", "warning");
         else sm.ui.notify(`Updated ${col.name} of ${rowLabel(row)}`, "success");
         reload();
         return null;
@@ -434,7 +516,15 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
         });
         return;
       }
-      setEditing({ key: row.key, ci: col.index, value: text, original: text, wasNull: c === null, saving: false, error: null });
+      setEditing({
+        key: row.key,
+        ci: col.index,
+        value: text,
+        original: text,
+        wasNull: c === null,
+        saving: false,
+        error: null,
+      });
     },
     [cellWhy, db.writable, identOk, isTable, obj.name, rowLabel, saveCell, setInspOpen, focusGrid],
   );
@@ -450,7 +540,9 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
       if (asNull && ed.wasNull) return setEditing(null);
       setEditing({ ...ed, saving: true, error: null });
       const err = await saveCell(row, col, asNull ? null : ed.value);
-      setEditing((cur) => (cur && cur.key === ed.key && cur.ci === ed.ci ? (err ? { ...cur, saving: false, error: err } : null) : cur));
+      setEditing((cur) =>
+        cur && cur.key === ed.key && cur.ci === ed.ci ? (err ? { ...cur, saving: false, error: err } : null) : cur,
+      );
       if (!err) focusGrid();
     },
     [editing, byKey, gridCols, saveCell, focusGrid],
@@ -461,10 +553,14 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
       if (!list.length || tableWhy || !isTable) return;
       const n = list.length;
       const where = db.copied ? "the temporary copy" : db.file;
-      const ok = await sm.ui.confirm(n === 1 ? `Delete ${rowLabel(list[0])}?` : `Delete ${n} rows?`, `${n === 1 ? "It" : "They"} will be removed from ${obj.name} in ${where}. This can't be undone.`, {
-        okLabel: n === 1 ? "Delete row" : `Delete ${n} rows`,
-        danger: true,
-      });
+      const ok = await sm.ui.confirm(
+        n === 1 ? `Delete ${rowLabel(list[0])}?` : `Delete ${n} rows?`,
+        `${n === 1 ? "It" : "They"} will be removed from ${obj.name} in ${where}. This can't be undone.`,
+        {
+          okLabel: n === 1 ? "Delete row" : `Delete ${n} rows`,
+          danger: true,
+        },
+      );
       if (!ok) return;
       let changes = 0;
       try {
@@ -536,13 +632,17 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
         insert: (sql, params) => sm.sqlite.query(db.id, sql, params),
         done: (rowid, values) => afterInsert(rowid, values),
       });
-    if (ident.kind === "pk") return formReason("A WITHOUT ROWID table needs its key. Empty fields get their default, or NULL.");
+    if (ident.kind === "pk")
+      return formReason("A WITHOUT ROWID table needs its key. Empty fields get their default, or NULL.");
     try {
       const r = await sm.sqlite.query(db.id, `INSERT INTO ${qi(obj.name)} DEFAULT VALUES`);
       afterInsert(r.lastInsertRowid, null);
     } catch (e) {
       const m = errorText(e);
-      if (/constraint|NOT NULL/i.test(m)) formReason(`A row with only default values isn't allowed (${m}). Fill in the required fields; empty ones get their default, or NULL.`);
+      if (/constraint|NOT NULL/i.test(m))
+        formReason(
+          `A row with only default values isn't allowed (${m}). Fill in the required fields; empty ones get their default, or NULL.`,
+        );
       else sm.ui.notify(`Couldn't add a row: ${m}`, "error");
     }
   }, [tableWhy, isTable, obj, ident, db.id, afterInsert]);
@@ -559,14 +659,20 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
     setPage(0);
     if (t) setWhereOpen(true);
   };
-  const addFilter = (expr: string) => applyWhere(where ? `${/\bor\b/i.test(where) ? `(${where})` : where} AND ${expr}` : expr);
+  const addFilter = (expr: string) =>
+    applyWhere(where ? `${/\bor\b/i.test(where) ? `(${where})` : where} AND ${expr}` : expr);
 
   // ── copying ──
   const copyRows = (list: Row[], fmt: "tsv" | "tsvh" | "json" | "insert") => {
     const cols = fmt === "insert" ? visibleCols.filter((c) => !c.isRowid) : visibleCols;
     const names = cols.map((c) => (c.isRowid ? "rowid" : c.name));
     const data = list.map((r) => cols.map((c) => r.cells[c.index]));
-    const text = fmt === "json" ? toJson(names, data) : fmt === "insert" ? toInserts(obj.name, names, data) : toTsv(names, data, fmt === "tsvh");
+    const text =
+      fmt === "json"
+        ? toJson(names, data)
+        : fmt === "insert"
+          ? toInserts(obj.name, names, data)
+          : toTsv(names, data, fmt === "tsvh");
     copyOut(text, list.length === 1 ? "1 row" : `${formatNumber(list.length)} rows`, data.some(hasPartial));
   };
 
@@ -583,8 +689,18 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
       const whyNull = cellWhy(row, col, true);
       items.push(
         { header: col.label },
-        { label: "Copy value", icon: <Copy size={14} />, onSelect: () => copyOut(cellText(c), "value", isLongText(c) || (isBlob(c) && c.length > 256)) },
-        { label: "Edit value…", icon: <Pencil size={14} />, hint: why ? (db.writable ? "" : "read-only") : "F2", disabled: !!why, onSelect: () => startEdit(row, col) },
+        {
+          label: "Copy value",
+          icon: <Copy size={14} />,
+          onSelect: () => copyOut(cellText(c), "value", isLongText(c) || (isBlob(c) && c.length > 256)),
+        },
+        {
+          label: "Edit value…",
+          icon: <Pencil size={14} />,
+          hint: why ? (db.writable ? "" : "read-only") : "F2",
+          disabled: !!why,
+          onSelect: () => startEdit(row, col),
+        },
         {
           label: "Set to NULL",
           icon: <CircleSlash size={14} />,
@@ -596,7 +712,11 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
       if (!isBlob(c) && !isLongText(c) && col.schemaCol !== null) {
         const lit = c === null ? "IS NULL" : `= ${cellLiteral(c)}`;
         const short = lit.length > 28 ? lit.slice(0, 27) + "…" : lit;
-        items.push({ label: `Filter: ${col.name} ${short}`, icon: <Funnel size={14} />, onSelect: () => addFilter(`${qi(col.name)} ${lit}`) });
+        items.push({
+          label: `Filter: ${col.name} ${short}`,
+          icon: <Funnel size={14} />,
+          onSelect: () => addFilter(`${qi(col.name)} ${lit}`),
+        });
       }
       items.push({ separator: true });
     }
@@ -687,7 +807,15 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
         const sc = col.schemaCol;
         const title = col.isRowid
           ? "rowid: the row's built-in key"
-          : [col.name, col.declType || "no declared type", sc?.pk ? "primary key" : "", sc?.notNull ? "NOT NULL" : "", sc && sc.hidden >= 2 ? "generated" : ""].filter(Boolean).join(" · ");
+          : [
+              col.name,
+              col.declType || "no declared type",
+              sc?.pk ? "primary key" : "",
+              sc?.notNull ? "NOT NULL" : "",
+              sc && sc.hidden >= 2 ? "generated" : "",
+            ]
+              .filter(Boolean)
+              .join(" · ");
         return {
           id: col.id,
           label: col.label,
@@ -735,28 +863,35 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
     [gridCols, result, active, editing, commitEdit],
   );
 
-  const activeRow = (active.key !== null && byKey.get(active.key)) || (selected.length ? byKey.get(selected[selected.length - 1]) : undefined) || null;
+  const activeRow =
+    (active.key !== null && byKey.get(active.key)) ||
+    (selected.length ? byKey.get(selected[selected.length - 1]) : undefined) ||
+    null;
   const inspectorCols = useMemo(
-    () => gridCols.filter((c) => !c.isRowid).map((c) => ({ index: c.index, name: c.name, declType: c.declType, pk: !!c.schemaCol && c.schemaCol.pk > 0 })),
+    () =>
+      gridCols
+        .filter((c) => !c.isRowid)
+        .map((c) => ({ index: c.index, name: c.name, declType: c.declType, pk: !!c.schemaCol && c.schemaCol.pk > 0 })),
     [gridCols],
   );
 
   // ── render ──
   const from = page * pageSize + 1;
   const to = page * pageSize + rows.length;
-  const kindChip = obj.type === "view" ? (
-    <Chip tone="dim" icon={<Eye size={11} />} title="Views are read-only">
-      view
-    </Chip>
-  ) : obj.virtual ? (
-    <Chip tone="dim" icon={<Sheet size={11} />} title="A virtual table (browse only)">
-      virtual
-    </Chip>
-  ) : obj.withoutRowid ? (
-    <Chip tone="dim" title="Rows are identified by the primary key">
-      without rowid
-    </Chip>
-  ) : null;
+  const kindChip =
+    obj.type === "view" ? (
+      <Chip tone="dim" icon={<Eye size={11} />} title="Views are read-only">
+        view
+      </Chip>
+    ) : obj.virtual ? (
+      <Chip tone="dim" icon={<Sheet size={11} />} title="A virtual table (browse only)">
+        virtual
+      </Chip>
+    ) : obj.withoutRowid ? (
+      <Chip tone="dim" title="Rows are identified by the primary key">
+        without rowid
+      </Chip>
+    ) : null;
 
   const grid = (
     <div className="sqlb-col" ref={gridRef} onKeyDown={onKeyDown}>
@@ -822,7 +957,13 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
             )
           }
           scrollTo={scrollTo}
-          headerMenu={[{ label: "Copy column names", icon: <Copy size={14} />, onSelect: () => copyOut(visibleCols.map((c) => c.label).join("\t"), "column names") }]}
+          headerMenu={[
+            {
+              label: "Copy column names",
+              icon: <Copy size={14} />,
+              onSelect: () => copyOut(visibleCols.map((c) => c.label).join("\t"), "column names"),
+            },
+          ]}
           empty={
             loading ? null : filter.active ? (
               <span>
@@ -894,10 +1035,20 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
               setSearch(v);
               setPage(0);
             }}
-            placeholder={searchCols.length ? (searchCols.length <= 2 ? `Search ${searchCols.join(", ")}` : "Search text columns") : "Nothing to search"}
+            placeholder={
+              searchCols.length
+                ? searchCols.length <= 2
+                  ? `Search ${searchCols.join(", ")}`
+                  : "Search text columns"
+                : "Nothing to search"
+            }
           />
         </div>
-        <IconButton title={whereOpen ? "Hide the WHERE filter" : "Filter with a WHERE expression"} on={whereOpen || !!where} onClick={() => setWhereOpen(!whereOpen)}>
+        <IconButton
+          title={whereOpen ? "Hide the WHERE filter" : "Filter with a WHERE expression"}
+          on={whereOpen || !!where}
+          onClick={() => setWhereOpen(!whereOpen)}
+        >
           <Funnel size={14} />
         </IconButton>
         <div className="sm-grow" />
@@ -908,12 +1059,22 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
                 <Plus size={15} />
               </IconButton>
             ) : (
-              <Button small title={editTitle("Add a row (INSERT … DEFAULT VALUES)")} disabled={!!tableWhy} onClick={addRow}>
+              <Button
+                small
+                title={editTitle("Add a row (INSERT … DEFAULT VALUES)")}
+                disabled={!!tableWhy}
+                onClick={addRow}
+              >
                 <Plus size={13} /> Row
               </Button>
             )}
             <IconButton
-              title={tableWhy ?? (selected.length ? `Delete ${pluralize(selected.length, "selected row")} (Del)` : "Delete the selected rows")}
+              title={
+                tableWhy ??
+                (selected.length
+                  ? `Delete ${pluralize(selected.length, "selected row")} (Del)`
+                  : "Delete the selected rows")
+              }
               danger
               disabled={!!tableWhy || !selected.length}
               onClick={() => deleteRows(selected.map((k) => byKey.get(k)).filter((r): r is Row => !!r))}
@@ -937,7 +1098,11 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
         >
           <RefreshCw size={14} />
         </IconButton>
-        <IconButton title={inspOpen ? "Hide the row inspector" : "Show the row inspector"} on={inspOpen} onClick={() => setInspOpen(!inspOpen)}>
+        <IconButton
+          title={inspOpen ? "Hide the row inspector" : "Show the row inspector"}
+          on={inspOpen}
+          onClick={() => setInspOpen(!inspOpen)}
+        >
           <PanelRight size={15} />
         </IconButton>
       </Toolbar>
@@ -981,10 +1146,17 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
         </form>
       )}
 
-
       {inspOpen ? (
         narrow ? (
-          <Split direction="vertical" sizeOf="second" size={inspH} onSize={setInspH} min={120} first={grid} second={inspector} />
+          <Split
+            direction="vertical"
+            sizeOf="second"
+            size={inspH}
+            onSize={setInspH}
+            min={120}
+            first={grid}
+            second={inspector}
+          />
         ) : (
           <Split sizeOf="second" size={inspW} onSize={setInspW} min={220} first={grid} second={inspector} />
         )
@@ -1004,7 +1176,8 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
               title: "Go to page",
               label: `Page (1–${pages})`,
               value: String(page + 1),
-              validate: (s) => (/^\d+$/.test(s.trim()) && +s >= 1 && +s <= (pages ?? 1) ? null : `A number from 1 to ${pages}`),
+              validate: (s) =>
+                /^\d+$/.test(s.trim()) && +s >= 1 && +s <= (pages ?? 1) ? null : `A number from 1 to ${pages}`,
             });
             if (v) setPage(+v - 1);
           }}
@@ -1012,7 +1185,8 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
           {rows.length ? (
             <>
               {narrow ? "" : "Rows "}
-              {formatNumber(from)}–{formatNumber(to)} of {totalN !== null ? formatNumber(totalN) : total && "error" in total ? "?" : "…"}
+              {formatNumber(from)}–{formatNumber(to)} of{" "}
+              {totalN !== null ? formatNumber(totalN) : total && "error" in total ? "?" : "…"}
             </>
           ) : loading ? (
             "Loading…"
@@ -1044,10 +1218,18 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
           {page + 1}
           {pages !== null && <> / {formatNumber(pages)}</>}
         </span>
-        <IconButton title="Next page" disabled={pages !== null ? page >= pages - 1 : rows.length < pageSize} onClick={() => setPage(page + 1)}>
+        <IconButton
+          title="Next page"
+          disabled={pages !== null ? page >= pages - 1 : rows.length < pageSize}
+          onClick={() => setPage(page + 1)}
+        >
           <ChevronRight size={14} />
         </IconButton>
-        <IconButton title="Last page" disabled={pages === null || page >= pages - 1} onClick={() => pages && setPage(pages - 1)}>
+        <IconButton
+          title="Last page"
+          disabled={pages === null || page >= pages - 1}
+          onClick={() => pages && setPage(pages - 1)}
+        >
           <ChevronsRight size={14} />
         </IconButton>
         <select
@@ -1066,12 +1248,10 @@ function DataGrid({ obj }: { obj: SchemaObject }) {
             </option>
           ))}
         </select>
-
       </div>
     </div>
   );
 }
-
 
 function whereExample(obj: SchemaObject): string {
   const num = obj.columns.find((c) => isNumeric(affinity(c.type)) && c.pk === 0);

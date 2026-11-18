@@ -108,7 +108,11 @@ export function installMock(api: DeepPartial<ShellmosaicSdk>, pluginId = "dev") 
     },
     clipboard: {
       readText: () => navigator.clipboard.readText(),
-      writeText: (t) => navigator.clipboard.writeText(t).then(() => true, () => (console.log("clipboard:", t), true)),
+      writeText: (t) =>
+        navigator.clipboard.writeText(t).then(
+          () => true,
+          () => (console.log("clipboard:", t), true),
+        ),
     },
     process: {
       list: notImplemented("process.list"),

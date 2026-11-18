@@ -56,7 +56,9 @@ function stateClass(state: string): string {
 function dedupe(list: SocketInfo[]): Row[] {
   const out = new Map<string, Row>();
   for (const s of list) {
-    const key = [s.proto, s.localAddr, s.localPort, s.remoteAddr ?? "", s.remotePort ?? "", s.state, s.pid ?? ""].join("|");
+    const key = [s.proto, s.localAddr, s.localPort, s.remoteAddr ?? "", s.remotePort ?? "", s.state, s.pid ?? ""].join(
+      "|",
+    );
     if (!out.has(key)) out.set(key, { ...s, key });
   }
   return [...out.values()];
@@ -87,7 +89,9 @@ function matcher(q: string): ((r: Row) => boolean) | null {
 }
 
 function listeningOnlyOf(pane: Pane): boolean {
-  return typeof pane.meta.listeningOnly === "boolean" ? pane.meta.listeningOnly : settings().modules.ports.listeningOnly;
+  return typeof pane.meta.listeningOnly === "boolean"
+    ? pane.meta.listeningOnly
+    : settings().modules.ports.listeningOnly;
 }
 
 function PortsPane({ pane, tabId, visible }: ModuleProps) {
@@ -141,7 +145,13 @@ function PortsPane({ pane, tabId, visible }: ModuleProps) {
     const remote = remoteText(r);
     const canKill = !!r.pid && r.pid > 4;
     const items: MenuItem[] = [
-      { label: "Open in web pane", icon: "panel-right", hint: url.replace("http://", ""), disabled: !tcp, onSelect: () => openWebPane(url, pane.id) },
+      {
+        label: "Open in web pane",
+        icon: "panel-right",
+        hint: url.replace("http://", ""),
+        disabled: !tcp,
+        onSelect: () => openWebPane(url, pane.id),
+      },
       {
         label: "Open in browser",
         icon: "external-link",
@@ -149,20 +159,34 @@ function PortsPane({ pane, tabId, visible }: ModuleProps) {
         onSelect: () => openUrl(url).catch((err) => ui.toast(errorText(err), "error")),
       },
       { type: "separator" },
-      { label: `Copy ${hostPort(r.localAddr, r.localPort)}`, icon: "copy", onSelect: () => copyText(hostPort(r.localAddr, r.localPort), "address") },
-      ...(remote ? [{ label: `Copy ${remote}`, icon: "clipboard-copy", onSelect: () => copyText(remote, "remote address") } as MenuItem] : []),
+      {
+        label: `Copy ${hostPort(r.localAddr, r.localPort)}`,
+        icon: "copy",
+        onSelect: () => copyText(hostPort(r.localAddr, r.localPort), "address"),
+      },
+      ...(remote
+        ? [
+            {
+              label: `Copy ${remote}`,
+              icon: "clipboard-copy",
+              onSelect: () => copyText(remote, "remote address"),
+            } as MenuItem,
+          ]
+        : []),
       { type: "separator" },
       {
         label: "Show in Processes",
         icon: "list-tree",
         disabled: !r.pid,
-        onSelect: () => addModule("processes", { tabId, target: pane.id, side: "right", meta: { filter: `pid:${r.pid}` } }),
+        onSelect: () =>
+          addModule("processes", { tabId, target: pane.id, side: "right", meta: { filter: `pid:${r.pid}` } }),
       },
       {
         label: "Inspect process",
         icon: "microscope",
         disabled: !r.pid,
-        onSelect: () => r.pid && openOptional("process-inspector", "Process Inspector", { pid: r.pid }, { tabId, paneId: pane.id }),
+        onSelect: () =>
+          r.pid && openOptional("process-inspector", "Process Inspector", { pid: r.pid }, { tabId, paneId: pane.id }),
       },
       {
         label: "Kill owning process",
@@ -181,7 +205,13 @@ function PortsPane({ pane, tabId, visible }: ModuleProps) {
   const columns: Column<Row>[] = [
     { key: "proto", label: "Proto", width: 58, render: (r) => <span className="dim">{r.proto}</span> },
     { key: "localAddr", label: "Local address", render: (r) => <span className="mono ports-addr">{r.localAddr}</span> },
-    { key: "localPort", label: "Port", num: true, width: 64, render: (r) => <span className="ports-port">{r.localPort}</span> },
+    {
+      key: "localPort",
+      label: "Port",
+      num: true,
+      width: 64,
+      render: (r) => <span className="ports-port">{r.localPort}</span>,
+    },
     {
       key: "remote",
       label: "Remote",
@@ -196,14 +226,23 @@ function PortsPane({ pane, tabId, visible }: ModuleProps) {
       label: "State",
       width: 104,
       value: (r) => (r.proto === "UDP" ? "~" : r.state),
-      render: (r) => (r.state ? <span className={stateClass(r.state)}>{prettyState(r.state)}</span> : <span className="dim">—</span>),
+      render: (r) =>
+        r.state ? <span className={stateClass(r.state)}>{prettyState(r.state)}</span> : <span className="dim">—</span>,
     },
-    { key: "pid", label: "PID", num: true, width: 70, value: (r) => r.pid ?? -1, render: (r) => <span className="dim">{r.pid ?? "—"}</span> },
+    {
+      key: "pid",
+      label: "PID",
+      num: true,
+      width: 70,
+      value: (r) => r.pid ?? -1,
+      render: (r) => <span className="dim">{r.pid ?? "—"}</span>,
+    },
     {
       key: "process",
       label: "Process",
       value: (r) => (r.process ?? "").toLowerCase(),
-      render: (r) => (r.process ? <span>{r.process}</span> : <span className="dim">{r.pid === 4 ? "System" : "—"}</span>),
+      render: (r) =>
+        r.process ? <span>{r.process}</span> : <span className="dim">{r.pid === 4 ? "System" : "—"}</span>,
     },
   ];
 
@@ -257,7 +296,11 @@ function PortsPane({ pane, tabId, visible }: ModuleProps) {
         <SearchBox value={filter} onChange={setFilter} placeholder="Port, process, address or PID" />
         <div className="segmented">
           {PROTOS.map((p) => (
-            <button key={p} className={cx(proto === p && "on")} onClick={() => setPaneMeta(pane.id, { proto: p === "all" ? null : p })}>
+            <button
+              key={p}
+              className={cx(proto === p && "on")}
+              onClick={() => setPaneMeta(pane.id, { proto: p === "all" ? null : p })}
+            >
               {p === "all" ? "All" : p.toUpperCase()}
             </button>
           ))}

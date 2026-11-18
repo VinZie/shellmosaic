@@ -53,8 +53,22 @@ function dialog(title: string, message: string, ok: string, danger: boolean, can
           createElement(
             "div",
             { className: "sm-dialog-buttons" },
-            cancel && createElement("button", { type: "button", className: "sm-btn subtle", onClick: () => (finish(false), close()) }, cancel),
-            createElement("button", { type: "button", className: `sm-btn ${danger ? "danger" : "primary"}`, autoFocus: true, onClick: () => (finish(true), close()) }, ok),
+            cancel &&
+              createElement(
+                "button",
+                { type: "button", className: "sm-btn subtle", onClick: () => (finish(false), close()) },
+                cancel,
+              ),
+            createElement(
+              "button",
+              {
+                type: "button",
+                className: `sm-btn ${danger ? "danger" : "primary"}`,
+                autoFocus: true,
+                onClick: () => (finish(true), close()),
+              },
+              ok,
+            ),
           ),
         ),
       () => finish(false),
@@ -78,7 +92,13 @@ function pickDialog(): Promise<string | null> {
           ...SAMPLE_PATHS.map((p) =>
             createElement(
               "button",
-              { key: p, type: "button", className: "sm-btn subtle", style: { width: "100%", justifyContent: "flex-start", fontFamily: "var(--mono)", fontSize: 11.5 }, onClick: () => (finish(p), close()) },
+              {
+                key: p,
+                type: "button",
+                className: "sm-btn subtle",
+                style: { width: "100%", justifyContent: "flex-start", fontFamily: "var(--mono)", fontSize: 11.5 },
+                onClick: () => (finish(p), close()),
+              },
               p,
             ),
           ),
@@ -92,14 +112,41 @@ export function install() {
   seed("recent", [
     { path: SAMPLE_PATHS[0], file: "chat.db", at: Date.now() - 4 * 60_000 },
     { path: SAMPLE_PATHS[1], file: "History", at: Date.now() - 26 * 3600_000 },
-    { path: "C:\\Users\\dev\\Saved Games\\Stardew\\save-backup.db", file: "save-backup.db", at: Date.now() - 4 * 86400_000 },
+    {
+      path: "C:\\Users\\dev\\Saved Games\\Stardew\\save-backup.db",
+      file: "save-backup.db",
+      at: Date.now() - 4 * 86400_000,
+    },
     { path: "D:\\old\\missing.db", file: "missing.db", at: Date.now() - 40 * 86400_000 },
   ]);
   seed("history", [
-    { sql: "SELECT sender_id, COUNT(*) AS n FROM messages GROUP BY sender_id ORDER BY n DESC LIMIT 10", at: Date.now() - 3 * 60_000, file: "chat.db", ok: true, rows: 10 },
-    { sql: "SELECT * FROM users WHERE email IS NULL", at: Date.now() - 50 * 60_000, file: "chat.db", ok: true, rows: 9 },
-    { sql: "UPDATE users SET is_bot = 1 WHERE username LIKE '%-bot'", at: Date.now() - 2 * 3600_000, file: "chat.db", ok: false },
-    { sql: "SELECT url, title, visit_count FROM urls ORDER BY visit_count DESC LIMIT 50", at: Date.now() - 26 * 3600_000, file: "History", ok: true, rows: 50 },
+    {
+      sql: "SELECT sender_id, COUNT(*) AS n FROM messages GROUP BY sender_id ORDER BY n DESC LIMIT 10",
+      at: Date.now() - 3 * 60_000,
+      file: "chat.db",
+      ok: true,
+      rows: 10,
+    },
+    {
+      sql: "SELECT * FROM users WHERE email IS NULL",
+      at: Date.now() - 50 * 60_000,
+      file: "chat.db",
+      ok: true,
+      rows: 9,
+    },
+    {
+      sql: "UPDATE users SET is_bot = 1 WHERE username LIKE '%-bot'",
+      at: Date.now() - 2 * 3600_000,
+      file: "chat.db",
+      ok: false,
+    },
+    {
+      sql: "SELECT url, title, visit_count FROM urls ORDER BY visit_count DESC LIMIT 50",
+      at: Date.now() - 26 * 3600_000,
+      file: "History",
+      ok: true,
+      rows: 50,
+    },
   ]);
 
   const engines = new Map<string, Engine>();
@@ -159,7 +206,8 @@ export function install() {
   installMock(
     {
       ui: {
-        confirm: (title: string, message: string, opts?: { okLabel?: string; danger?: boolean }) => dialog(title, message, opts?.okLabel ?? "OK", !!opts?.danger, "Cancel"),
+        confirm: (title: string, message: string, opts?: { okLabel?: string; danger?: boolean }) =>
+          dialog(title, message, opts?.okLabel ?? "OK", !!opts?.danger, "Cancel"),
         pickFile: () => pickDialog(),
       },
       sqlite: {
@@ -168,7 +216,9 @@ export function install() {
           if (/notadb/i.test(path)) throw new Error("This isn't a SQLite database (or it's encrypted).");
           if (/missing/i.test(path)) throw new Error("The system cannot find the file specified. (os error 2)");
           if (/nocopy/i.test(path))
-            throw new Error("The file is locked by another program and couldn't be copied: The process cannot access the file because it is being used by another process. (os error 32)");
+            throw new Error(
+              "The file is locked by another program and couldn't be copied: The process cannot access the file because it is being used by another process. (os error 32)",
+            );
           if (/^(\\\\|\/\/|[a-z]+:\/\/)/i.test(path)) throw new Error("Only local files can be opened.");
           const history = /history/i.test(path);
           const copied = history || !!opts?.copy;
@@ -181,7 +231,11 @@ export function install() {
             engine,
             writable: !!opts?.writable,
             copied,
-            copyReason: history ? "The file is locked by another program (probably the browser), so a temporary copy was opened." : copied ? "You asked to open a copy." : null,
+            copyReason: history
+              ? "The file is locked by another program (probably the browser), so a temporary copy was opened."
+              : copied
+                ? "You asked to open a copy."
+                : null,
             busy: 0,
             interrupt: false,
           };

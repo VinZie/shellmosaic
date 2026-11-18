@@ -43,11 +43,24 @@ export type Dialog =
       secret?: boolean;
       resolve: (v: string | null) => void;
     }
-  | { kind: "confirm"; title: string; message: ReactNode; okLabel?: string; danger?: boolean; resolve: (ok: boolean) => void }
+  | {
+      kind: "confirm";
+      title: string;
+      message: ReactNode;
+      okLabel?: string;
+      danger?: boolean;
+      resolve: (ok: boolean) => void;
+    }
   | { kind: "workspace"; workspaceId: Id | null }
   | { kind: "tabStyle"; tabId: Id }
   | { kind: "background"; target: { kind: "workspace" | "tab" | "global"; id?: Id } }
-  | { kind: "plugin-permissions"; pluginId: string; name: string; permissions: string[]; resolve: (ok: boolean) => void }
+  | {
+      kind: "plugin-permissions";
+      pluginId: string;
+      name: string;
+      permissions: string[];
+      resolve: (ok: boolean) => void;
+    }
   | { kind: "update"; current: string; version: string; notes: string; resolve: (choice: UpdateChoice) => void }
   | { kind: "about" };
 
@@ -124,7 +137,11 @@ export const ui = {
     useUi.setState((s) => ({ toasts: [...s.toasts.slice(-4), { id, message, kind }] }));
     setTimeout(() => useUi.setState((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), ms);
   },
-  prompt(title: string, value = "", opts: { label?: string; placeholder?: string; okLabel?: string; secret?: boolean } = {}): Promise<string | null> {
+  prompt(
+    title: string,
+    value = "",
+    opts: { label?: string; placeholder?: string; okLabel?: string; secret?: boolean } = {},
+  ): Promise<string | null> {
     return new Promise((resolve) => setDialog({ kind: "prompt", title, value, resolve, ...opts }));
   },
   confirm(title: string, message: ReactNode, opts: { okLabel?: string; danger?: boolean } = {}): Promise<boolean> {
@@ -136,11 +153,13 @@ export const ui = {
   },
   openDialog: (dialog: Dialog) => setDialog(dialog),
   closeDialog: () => setDialog(null),
-  openPalette: (mode: UiState["palette"]["mode"] = "all", query = "") => useUi.setState({ palette: { open: true, query, mode } }),
+  openPalette: (mode: UiState["palette"]["mode"] = "all", query = "") =>
+    useUi.setState({ palette: { open: true, query, mode } }),
   closePalette: () => useUi.setState((s) => ({ palette: { ...s.palette, open: false } })),
   openSettings: (section = "appearance") => useUi.setState({ settings: { open: true, section } }),
   closeSettings: () => useUi.setState((s) => ({ settings: { ...s.settings, open: false } })),
-  setCwd: (pane: Id, cwd: string) => useUi.setState((s) => (s.cwds[pane] === cwd ? s : { cwds: { ...s.cwds, [pane]: cwd } })),
+  setCwd: (pane: Id, cwd: string) =>
+    useUi.setState((s) => (s.cwds[pane] === cwd ? s : { cwds: { ...s.cwds, [pane]: cwd } })),
   setTitle: (pane: Id, title: string) =>
     useUi.setState((s) => (s.titles[pane] === title ? s : { titles: { ...s.titles, [pane]: title } })),
   setBadge(pane: Id, badge: BadgeKind | null) {

@@ -24,7 +24,8 @@ interface Group {
   hosts: HostView[];
 }
 
-const byName = (a: HostView, b: HostView) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+const byName = (a: HostView, b: HostView) =>
+  a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
 
 const dateFmt = new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "numeric" });
 const fullFmt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -57,7 +58,10 @@ function copyAddress(h: HostView) {
 /** A host's icon on its color. */
 export function HostAvatar({ host, size = 26 }: { host: Pick<HostView, "icon" | "color">; size?: number }) {
   return (
-    <span className="hosts-avatar" style={{ width: size, height: size, "--host-color": host.color ?? undefined } as React.CSSProperties}>
+    <span
+      className="hosts-avatar"
+      style={{ width: size, height: size, "--host-color": host.color ?? undefined } as React.CSSProperties}
+    >
       <Icon name={host.icon || "server"} size={Math.round(size * 0.55)} />
     </span>
   );
@@ -88,12 +92,23 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
   }, [unlocked]);
 
   // ── rows ──
-  const allGroups = useMemo(() => [...new Set((hosts ?? []).map((h) => h.group).filter(Boolean))].sort((a, b) => a.localeCompare(b)), [hosts]);
-  const allTags = useMemo(() => [...new Set((hosts ?? []).flatMap((h) => h.tags))].sort((a, b) => a.localeCompare(b)), [hosts]);
+  const allGroups = useMemo(
+    () => [...new Set((hosts ?? []).map((h) => h.group).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
+    [hosts],
+  );
+  const allTags = useMemo(
+    () => [...new Set((hosts ?? []).flatMap((h) => h.tags))].sort((a, b) => a.localeCompare(b)),
+    [hosts],
+  );
 
   const groups = useMemo<Group[]>(() => {
     if (!hosts) return [];
-    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean).map((w) => w.replace(/^#/, ""));
+    const words = query
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w.replace(/^#/, ""));
     const shown = hosts.filter((h) => (!tag || h.tags.includes(tag)) && matches(h, words));
     const map = new Map<string, HostView[]>();
     for (const h of shown) map.set(h.group, [...(map.get(h.group) ?? []), h]);
@@ -104,7 +119,10 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
   // with no groups at all there's no need for an "Ungrouped" header
   const headers = groups.length > 1 || (groups.length === 1 && groups[0].name !== "");
   const isCollapsed = (g: string) => headers && collapsed.includes(g);
-  const flat = useMemo(() => groups.flatMap((g) => (headers && collapsed.includes(g.name) ? [] : g.hosts)), [groups, collapsed, headers]);
+  const flat = useMemo(
+    () => groups.flatMap((g) => (headers && collapsed.includes(g.name) ? [] : g.hosts)),
+    [groups, collapsed, headers],
+  );
   const selIndex = flat.findIndex((h) => h.id === sel);
   const current = selIndex >= 0 ? flat[selIndex] : undefined;
 
@@ -219,7 +237,9 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
         break;
       case "ContextMenu": {
         if (!current) return;
-        const r = listRef.current?.querySelector<HTMLElement>(`[data-id="${CSS.escape(current.id)}"]`)?.getBoundingClientRect();
+        const r = listRef.current
+          ?.querySelector<HTMLElement>(`[data-id="${CSS.escape(current.id)}"]`)
+          ?.getBoundingClientRect();
         if (r) rowMenu({ x: r.left + 24, y: r.bottom }, current);
         break;
       }
@@ -277,7 +297,10 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
   } else if (!hosts?.length) {
     body = (
       <ModuleMessage icon="server" title="No saved hosts yet">
-        <p className="dim hosts-intro">Save the servers you SSH into: one click opens a terminal on them, or an SFTP file browser. Passwords and keys are kept encrypted in the vault.</p>
+        <p className="dim hosts-intro">
+          Save the servers you SSH into: one click opens a terminal on them, or an SFTP file browser. Passwords and keys
+          are kept encrypted in the vault.
+        </p>
         <div className="row">
           <button className="btn primary" onClick={() => edit({})}>
             <Icon name="plus" size={14} /> Add host
@@ -289,7 +312,10 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
     body = (
       <div className="empty-state">
         <Icon name="search" size={22} />
-        <p>No hosts match{query ? ` “${query}”` : ""}{tag ? ` with the tag “${tag}”` : ""}.</p>
+        <p>
+          No hosts match{query ? ` “${query}”` : ""}
+          {tag ? ` with the tag “${tag}”` : ""}.
+        </p>
         <div className="row">
           <button
             className="btn subtle"
@@ -324,7 +350,11 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
         {groups.map((g) => (
           <div key={g.name || "\u0000"} className="hosts-group" role="group" aria-label={g.name || "Ungrouped"}>
             {headers && (
-              <div className="hosts-group-head" onClick={() => toggleGroup(g.name)} title={isCollapsed(g.name) ? "Expand" : "Collapse"}>
+              <div
+                className="hosts-group-head"
+                onClick={() => toggleGroup(g.name)}
+                title={isCollapsed(g.name) ? "Expand" : "Collapse"}
+              >
                 <Icon name={isCollapsed(g.name) ? "chevron-right" : "chevron-down"} size={13} className="dim" />
                 <span className="hosts-group-title">{g.name || "Ungrouped"}</span>
                 <span className="hosts-count">{g.hosts.length}</span>
@@ -366,10 +396,17 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
                       ))}
                     </span>
                   )}
-                  <span className="hosts-used" title={h.lastUsed ? `Last connected ${fullFmt.format(new Date(h.lastUsed))}` : "Never connected"}>
+                  <span
+                    className="hosts-used"
+                    title={h.lastUsed ? `Last connected ${fullFmt.format(new Date(h.lastUsed))}` : "Never connected"}
+                  >
                     {lastUsedText(h.lastUsed, now)}
                   </span>
-                  <span className="hosts-actions" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
+                  <span
+                    className="hosts-actions"
+                    onClick={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                  >
                     <button className="icon-btn" title="Connect (Enter)" onClick={() => connect(h)}>
                       <Icon name="square-terminal" size={14} />
                     </button>
@@ -379,7 +416,11 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
                     <button className="icon-btn" title="Edit" onClick={() => edit({ host: h })}>
                       <Icon name="pencil" size={13} />
                     </button>
-                    <button className="icon-btn" title="More" onClick={(e) => rowMenu({ x: e.clientX, y: e.clientY }, h)}>
+                    <button
+                      className="icon-btn"
+                      title="More"
+                      onClick={(e) => rowMenu({ x: e.clientX, y: e.clientY }, h)}
+                    >
                       <Icon name="ellipsis" size={14} />
                     </button>
                   </span>
@@ -426,7 +467,10 @@ function HostsPane({ pane, tabId, visible, focused }: ModuleProps) {
             {groupCount > 0 && ` · ${groupCount} group${groupCount === 1 ? "" : "s"}`}
           </span>
           <span className="grow" />
-          <span className="hosts-lockstate" title="Locks itself after this long without using saved hosts (Settings → Modules → Hosts)">
+          <span
+            className="hosts-lockstate"
+            title="Locks itself after this long without using saved hosts (Settings → Modules → Hosts)"
+          >
             <Icon name="lock-open" size={11} />
             {autoLock > 0 ? `locks after ${autoLock} min idle` : "auto-lock off"}
           </span>

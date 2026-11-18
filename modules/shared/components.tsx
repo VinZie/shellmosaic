@@ -31,7 +31,15 @@ export function IconButton({
   children: ReactNode;
 }) {
   return (
-    <button type="button" className={cx("sm-icon-btn", on && "on", danger && "danger")} title={title} aria-label={title} aria-pressed={on} disabled={disabled} onClick={onClick}>
+    <button
+      type="button"
+      className={cx("sm-icon-btn", on && "on", danger && "danger")}
+      title={title}
+      aria-label={title}
+      aria-pressed={on}
+      disabled={disabled}
+      onClick={onClick}
+    >
       {children}
     </button>
   );
@@ -55,7 +63,13 @@ export function Button({
   type?: "button" | "submit";
 }) {
   return (
-    <button type={type} className={cx("sm-btn", kind, small && "small")} disabled={disabled} title={title} onClick={onClick}>
+    <button
+      type={type}
+      className={cx("sm-btn", kind, small && "small")}
+      disabled={disabled}
+      title={title}
+      onClick={onClick}
+    >
       {children}
     </button>
   );
@@ -77,7 +91,14 @@ export function SearchBox({
   return (
     <div className="sm-search" style={width !== undefined ? { width } : undefined}>
       <Search size={13} />
-      <input value={value} placeholder={placeholder} spellCheck={false} autoFocus={autoFocus} onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => e.key === "Escape" && value && (e.stopPropagation(), onChange(""))} />
+      <input
+        value={value}
+        placeholder={placeholder}
+        spellCheck={false}
+        autoFocus={autoFocus}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => e.key === "Escape" && value && (e.stopPropagation(), onChange(""))}
+      />
       {value && (
         <button type="button" className="sm-search-clear" title="Clear" onClick={() => onChange("")}>
           <X size={12} />
@@ -109,13 +130,43 @@ export function Select<T extends string>({
   );
 }
 
-export function Switch({ value, onChange, title, disabled }: { value: boolean; onChange: (v: boolean) => void; title?: string; disabled?: boolean }) {
-  return <button type="button" role="switch" aria-checked={value} title={title} disabled={disabled} className={cx("sm-switch", value && "on")} onClick={() => onChange(!value)} />;
+export function Switch({
+  value,
+  onChange,
+  title,
+  disabled,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  title?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={value}
+      title={title}
+      disabled={disabled}
+      className={cx("sm-switch", value && "on")}
+      onClick={() => onChange(!value)}
+    />
+  );
 }
 
 export type Tone = "accent" | "danger" | "warning" | "success" | "dim";
 
-export function Chip({ children, tone, title, icon }: { children: ReactNode; tone?: Tone; title?: string; icon?: ReactNode }) {
+export function Chip({
+  children,
+  tone,
+  title,
+  icon,
+}: {
+  children: ReactNode;
+  tone?: Tone;
+  title?: string;
+  icon?: ReactNode;
+}) {
   return (
     <span className={cx("sm-chip", tone)} title={title}>
       {icon}
@@ -132,11 +183,28 @@ export interface TabItem {
   badge?: ReactNode;
 }
 
-export function Tabs({ items, active, onChange, right }: { items: TabItem[]; active: string; onChange: (id: string) => void; right?: ReactNode }) {
+export function Tabs({
+  items,
+  active,
+  onChange,
+  right,
+}: {
+  items: TabItem[];
+  active: string;
+  onChange: (id: string) => void;
+  right?: ReactNode;
+}) {
   return (
     <div className="sm-tabs" role="tablist">
       {items.map((t) => (
-        <button key={t.id} type="button" role="tab" aria-selected={t.id === active} className={cx("sm-tab", t.id === active && "active")} onClick={() => onChange(t.id)}>
+        <button
+          key={t.id}
+          type="button"
+          role="tab"
+          aria-selected={t.id === active}
+          className={cx("sm-tab", t.id === active && "active")}
+          onClick={() => onChange(t.id)}
+        >
           {t.icon}
           <span>{t.label}</span>
           {t.badge !== undefined && t.badge !== null && <span className="sm-tab-badge">{t.badge}</span>}
@@ -153,7 +221,19 @@ export function Tabs({ items, active, onChange, right }: { items: TabItem[]; act
 }
 
 /** Centered empty / error / loading state. */
-export function Message({ icon, title, children, actions, tone }: { icon?: ReactNode; title: string; children?: ReactNode; actions?: ReactNode; tone?: "danger" | "warning" }) {
+export function Message({
+  icon,
+  title,
+  children,
+  actions,
+  tone,
+}: {
+  icon?: ReactNode;
+  title: string;
+  children?: ReactNode;
+  actions?: ReactNode;
+  tone?: "danger" | "warning";
+}) {
   return (
     <div className={cx("sm-message", tone)}>
       {icon && <div className="sm-message-icon">{icon}</div>}
@@ -169,7 +249,19 @@ export function Loading({ label = "Loading…" }: { label?: string }) {
 }
 
 /** A strip above content: a warning, an error, a notice. */
-export function Banner({ tone = "warning", icon, children, actions, onClose }: { tone?: "warning" | "danger" | "info" | "success"; icon?: ReactNode; children: ReactNode; actions?: ReactNode; onClose?: () => void }) {
+export function Banner({
+  tone = "warning",
+  icon,
+  children,
+  actions,
+  onClose,
+}: {
+  tone?: "warning" | "danger" | "info" | "success";
+  icon?: ReactNode;
+  children: ReactNode;
+  actions?: ReactNode;
+  onClose?: () => void;
+}) {
   return (
     <div className={cx("sm-banner", tone)} role="status">
       {icon}
@@ -188,7 +280,15 @@ export function Banner({ tone = "warning", icon, children, actions, onClose }: {
  * "Some of this needs administrator rights" with a Restart-as-administrator button.
  * Renders nothing when Shellmosaic already runs elevated.
  */
-export function AdminBanner({ ctx, children, onClose }: { ctx: PaneContext | null; children?: ReactNode; onClose?: () => void }) {
+export function AdminBanner({
+  ctx,
+  children,
+  onClose,
+}: {
+  ctx: PaneContext | null;
+  children?: ReactNode;
+  onClose?: () => void;
+}) {
   const [busy, setBusy] = useState(false);
   if (!ctx || ctx.elevated) return null;
   return (
@@ -232,31 +332,59 @@ export interface KV {
 }
 
 /** Label/value rows with a copy button on hover. */
-export function KeyValues({ rows, labelWidth = 150 }: { rows: (KV | null | false | undefined)[]; labelWidth?: number }) {
+export function KeyValues({
+  rows,
+  labelWidth = 150,
+}: {
+  rows: (KV | null | false | undefined)[];
+  labelWidth?: number;
+}) {
   return (
     <div className="sm-kv" style={{ gridTemplateColumns: `${labelWidth}px minmax(0, 1fr)` }}>
-      {rows.filter((r): r is KV => !!r).map((r) => {
-        const text = r.copyText !== undefined ? r.copyText : typeof r.value === "string" || typeof r.value === "number" ? String(r.value) : null;
-        return (
-          <div key={r.label} className={cx("sm-kv-row", r.muted && "muted")}>
-            <div className="sm-kv-label">{r.label}</div>
-            <div className={cx("sm-kv-value", r.mono && "mono")} title={r.title}>
-              <span className="sm-kv-text">{r.value}</span>
-              {text && (
-                <button type="button" className="sm-icon-btn sm-kv-copy" title={`Copy ${r.label.toLowerCase()}`} onClick={() => copy(text, r.label.toLowerCase())}>
-                  <Copy size={12} />
-                </button>
-              )}
+      {rows
+        .filter((r): r is KV => !!r)
+        .map((r) => {
+          const text =
+            r.copyText !== undefined
+              ? r.copyText
+              : typeof r.value === "string" || typeof r.value === "number"
+                ? String(r.value)
+                : null;
+          return (
+            <div key={r.label} className={cx("sm-kv-row", r.muted && "muted")}>
+              <div className="sm-kv-label">{r.label}</div>
+              <div className={cx("sm-kv-value", r.mono && "mono")} title={r.title}>
+                <span className="sm-kv-text">{r.value}</span>
+                {text && (
+                  <button
+                    type="button"
+                    className="sm-icon-btn sm-kv-copy"
+                    title={`Copy ${r.label.toLowerCase()}`}
+                    onClick={() => copy(text, r.label.toLowerCase())}
+                  >
+                    <Copy size={12} />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
     </div>
   );
 }
 
 /** A titled block with optional actions on the right. */
-export function Section({ title, actions, children, className }: { title: ReactNode; actions?: ReactNode; children: ReactNode; className?: string }) {
+export function Section({
+  title,
+  actions,
+  children,
+  className,
+}: {
+  title: ReactNode;
+  actions?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <section className={cx("sm-section", className)}>
       <div className="sm-section-head">
@@ -321,7 +449,10 @@ export function Split({
         {first}
       </div>
       {!collapsed && <div className="sm-split-handle" onPointerDown={start} />}
-      <div className="sm-split-pane" style={sizeOf === "second" ? (collapsed ? { display: "none" } : sized) : undefined}>
+      <div
+        className="sm-split-pane"
+        style={sizeOf === "second" ? (collapsed ? { display: "none" } : sized) : undefined}
+      >
         {second}
       </div>
     </div>
@@ -329,7 +460,19 @@ export function Split({
 }
 
 /** A panel anchored under a button; closes on outside click or Esc. */
-export function Popover({ anchor, onClose, children, width = 280, align = "right" }: { anchor: HTMLElement | null; onClose: () => void; children: ReactNode; width?: number; align?: "left" | "right" }) {
+export function Popover({
+  anchor,
+  onClose,
+  children,
+  width = 280,
+  align = "right",
+}: {
+  anchor: HTMLElement | null;
+  onClose: () => void;
+  children: ReactNode;
+  width?: number;
+  align?: "left" | "right";
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   useEffect(() => {
@@ -351,7 +494,11 @@ export function Popover({ anchor, onClose, children, width = 280, align = "right
   }, [anchor, onClose, width, align]);
   if (!anchor || !pos) return null;
   return (
-    <div ref={ref} className="sm-popover" style={{ top: pos.top, left: pos.left, width, maxHeight: `calc(100vh - ${pos.top + 8}px)` }}>
+    <div
+      ref={ref}
+      className="sm-popover"
+      style={{ top: pos.top, left: pos.left, width, maxHeight: `calc(100vh - ${pos.top + 8}px)` }}
+    >
       {children}
     </div>
   );

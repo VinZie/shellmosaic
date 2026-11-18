@@ -36,24 +36,24 @@ permissions that the user approves.
 
 ## Permissions
 
-| Permission | Allows |
-|---|---|
-| `terminal.write` | `shellmosaic.terminal.write(text)`: type into the tab's terminal |
-| `terminal.run` | `shellmosaic.terminal.run(command, {cwd})`: open a new terminal pane running a command |
-| `terminal.read` | `shellmosaic.terminal.read({maxBytes})`: recent terminal output as plain text |
-| `fs.read` | `shellmosaic.fs.list(path)`, `shellmosaic.fs.readText(path)` |
-| `fs.write` | `shellmosaic.fs.writeText(path, text)` |
-| `shell.exec` | `shellmosaic.shell.exec(program, args, {cwd, timeoutMs})` → `{code, stdout, stderr}` |
-| `system.read` | `shellmosaic.system.stats()`: CPU, memory, network, uptime |
-| `clipboard` | `shellmosaic.clipboard.readText()` / `writeText(text)` |
-| `net` | `fetch`/WebSocket to `https:`/`wss:` URLs, and remote images |
-| `claude.usage` | `shellmosaic.claude.usage()`: Claude plan limits of the account Claude Code is signed in with |
-| `process.inspect` | `shellmosaic.process.*`: a process's overview, modules, threads, handles, token, memory map; file signatures |
-| `process.control` | `process.suspend/resume/setPriority/setAffinity`, `thread.suspend/resume/terminate` |
-| `eventlog.read` | `shellmosaic.eventlog.*`: Windows event logs (queries, paging, live subscriptions) |
-| `sqlite` | `shellmosaic.sqlite.*`: open local SQLite databases, read-only unless the plugin asks to write |
-| `agents.read` | `shellmosaic.agents.snapshot/activity/taskDiff/mergePreview/reveal`: the Orchestrator's teams of Claude Code agents |
-| `agents.manage` | The rest of `shellmosaic.agents.*`: start and stop teams, instruct agents, answer their requests, manage tasks, merge |
+| Permission        | Allows                                                                                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `terminal.write`  | `shellmosaic.terminal.write(text)`: type into the tab's terminal                                                      |
+| `terminal.run`    | `shellmosaic.terminal.run(command, {cwd})`: open a new terminal pane running a command                                |
+| `terminal.read`   | `shellmosaic.terminal.read({maxBytes})`: recent terminal output as plain text                                         |
+| `fs.read`         | `shellmosaic.fs.list(path)`, `shellmosaic.fs.readText(path)`                                                          |
+| `fs.write`        | `shellmosaic.fs.writeText(path, text)`                                                                                |
+| `shell.exec`      | `shellmosaic.shell.exec(program, args, {cwd, timeoutMs})` → `{code, stdout, stderr}`                                  |
+| `system.read`     | `shellmosaic.system.stats()`: CPU, memory, network, uptime                                                            |
+| `clipboard`       | `shellmosaic.clipboard.readText()` / `writeText(text)`                                                                |
+| `net`             | `fetch`/WebSocket to `https:`/`wss:` URLs, and remote images                                                          |
+| `claude.usage`    | `shellmosaic.claude.usage()`: Claude plan limits of the account Claude Code is signed in with                         |
+| `process.inspect` | `shellmosaic.process.*`: a process's overview, modules, threads, handles, token, memory map; file signatures          |
+| `process.control` | `process.suspend/resume/setPriority/setAffinity`, `thread.suspend/resume/terminate`                                   |
+| `eventlog.read`   | `shellmosaic.eventlog.*`: Windows event logs (queries, paging, live subscriptions)                                    |
+| `sqlite`          | `shellmosaic.sqlite.*`: open local SQLite databases, read-only unless the plugin asks to write                        |
+| `agents.read`     | `shellmosaic.agents.snapshot/activity/taskDiff/mergePreview/reveal`: the Orchestrator's teams of Claude Code agents   |
+| `agents.manage`   | The rest of `shellmosaic.agents.*`: start and stop teams, instruct agents, answer their requests, manage tasks, merge |
 
 Without `net`, a plugin can't use `fetch`, XHR or WebSockets (the CSP sets `connect-src 'none'`)
 and can't load remote images. That is not a complete offline sandbox, though: a page can still
@@ -77,23 +77,23 @@ Include it from your HTML (it's served by Shellmosaic):
 </script>
 ```
 
-| API | Notes |
-|---|---|
-| `shellmosaic.context()` | `{pluginId, paneId, tabId, workspaceId, cwd, grantedPermissions}` |
-| `shellmosaic.on(event, fn)` | Events: `theme` (CSS variables), `cwd` (tab's terminal folder), `visible` |
-| `shellmosaic.storage.get(key)` / `.set(key, value)` / `.all()` | Per-plugin JSON storage (5 MB), no permission needed |
-| `shellmosaic.ui.notify(message, kind)` | Toast: `info`, `success`, `warning`, `error` |
-| `shellmosaic.ui.setTitle(title)` | Sets the pane header text |
-| `shellmosaic.ui.setState(obj)` | Saved with the pane (64 KB of JSON) and handed back as `context().state`, also after a restart |
-| `shellmosaic.ui.confirm(title, message, {okLabel, danger})` | The app's confirmation dialog → `true`/`false` |
-| `shellmosaic.ui.pickFile({title, filters})` | The Open dialog → a path or `null` |
-| `shellmosaic.ui.pickFolder({title})` | The folder picker → a path or `null` |
-| `shellmosaic.ui.openModule(target)` | Open `{module: "processes"\|"ports", filter}`, `{module: "files"\|"git", path}` or `{module: "plugin:<id>", args}` next to the pane |
-| `shellmosaic.ui.reveal(path)` | Show a local file selected in Explorer |
-| `shellmosaic.app.info()` | `{version, elevated}` |
-| `shellmosaic.app.restartAsAdmin()` | Asks the user, then relaunches Shellmosaic as administrator (`false` when declined) |
-| `shellmosaic.ready` | A Promise of the same info as the `shellmosaic:ready` event |
-All calls return Promises and reject with an `Error` when not permitted.
+| API                                                                      | Notes                                                                                                                               |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `shellmosaic.context()`                                                  | `{pluginId, paneId, tabId, workspaceId, cwd, grantedPermissions}`                                                                   |
+| `shellmosaic.on(event, fn)`                                              | Events: `theme` (CSS variables), `cwd` (tab's terminal folder), `visible`                                                           |
+| `shellmosaic.storage.get(key)` / `.set(key, value)` / `.all()`           | Per-plugin JSON storage (5 MB), no permission needed                                                                                |
+| `shellmosaic.ui.notify(message, kind)`                                   | Toast: `info`, `success`, `warning`, `error`                                                                                        |
+| `shellmosaic.ui.setTitle(title)`                                         | Sets the pane header text                                                                                                           |
+| `shellmosaic.ui.setState(obj)`                                           | Saved with the pane (64 KB of JSON) and handed back as `context().state`, also after a restart                                      |
+| `shellmosaic.ui.confirm(title, message, {okLabel, danger})`              | The app's confirmation dialog → `true`/`false`                                                                                      |
+| `shellmosaic.ui.pickFile({title, filters})`                              | The Open dialog → a path or `null`                                                                                                  |
+| `shellmosaic.ui.pickFolder({title})`                                     | The folder picker → a path or `null`                                                                                                |
+| `shellmosaic.ui.openModule(target)`                                      | Open `{module: "processes"\|"ports", filter}`, `{module: "files"\|"git", path}` or `{module: "plugin:<id>", args}` next to the pane |
+| `shellmosaic.ui.reveal(path)`                                            | Show a local file selected in Explorer                                                                                              |
+| `shellmosaic.app.info()`                                                 | `{version, elevated}`                                                                                                               |
+| `shellmosaic.app.restartAsAdmin()`                                       | Asks the user, then relaunches Shellmosaic as administrator (`false` when declined)                                                 |
+| `shellmosaic.ready`                                                      | A Promise of the same info as the `shellmosaic:ready` event                                                                         |
+| All calls return Promises and reject with an `Error` when not permitted. |
 
 ### Claude usage
 

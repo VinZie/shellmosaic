@@ -66,7 +66,8 @@ function viteConfig(dir) {
 function readManifest(id) {
   const m = JSON.parse(readFileSync(join(here, id, "manifest.json"), "utf8"));
   if (m.id !== id) throw new Error(`${id}/manifest.json: "id" must be "${id}"`);
-  for (const k of ["name", "version", "minAppVersion"]) if (typeof m[k] !== "string") throw new Error(`${id}/manifest.json needs "${k}"`);
+  for (const k of ["name", "version", "minAppVersion"])
+    if (typeof m[k] !== "string") throw new Error(`${id}/manifest.json needs "${k}"`);
   return m;
 }
 
@@ -108,7 +109,11 @@ function writeCatalog() {
     if (!existsSync(dist)) throw new Error(`${id} isn't built yet`);
     const files = filesOf(dist).map((p) => {
       const data = readFileSync(p);
-      return { path: relative(dist, p).replaceAll("\\", "/"), sha256: createHash("sha256").update(data).digest("hex"), size: data.length };
+      return {
+        path: relative(dist, p).replaceAll("\\", "/"),
+        sha256: createHash("sha256").update(data).digest("hex"),
+        size: data.length,
+      };
     });
     return {
       id,
@@ -133,7 +138,9 @@ function sign() {
   rmSync(join(here, "index.json.sig"), { force: true });
   // the CLI's own entry point, run by this Node (no shell: it would drop the empty password)
   const tauri = join(root, "node_modules", "@tauri-apps", "cli", "tauri.js");
-  execFileSync(process.execPath, [tauri, "signer", "sign", "-f", key, "-p", "", join(here, "index.json")], { stdio: ["ignore", "ignore", "inherit"] });
+  execFileSync(process.execPath, [tauri, "signer", "sign", "-f", key, "-p", "", join(here, "index.json")], {
+    stdio: ["ignore", "ignore", "inherit"],
+  });
   if (!existsSync(join(here, "index.json.sig"))) throw new Error("signing didn't produce index.json.sig");
   console.log("signed modules/index.json");
 }
@@ -141,7 +148,11 @@ function sign() {
 if (flag("--dev")) {
   const id = named[0];
   if (!id || !modules.includes(id)) throw new Error(`usage: node modules/build.mjs --dev <${modules.join("|")}>`);
-  const server = await createServer({ ...viteConfig(join(here, id)), logLevel: "info", server: { port: 5180 + modules.indexOf(id), strictPort: false } });
+  const server = await createServer({
+    ...viteConfig(join(here, id)),
+    logLevel: "info",
+    server: { port: 5180 + modules.indexOf(id), strictPort: false },
+  });
   await server.listen();
   server.printUrls();
 } else {

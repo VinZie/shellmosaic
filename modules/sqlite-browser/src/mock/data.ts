@@ -12,12 +12,16 @@ function rng(seed: number) {
   };
 }
 
-const asciiHex = (s: string) => Array.from(new TextEncoder().encode(s), (b) => b.toString(16).padStart(2, "0")).join("");
+const asciiHex = (s: string) =>
+  Array.from(new TextEncoder().encode(s), (b) => b.toString(16).padStart(2, "0")).join("");
 
 function blob(header: string, length: number, r: () => number): Cell {
   let hex = header;
   const want = Math.min(256, length) * 2;
-  while (hex.length < want) hex += Math.floor(r() * 256).toString(16).padStart(2, "0");
+  while (hex.length < want)
+    hex += Math.floor(r() * 256)
+      .toString(16)
+      .padStart(2, "0");
   return { $blob: hex.slice(0, want), length };
 }
 
@@ -33,11 +37,59 @@ function table(name: string, sql: string, columns: MCol[], rows: MRow[], extra: 
 // ── chat.db ─────────────────────────────────────────────────────────────
 
 const PEOPLE = [
-  "alice", "bob", "carol", "dave", "erin", "frank", "grace", "heidi", "ivan", "judy", "mallory", "niaj", "olivia", "peggy", "rupert", "sybil",
-  "trent", "victor", "walter", "wendy", "xavier", "yasmin", "zoe", "arthur", "beatrice", "cedric", "delia", "emil", "fatima", "gustav", "hana",
-  "igor", "jonas", "kira", "leon", "mila", "noah", "oscar",
+  "alice",
+  "bob",
+  "carol",
+  "dave",
+  "erin",
+  "frank",
+  "grace",
+  "heidi",
+  "ivan",
+  "judy",
+  "mallory",
+  "niaj",
+  "olivia",
+  "peggy",
+  "rupert",
+  "sybil",
+  "trent",
+  "victor",
+  "walter",
+  "wendy",
+  "xavier",
+  "yasmin",
+  "zoe",
+  "arthur",
+  "beatrice",
+  "cedric",
+  "delia",
+  "emil",
+  "fatima",
+  "gustav",
+  "hana",
+  "igor",
+  "jonas",
+  "kira",
+  "leon",
+  "mila",
+  "noah",
+  "oscar",
 ];
-const SURNAMES = ["Nguyen", "Okafor", "Lindqvist", "Moreau", "Kowalski", "Tanaka", "Haddad", "Silva", "Novak", "Fischer", "Rossi", "Byrne"];
+const SURNAMES = [
+  "Nguyen",
+  "Okafor",
+  "Lindqvist",
+  "Moreau",
+  "Kowalski",
+  "Tanaka",
+  "Haddad",
+  "Silva",
+  "Novak",
+  "Fischer",
+  "Rossi",
+  "Byrne",
+];
 const LINES = [
   "Morning! Did the nightly build go through?",
   "Pushed a fix for the flaky login test, can someone review?",
@@ -81,16 +133,42 @@ export function chatDb(): MDb {
     const bot = name.endsWith("-bot");
     const display = bot ? null : r() < 0.85 ? `${name[0].toUpperCase()}${name.slice(1)} ${pick(SURNAMES)}` : null;
     const settings =
-      r() < 0.7 ? JSON.stringify({ theme: pick(["dark", "light", "system"]), notifications: { mentions: true, sounds: r() < 0.5 }, locale: pick(["en-US", "de-DE", "fr-FR", "ja-JP"]), sidebarWidth: 240 + Math.floor(r() * 80) }) : null;
+      r() < 0.7
+        ? JSON.stringify({
+            theme: pick(["dark", "light", "system"]),
+            notifications: { mentions: true, sounds: r() < 0.5 },
+            locale: pick(["en-US", "de-DE", "fr-FR", "ja-JP"]),
+            sidebarWidth: 240 + Math.floor(r() * 80),
+          })
+        : null;
     users.push({
       rowid: i + 1,
-      v: [i + 1, name, display, bot || r() < 0.2 ? null : `${name}@example.com`, r() < 0.6 && !bot ? blob(PNG, 1200 + Math.floor(r() * 8000), r) : null, 1704067200 + Math.floor(r() * 300 * 86400), bot ? 1 : 0, settings],
+      v: [
+        i + 1,
+        name,
+        display,
+        bot || r() < 0.2 ? null : `${name}@example.com`,
+        r() < 0.6 && !bot ? blob(PNG, 1200 + Math.floor(r() * 8000), r) : null,
+        1704067200 + Math.floor(r() * 300 * 86400),
+        bot ? 1 : 0,
+        settings,
+      ],
     });
   });
 
   const convs: MRow[] = [];
   const groups = ["general", "random", "release-planning", "design-review", "oncall", "book-club"];
-  for (let i = 1; i <= 24; i++) convs.push({ rowid: i, v: [i, i <= groups.length ? "group" : "dm", i <= groups.length ? groups[i - 1] : null, 1704067200 + i * 86400 * 3, r() < 0.15 ? 1 : 0] });
+  for (let i = 1; i <= 24; i++)
+    convs.push({
+      rowid: i,
+      v: [
+        i,
+        i <= groups.length ? "group" : "dm",
+        i <= groups.length ? groups[i - 1] : null,
+        1704067200 + i * 86400 * 3,
+        r() < 0.15 ? 1 : 0,
+      ],
+    });
 
   const messages: MRow[] = [];
   let t = 1735689600;
@@ -106,17 +184,45 @@ export function chatDb(): MDb {
     else if (bot)
       body = JSON.stringify(
         names[sender! - 1] === "deploy-bot"
-          ? { event: "deploy", service: pick(["api", "web", "billing", "search"]), version: `2.${10 + Math.floor(r() * 6)}.${Math.floor(r() * 9)}`, status: pick(["succeeded", "succeeded", "failed"]), duration_ms: Math.floor(r() * 90000) }
-          : { event: "standup", day: new Date(t * 1000).toISOString().slice(0, 10), done: [pick(LINES)], blocked: r() < 0.2 },
+          ? {
+              event: "deploy",
+              service: pick(["api", "web", "billing", "search"]),
+              version: `2.${10 + Math.floor(r() * 6)}.${Math.floor(r() * 9)}`,
+              status: pick(["succeeded", "succeeded", "failed"]),
+              duration_ms: Math.floor(r() * 90000),
+            }
+          : {
+              event: "standup",
+              day: new Date(t * 1000).toISOString().slice(0, 10),
+              done: [pick(LINES)],
+              blocked: r() < 0.2,
+            },
       );
     else if (r() < 0.02) body = LONG_PARAGRAPH.repeat(1 + Math.floor(r() * 4)).trim();
     else if (r() < 0.08) body = `${pick(LINES)}\n${pick(LINES)}`;
     else body = pick(LINES);
-    const reactions = r() < 0.15 ? JSON.stringify({ [pick(["👍", "🎉", "❤️", "😂", "👀"])]: [pick(PEOPLE), pick(PEOPLE)].filter((v, i, a) => a.indexOf(v) === i) }) : null;
+    const reactions =
+      r() < 0.15
+        ? JSON.stringify({
+            [pick(["👍", "🎉", "❤️", "😂", "👀"])]: [pick(PEOPLE), pick(PEOPLE)].filter(
+              (v, i, a) => a.indexOf(v) === i,
+            ),
+          })
+        : null;
     const flags = r() < 0.02 ? 1 : r() < 0.01 ? 4 : 0;
     messages.push({
       rowid: id,
-      v: [id, 1 + Math.floor(r() ** 1.6 * 24), sender, body, t, r() < 0.05 ? t + Math.floor(r() * 3600) : null, { $int: snow.toString() }, reactions, flags],
+      v: [
+        id,
+        1 + Math.floor(r() ** 1.6 * 24),
+        sender,
+        body,
+        t,
+        r() < 0.05 ? t + Math.floor(r() * 3600) : null,
+        { $int: snow.toString() },
+        reactions,
+        flags,
+      ],
     });
   }
 
@@ -126,7 +232,11 @@ export function chatDb(): MDb {
     ["photo_{n}.jpg", "image/jpeg", JPEG],
     ["invoice-{n}.pdf", "application/pdf", PDF],
     ["logs-{d}.zip", "application/zip", ZIP],
-    ["notes.txt", "text/plain", asciiHex("TODO\n- rotate the API key\n- check the backups\n- reply to the customer about duplicate emails\n")],
+    [
+      "notes.txt",
+      "text/plain",
+      asciiHex("TODO\n- rotate the API key\n- check the backups\n- reply to the customer about duplicate emails\n"),
+    ],
   ];
   let k = 0;
   for (let mid = 3; mid <= 5000 && attachments.length < 320; mid += 1 + Math.floor(r() * 30)) {
@@ -135,7 +245,17 @@ export function chatDb(): MDb {
       const [tpl, mime, header] = pick(kinds);
       const size = mime === "text/plain" ? 96 : 20_000 + Math.floor(r() * 2_400_000);
       const day = new Date((1735689600 + mid * 4000) * 1000).toISOString().slice(0, 10);
-      attachments.push({ rowid: ++k, v: [mid, idx, tpl.replace("{d}", day).replace("{n}", String(1000 + mid)), mime, size, r() < 0.05 ? null : blob(header, size, r)] });
+      attachments.push({
+        rowid: ++k,
+        v: [
+          mid,
+          idx,
+          tpl.replace("{d}", day).replace("{n}", String(1000 + mid)),
+          mime,
+          size,
+          r() < 0.05 ? null : blob(header, size, r),
+        ],
+      });
     }
   }
 
@@ -145,7 +265,13 @@ export function chatDb(): MDb {
     { name: "display_name", type: "TEXT" },
     { name: "email", type: "TEXT" },
     { name: "avatar", type: "BLOB" },
-    { name: "created_at", type: "INTEGER", notNull: true, default: "strftime('%s','now')", dflt: () => Math.floor(Date.now() / 1000) },
+    {
+      name: "created_at",
+      type: "INTEGER",
+      notNull: true,
+      default: "strftime('%s','now')",
+      dflt: () => Math.floor(Date.now() / 1000),
+    },
     { name: "is_bot", type: "INTEGER", notNull: true, default: "0", dflt: () => 0 },
     { name: "settings", type: "TEXT" },
   ];
@@ -154,7 +280,13 @@ export function chatDb(): MDb {
     { name: "conversation_id", type: "INTEGER", notNull: true },
     { name: "sender_id", type: "INTEGER" },
     { name: "body", type: "TEXT" },
-    { name: "sent_at", type: "INTEGER", notNull: true, default: "strftime('%s','now')", dflt: () => Math.floor(Date.now() / 1000) },
+    {
+      name: "sent_at",
+      type: "INTEGER",
+      notNull: true,
+      default: "strftime('%s','now')",
+      dflt: () => Math.floor(Date.now() / 1000),
+    },
     { name: "edited_at", type: "INTEGER" },
     { name: "snowflake", type: "INTEGER", notNull: true, default: "0", dflt: () => 0 },
     { name: "reactions", type: "TEXT" },
@@ -189,7 +321,14 @@ export function chatDb(): MDb {
         autoincrement: true,
         fks: [
           { id: 0, table: "users", from: "sender_id", to: "id", onUpdate: "NO ACTION", onDelete: "SET NULL" },
-          { id: 1, table: "conversations", from: "conversation_id", to: "id", onUpdate: "NO ACTION", onDelete: "CASCADE" },
+          {
+            id: 1,
+            table: "conversations",
+            from: "conversation_id",
+            to: "id",
+            onUpdate: "NO ACTION",
+            onDelete: "CASCADE",
+          },
         ],
         afterUpdate: (row, changed) => {
           if (changed.has("body")) row.v[5] = Math.floor(Date.now() / 1000);
@@ -208,9 +347,20 @@ export function chatDb(): MDb {
         { name: "data", type: "BLOB" },
       ],
       attachments,
-      { withoutRowid: true, fks: [{ id: 0, table: "messages", from: "message_id", to: "id", onUpdate: "NO ACTION", onDelete: "CASCADE" }] },
+      {
+        withoutRowid: true,
+        fks: [{ id: 0, table: "messages", from: "message_id", to: "id", onUpdate: "NO ACTION", onDelete: "CASCADE" }],
+      },
     ),
-    table("sqlite_sequence", "CREATE TABLE sqlite_sequence(name,seq)", [{ name: "name", type: "" }, { name: "seq", type: "" }], [{ rowid: 1, v: ["messages", 5000] }]),
+    table(
+      "sqlite_sequence",
+      "CREATE TABLE sqlite_sequence(name,seq)",
+      [
+        { name: "name", type: "" },
+        { name: "seq", type: "" },
+      ],
+      [{ rowid: 1, v: ["messages", 5000] }],
+    ),
   ];
   const byId = new Map(users.map((u) => [u.rowid, u.v[1]]));
   tables.push({
@@ -229,7 +379,15 @@ export function chatDb(): MDb {
         .slice()
         .sort((a, b) => (b.v[4] as number) - (a.v[4] as number))
         .slice(0, 200)
-        .map((m, i) => ({ rowid: i + 1, v: [m.v[0], byId.get(m.v[2] as number) ?? null, m.v[3], new Date((m.v[4] as number) * 1000).toISOString().slice(0, 19).replace("T", " ")] })),
+        .map((m, i) => ({
+          rowid: i + 1,
+          v: [
+            m.v[0],
+            byId.get(m.v[2] as number) ?? null,
+            m.v[3],
+            new Date((m.v[4] as number) * 1000).toISOString().slice(0, 19).replace("T", " "),
+          ],
+        })),
   });
   tables.push({
     name: "messages_fts",
@@ -243,11 +401,51 @@ export function chatDb(): MDb {
   return {
     tables,
     indexes: [
-      { name: "sqlite_autoindex_users_1", tbl: "users", sql: null, unique: true, origin: "u", partial: false, columns: ["username"] },
-      { name: "idx_users_email", tbl: "users", sql: "CREATE UNIQUE INDEX idx_users_email ON users(email) WHERE email IS NOT NULL", unique: true, origin: "c", partial: true, columns: ["email"] },
-      { name: "idx_messages_conv", tbl: "messages", sql: "CREATE INDEX idx_messages_conv ON messages(conversation_id, sent_at)", unique: false, origin: "c", partial: false, columns: ["conversation_id", "sent_at"] },
-      { name: "idx_messages_sender", tbl: "messages", sql: "CREATE INDEX idx_messages_sender ON messages(sender_id)", unique: false, origin: "c", partial: false, columns: ["sender_id"] },
-      { name: "sqlite_autoindex_attachments_1", tbl: "attachments", sql: null, unique: true, origin: "pk", partial: false, columns: ["message_id", "idx"] },
+      {
+        name: "sqlite_autoindex_users_1",
+        tbl: "users",
+        sql: null,
+        unique: true,
+        origin: "u",
+        partial: false,
+        columns: ["username"],
+      },
+      {
+        name: "idx_users_email",
+        tbl: "users",
+        sql: "CREATE UNIQUE INDEX idx_users_email ON users(email) WHERE email IS NOT NULL",
+        unique: true,
+        origin: "c",
+        partial: true,
+        columns: ["email"],
+      },
+      {
+        name: "idx_messages_conv",
+        tbl: "messages",
+        sql: "CREATE INDEX idx_messages_conv ON messages(conversation_id, sent_at)",
+        unique: false,
+        origin: "c",
+        partial: false,
+        columns: ["conversation_id", "sent_at"],
+      },
+      {
+        name: "idx_messages_sender",
+        tbl: "messages",
+        sql: "CREATE INDEX idx_messages_sender ON messages(sender_id)",
+        unique: false,
+        origin: "c",
+        partial: false,
+        columns: ["sender_id"],
+      },
+      {
+        name: "sqlite_autoindex_attachments_1",
+        tbl: "attachments",
+        sql: null,
+        unique: true,
+        origin: "pk",
+        partial: false,
+        columns: ["message_id", "idx"],
+      },
     ],
     triggers: [
       {
@@ -261,7 +459,14 @@ export function chatDb(): MDb {
         sql: "CREATE TRIGGER messages_fts_insert AFTER INSERT ON messages\nBEGIN\n  INSERT INTO messages_fts(rowid, body) VALUES (new.id, new.body);\nEND",
       },
     ],
-    info: { pageSize: 4096, journalMode: "wal", userVersion: 42, applicationId: 0, freelistCount: 37, sqliteVersion: "3.50.4" },
+    info: {
+      pageSize: 4096,
+      journalMode: "wal",
+      userVersion: 42,
+      applicationId: 0,
+      freelistCount: 37,
+      sqliteVersion: "3.50.4",
+    },
   };
 }
 
@@ -271,17 +476,29 @@ const SITES: [string, string][] = [
   ["https://github.com/rusqlite/rusqlite", "rusqlite/rusqlite: Ergonomic bindings to SQLite for Rust"],
   ["https://www.sqlite.org/lang_select.html", "SELECT"],
   ["https://www.sqlite.org/pragma.html", "Pragma statements supported by SQLite"],
-  ["https://stackoverflow.com/questions/1601151/how-do-i-check-in-sqlite-whether-a-table-exists", "How do I check in SQLite whether a table exists? - Stack Overflow"],
+  [
+    "https://stackoverflow.com/questions/1601151/how-do-i-check-in-sqlite-whether-a-table-exists",
+    "How do I check in SQLite whether a table exists? - Stack Overflow",
+  ],
   ["https://news.ycombinator.com/", "Hacker News"],
-  ["https://learn.microsoft.com/en-us/windows/win32/fileio/locking-and-unlocking-byte-ranges-in-files", "Locking and Unlocking Byte Ranges in Files - Win32 apps"],
-  ["https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe", "<iframe>: The Inline Frame element - HTML | MDN"],
+  [
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/locking-and-unlocking-byte-ranges-in-files",
+    "Locking and Unlocking Byte Ranges in Files - Win32 apps",
+  ],
+  [
+    "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe",
+    "<iframe>: The Inline Frame element - HTML | MDN",
+  ],
   ["https://tauri.app/develop/calling-rust/", "Calling Rust from the Frontend | Tauri"],
   ["https://en.wikipedia.org/wiki/Write-ahead_logging", "Write-ahead logging - Wikipedia"],
   ["https://mail.google.com/mail/u/0/#inbox", "Inbox (3) - mail"],
   ["https://www.youtube.com/watch?v=Jib2AmRb_rk", "SQLite: How it works - YouTube"],
   ["https://crates.io/crates/rusqlite", "rusqlite - crates.io: Rust Package Registry"],
   ["https://react.dev/reference/react/useSyncExternalStore", "useSyncExternalStore – React"],
-  ["https://www.google.com/search?q=sqlite+wal+checkpoint+starvation", "sqlite wal checkpoint starvation - Google Search"],
+  [
+    "https://www.google.com/search?q=sqlite+wal+checkpoint+starvation",
+    "sqlite wal checkpoint starvation - Google Search",
+  ],
   ["https://docs.rs/rusqlite/latest/rusqlite/struct.Connection.html", "Connection in rusqlite - Rust"],
 ];
 
@@ -291,17 +508,47 @@ export function historyDb(): MDb {
   const urls: MRow[] = [];
   for (let id = 1; id <= 600; id++) {
     const [base, title] = SITES[Math.floor(r() * SITES.length)];
-    const url = id <= SITES.length ? base : `${base}${base.includes("?") ? "&" : "?"}utm=${Math.floor(r() * 1e6).toString(36)}`;
+    const url =
+      id <= SITES.length ? base : `${base}${base.includes("?") ? "&" : "?"}utm=${Math.floor(r() * 1e6).toString(36)}`;
     const visits = 1 + Math.floor(r() ** 3 * 60);
-    urls.push({ rowid: id, v: [id, url, r() < 0.04 ? "" : title, visits, r() < 0.2 ? Math.floor(r() * 5) : 0, chrome(1748736000000 + Math.floor(r() * 140 * 86400000)), r() < 0.03 ? 1 : 0] });
+    urls.push({
+      rowid: id,
+      v: [
+        id,
+        url,
+        r() < 0.04 ? "" : title,
+        visits,
+        r() < 0.2 ? Math.floor(r() * 5) : 0,
+        chrome(1748736000000 + Math.floor(r() * 140 * 86400000)),
+        r() < 0.03 ? 1 : 0,
+      ],
+    });
   }
   const visits: MRow[] = [];
   let tm = 1748736000000;
   for (let id = 1; id <= 2500; id++) {
     tm += Math.floor(r() * 5_000_000);
-    visits.push({ rowid: id, v: [id, 1 + Math.floor(r() * 600), chrome(tm), r() < 0.4 ? Math.max(0, id - 1 - Math.floor(r() * 4)) : 0, [805306368, 805306369, 838860801, 268435457][Math.floor(r() * 4)], r() < 0.5 ? Math.floor(r() * 40) : 0, Math.floor(r() * 600_000_000)] });
+    visits.push({
+      rowid: id,
+      v: [
+        id,
+        1 + Math.floor(r() * 600),
+        chrome(tm),
+        r() < 0.4 ? Math.max(0, id - 1 - Math.floor(r() * 4)) : 0,
+        [805306368, 805306369, 838860801, 268435457][Math.floor(r() * 4)],
+        r() < 0.5 ? Math.floor(r() * 40) : 0,
+        Math.floor(r() * 600_000_000),
+      ],
+    });
   }
-  const terms = ["sqlite wal checkpoint starvation", "rusqlite interrupt", "tauri iframe sandbox", "windows file locking sqlite", "chrome history schema", "virtualized table react"];
+  const terms = [
+    "sqlite wal checkpoint starvation",
+    "rusqlite interrupt",
+    "tauri iframe sandbox",
+    "windows file locking sqlite",
+    "chrome history schema",
+    "virtualized table react",
+  ];
   const kst: MRow[] = terms.map((t, i) => ({ rowid: i + 1, v: [2, 14 + i, t, t.toLowerCase()] }));
   const meta: MRow[] = [
     ["mmap_status", "-1"],
@@ -361,16 +608,56 @@ export function historyDb(): MDb {
         ],
         kst,
       ),
-      table("sqlite_sequence", "CREATE TABLE sqlite_sequence(name,seq)", [{ name: "name", type: "" }, { name: "seq", type: "" }], [
-        { rowid: 1, v: ["urls", 600] },
-        { rowid: 2, v: ["visits", 2500] },
-      ]),
+      table(
+        "sqlite_sequence",
+        "CREATE TABLE sqlite_sequence(name,seq)",
+        [
+          { name: "name", type: "" },
+          { name: "seq", type: "" },
+        ],
+        [
+          { rowid: 1, v: ["urls", 600] },
+          { rowid: 2, v: ["visits", 2500] },
+        ],
+      ),
     ],
     indexes: [
-      { name: "sqlite_autoindex_meta_1", tbl: "meta", sql: null, unique: true, origin: "pk", partial: false, columns: ["key"] },
-      { name: "urls_url_index", tbl: "urls", sql: "CREATE INDEX urls_url_index ON urls (url)", unique: false, origin: "c", partial: false, columns: ["url"] },
-      { name: "visits_url_index", tbl: "visits", sql: "CREATE INDEX visits_url_index ON visits (url)", unique: false, origin: "c", partial: false, columns: ["url"] },
-      { name: "visits_time_index", tbl: "visits", sql: "CREATE INDEX visits_time_index ON visits (visit_time)", unique: false, origin: "c", partial: false, columns: ["visit_time"] },
+      {
+        name: "sqlite_autoindex_meta_1",
+        tbl: "meta",
+        sql: null,
+        unique: true,
+        origin: "pk",
+        partial: false,
+        columns: ["key"],
+      },
+      {
+        name: "urls_url_index",
+        tbl: "urls",
+        sql: "CREATE INDEX urls_url_index ON urls (url)",
+        unique: false,
+        origin: "c",
+        partial: false,
+        columns: ["url"],
+      },
+      {
+        name: "visits_url_index",
+        tbl: "visits",
+        sql: "CREATE INDEX visits_url_index ON visits (url)",
+        unique: false,
+        origin: "c",
+        partial: false,
+        columns: ["url"],
+      },
+      {
+        name: "visits_time_index",
+        tbl: "visits",
+        sql: "CREATE INDEX visits_time_index ON visits (visit_time)",
+        unique: false,
+        origin: "c",
+        partial: false,
+        columns: ["visit_time"],
+      },
       {
         name: "keyword_search_terms_index1",
         tbl: "keyword_search_terms",
@@ -382,6 +669,13 @@ export function historyDb(): MDb {
       },
     ],
     triggers: [],
-    info: { pageSize: 4096, journalMode: "truncate", userVersion: 0, applicationId: 0, freelistCount: 112, sqliteVersion: "3.50.4" },
+    info: {
+      pageSize: 4096,
+      journalMode: "truncate",
+      userVersion: 0,
+      applicationId: 0,
+      freelistCount: 112,
+      sqliteVersion: "3.50.4",
+    },
   };
 }

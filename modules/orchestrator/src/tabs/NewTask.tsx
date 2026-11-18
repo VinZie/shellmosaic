@@ -1,13 +1,38 @@
 // The "New task" form (also used for follow-ups of a finished task).
 import { useState } from "react";
-import { closeModal, cx, errorText, openModal, Select, sm, Switch, type AgentRun, type AgentSnapshot, type AgentTask } from "../../../shared";
+import {
+  closeModal,
+  cx,
+  errorText,
+  openModal,
+  Select,
+  sm,
+  Switch,
+  type AgentRun,
+  type AgentSnapshot,
+  type AgentTask,
+} from "../../../shared";
 import { DIFFICULTY_LABEL, modelLabel, runTasks } from "../lib";
 
-export function openNewTask(snap: AgentSnapshot, run: AgentRun, opts: { followUpOf?: AgentTask; onCreated?: (t: AgentTask) => void } = {}) {
+export function openNewTask(
+  snap: AgentSnapshot,
+  run: AgentRun,
+  opts: { followUpOf?: AgentTask; onCreated?: (t: AgentTask) => void } = {},
+) {
   openModal(() => <NewTaskForm snap={snap} run={run} followUpOf={opts.followUpOf} onCreated={opts.onCreated} />);
 }
 
-function NewTaskForm({ snap, run, followUpOf, onCreated }: { snap: AgentSnapshot; run: AgentRun; followUpOf?: AgentTask; onCreated?: (t: AgentTask) => void }) {
+function NewTaskForm({
+  snap,
+  run,
+  followUpOf,
+  onCreated,
+}: {
+  snap: AgentSnapshot;
+  run: AgentRun;
+  followUpOf?: AgentTask;
+  onCreated?: (t: AgentTask) => void;
+}) {
   const [title, setTitle] = useState(followUpOf ? `Follow-up: ${followUpOf.title}` : "");
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState(followUpOf?.difficulty ?? 2);
@@ -25,7 +50,12 @@ function NewTaskForm({ snap, run, followUpOf, onCreated }: { snap: AgentSnapshot
     setBusy(true);
     setError(null);
     try {
-      const t = await sm.agents.createTask(run.id, { title: title.trim(), description: description.trim(), difficulty, followUpOf: parent || undefined });
+      const t = await sm.agents.createTask(run.id, {
+        title: title.trim(),
+        description: description.trim(),
+        difficulty,
+        followUpOf: parent || undefined,
+      });
       if (start) {
         try {
           await sm.agents.assign(t.id);
@@ -52,7 +82,14 @@ function NewTaskForm({ snap, run, followUpOf, onCreated }: { snap: AgentSnapshot
     >
       <h3>{followUpOf ? `Follow-up of ${followUpOf.id}` : "New task"}</h3>
       <label className="sm-field-label">Title</label>
-      <input className="sm-input wide" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What should be done, in a few words" maxLength={200} />
+      <input
+        className="sm-input wide"
+        autoFocus
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="What should be done, in a few words"
+        maxLength={200}
+      />
       <label className="sm-field-label">Description</label>
       <textarea
         className="sm-input wide orc-textarea"
@@ -70,7 +107,15 @@ function NewTaskForm({ snap, run, followUpOf, onCreated }: { snap: AgentSnapshot
       <label className="sm-field-label">Difficulty</label>
       <div className="orc-segmented" role="radiogroup" aria-label="Difficulty">
         {[1, 2, 3, 4, 5].map((d) => (
-          <button key={d} type="button" role="radio" aria-checked={difficulty === d} className={cx("orc-seg", difficulty === d && "on")} onClick={() => setDifficulty(d)} title={DIFFICULTY_LABEL[d]}>
+          <button
+            key={d}
+            type="button"
+            role="radio"
+            aria-checked={difficulty === d}
+            className={cx("orc-seg", difficulty === d && "on")}
+            onClick={() => setDifficulty(d)}
+            title={DIFFICULTY_LABEL[d]}
+          >
             {d} <span className="orc-seg-sub">{DIFFICULTY_LABEL[d]}</span>
           </button>
         ))}
@@ -85,7 +130,10 @@ function NewTaskForm({ snap, run, followUpOf, onCreated }: { snap: AgentSnapshot
           <Select
             value={parent}
             onChange={setParent}
-            options={[{ value: "", label: "Nothing: a fresh session" }, ...parents.map((t) => ({ value: t.id, label: `${t.id} · ${t.title}` }))]}
+            options={[
+              { value: "", label: "Nothing: a fresh session" },
+              ...parents.map((t) => ({ value: t.id, label: `${t.id} · ${t.title}` })),
+            ]}
             title="A follow-up continues in the same worker's conversation"
           />
         </>

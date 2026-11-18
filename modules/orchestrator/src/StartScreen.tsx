@@ -1,16 +1,37 @@
 // No team in this workspace yet: start one in a repository, or look at an earlier one.
 import { useState } from "react";
 import { Bot, FolderGit2, FolderOpen, GitBranch, History, LoaderCircle, ShieldAlert, Trash2 } from "lucide-react";
-import { Banner, Button, errorText, formatDateTime, sm, type AgentRun, type AgentSnapshot, type PaneContext } from "../../shared";
+import {
+  Banner,
+  Button,
+  errorText,
+  formatDateTime,
+  sm,
+  type AgentRun,
+  type AgentSnapshot,
+  type PaneContext,
+} from "../../shared";
 import { act, forgetTeam } from "./actions";
 import { errorKind, errorMessage, modelLabel, runTasks, type ErrorKind } from "./lib";
 
-export function StartScreen({ ctx, snap, canManage, onOpen }: { ctx: PaneContext; snap: AgentSnapshot; canManage: boolean; onOpen: (runId: string) => void }) {
+export function StartScreen({
+  ctx,
+  snap,
+  canManage,
+  onOpen,
+}: {
+  ctx: PaneContext;
+  snap: AgentSnapshot;
+  canManage: boolean;
+  onOpen: (runId: string) => void;
+}) {
   const [cwd, setCwd] = useState(ctx.cwd ?? "");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState<"start" | "init" | null>(null);
   const [failure, setFailure] = useState<{ kind: ErrorKind; text: string } | null>(null);
-  const earlier = snap.runs.filter((r) => r.workspaceId === ctx.workspaceId && r.status === "stopped").sort((a, b) => b.createdAt - a.createdAt);
+  const earlier = snap.runs
+    .filter((r) => r.workspaceId === ctx.workspaceId && r.status === "stopped")
+    .sort((a, b) => b.createdAt - a.createdAt);
   const r = snap.routing;
   const blocked = snap.elevated || !canManage;
 
@@ -55,12 +76,14 @@ export function StartScreen({ ctx, snap, canManage, onOpen }: { ctx: PaneContext
     <div className="sm-scroll orc-start">
       {snap.elevated && (
         <Banner tone="warning" icon={<ShieldAlert size={15} />}>
-          Shellmosaic is running as administrator, and agents would get administrator rights too. Close it and start it normally to use the Orchestrator.
+          Shellmosaic is running as administrator, and agents would get administrator rights too. Close it and start it
+          normally to use the Orchestrator.
         </Banner>
       )}
       {!canManage && (
         <Banner tone="info" icon={<ShieldAlert size={15} />}>
-          This pane can only watch teams. To start one, allow “Start, stop and instruct Claude Code agents” for Orchestrator in Settings → Plugins.
+          This pane can only watch teams. To start one, allow “Start, stop and instruct Claude Code agents” for
+          Orchestrator in Settings → Plugins.
         </Banner>
       )}
       <div className="orc-start-card">
@@ -69,8 +92,10 @@ export function StartScreen({ ctx, snap, canManage, onOpen }: { ctx: PaneContext
           <h2>Start a team</h2>
         </div>
         <p className="orc-start-lead">
-          A lead Claude Code agent turns what you want into tasks and hands them to up to {r.maxWorkers} worker{r.maxWorkers === 1 ? "" : "s"}. Each worker is its own Claude Code session in a pane of
-          this workspace, working in its own git worktree next to the repository. Accepted work collects on <code>orch/integration</code>; you decide what reaches your branch.
+          A lead Claude Code agent turns what you want into tasks and hands them to up to {r.maxWorkers} worker
+          {r.maxWorkers === 1 ? "" : "s"}. Each worker is its own Claude Code session in a pane of this workspace,
+          working in its own git worktree next to the repository. Accepted work collects on{" "}
+          <code>orch/integration</code>; you decide what reaches your branch.
         </p>
         <label className="sm-field-label">Repository folder</label>
         <div className="orc-start-folder">
@@ -95,19 +120,32 @@ export function StartScreen({ ctx, snap, canManage, onOpen }: { ctx: PaneContext
           </button>
         )}
         <label className="sm-field-label">Team name (optional)</label>
-        <input className="sm-input wide" value={name} placeholder="The repository's name" maxLength={80} onChange={(e) => setName(e.target.value)} />
+        <input
+          className="sm-input wide"
+          value={name}
+          placeholder="The repository's name"
+          maxLength={80}
+          onChange={(e) => setName(e.target.value)}
+        />
         {failure && <StartFailure failure={failure} busy={busy} onInit={initAndStart} cwd={cwd.trim()} />}
         <div className="orc-start-actions">
           <Button kind="primary" disabled={blocked || !!busy || !cwd.trim()} onClick={start}>
             {busy === "start" ? <LoaderCircle size={14} className="sm-spin" /> : <Bot size={14} />} Start the team
           </Button>
           <span className="sm-dim">
-            Lead on {modelLabel(r.lead.model)} ({r.lead.effort} effort) · workers by task difficulty, see Routing once it runs
+            Lead on {modelLabel(r.lead.model)} ({r.lead.effort} effort) · workers by task difficulty, see Routing once
+            it runs
           </span>
         </div>
         <ul className="orc-start-notes">
-          <li>Agents run on your Claude account and use your plan's limits; above {r.sonnetAbove}% workers get at most Sonnet, above {r.noHireAbove}% no new ones start.</li>
-          <li>They edit files in their own worktrees without asking; anything else (commands, files elsewhere) asks you first, in Requests or in the agent's pane.</li>
+          <li>
+            Agents run on your Claude account and use your plan's limits; above {r.sonnetAbove}% workers get at most
+            Sonnet, above {r.noHireAbove}% no new ones start.
+          </li>
+          <li>
+            They edit files in their own worktrees without asking; anything else (commands, files elsewhere) asks you
+            first, in Requests or in the agent's pane.
+          </li>
           <li>Nothing is pushed: agents can't push, and merging into your branch is your call.</li>
         </ul>
       </div>
@@ -126,7 +164,17 @@ export function StartScreen({ ctx, snap, canManage, onOpen }: { ctx: PaneContext
   );
 }
 
-function StartFailure({ failure, busy, onInit, cwd }: { failure: { kind: ErrorKind; text: string }; busy: "start" | "init" | null; onInit: () => void; cwd: string }) {
+function StartFailure({
+  failure,
+  busy,
+  onInit,
+  cwd,
+}: {
+  failure: { kind: ErrorKind; text: string };
+  busy: "start" | "init" | null;
+  onInit: () => void;
+  cwd: string;
+}) {
   switch (failure.kind) {
     case "not-a-repo":
       return (
@@ -139,7 +187,8 @@ function StartFailure({ failure, busy, onInit, cwd }: { failure: { kind: ErrorKi
             </Button>
           }
         >
-          {failure.text}. The team works in git worktrees and branches; Shellmosaic can run <code>git init</code> and commit what's there as the first commit.
+          {failure.text}. The team works in git worktrees and branches; Shellmosaic can run <code>git init</code> and
+          commit what's there as the first commit.
         </Banner>
       );
     case "no-commits":
@@ -159,7 +208,8 @@ function StartFailure({ failure, busy, onInit, cwd }: { failure: { kind: ErrorKi
             </Button>
           }
         >
-          This repository's own git settings can run programs. Look at them in a Git pane and trust the repository there, then start the team again.
+          This repository's own git settings can run programs. Look at them in a Git pane and trust the repository
+          there, then start the team again.
         </Banner>
       );
     case "elevated":
@@ -173,7 +223,17 @@ function StartFailure({ failure, busy, onInit, cwd }: { failure: { kind: ErrorKi
   }
 }
 
-function EarlierRun({ run, snap, canManage, onOpen }: { run: AgentRun; snap: AgentSnapshot; canManage: boolean; onOpen: () => void }) {
+function EarlierRun({
+  run,
+  snap,
+  canManage,
+  onOpen,
+}: {
+  run: AgentRun;
+  snap: AgentSnapshot;
+  canManage: boolean;
+  onOpen: () => void;
+}) {
   const tasks = runTasks(snap, run);
   const done = tasks.filter((t) => t.status === "done").length;
   return (
@@ -193,7 +253,12 @@ function EarlierRun({ run, snap, canManage, onOpen }: { run: AgentRun; snap: Age
         Open
       </Button>
       {canManage && (
-        <Button small kind="subtle" onClick={() => forgetTeam(run)} title="Remove it from this list (its branches stay)">
+        <Button
+          small
+          kind="subtle"
+          onClick={() => forgetTeam(run)}
+          title="Remove it from this list (its branches stay)"
+        >
           <Trash2 size={13} />
         </Button>
       )}

@@ -12,7 +12,8 @@ export function shortTime(ms: number): string {
   const d = new Date(ms);
   const now = new Date();
   const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()) return `${time}:${pad(d.getSeconds())}`;
+  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate())
+    return `${time}:${pad(d.getSeconds())}`;
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${time}`;
 }
 
@@ -32,7 +33,15 @@ function timeColumn(narrow: boolean): Column<Ev> {
 
 const common: Column<Ev>[] = [
   { id: "computer", label: "Computer", width: 150, hidden: true, sort: (e) => e.computer, text: (e) => e.computer },
-  { id: "record", label: "Record ID", width: 96, hidden: true, align: "right", sort: (e) => e.recordId, text: (e) => numText(e.recordId) },
+  {
+    id: "record",
+    label: "Record ID",
+    width: 96,
+    hidden: true,
+    align: "right",
+    sort: (e) => e.recordId,
+    text: (e) => numText(e.recordId),
+  },
   { id: "channel", label: "Channel", width: 180, hidden: true, sort: (e) => e.channel, text: (e) => e.channel },
 ];
 
@@ -57,8 +66,23 @@ export function eventColumns(narrow: boolean): Column<Ev>[] {
       text: (e) => e.provider,
       render: (e) => <span className="sm-cell-text">{e.source}</span>,
     },
-    { id: "id", label: narrow ? "ID" : "Event ID", title: "Event ID", width: narrow ? 56 : 72, align: "right", sort: (e) => e.eventId, text: (e) => String(e.eventId) },
-    { id: "task", label: "Task category", width: 132, hidden: narrow, sort: (e) => e.taskName, text: (e) => e.taskName },
+    {
+      id: "id",
+      label: narrow ? "ID" : "Event ID",
+      title: "Event ID",
+      width: narrow ? 56 : 72,
+      align: "right",
+      sort: (e) => e.eventId,
+      text: (e) => String(e.eventId),
+    },
+    {
+      id: "task",
+      label: "Task category",
+      width: 132,
+      hidden: narrow,
+      sort: (e) => e.taskName,
+      text: (e) => e.taskName,
+    },
     {
       id: "message",
       label: "Message",
@@ -69,9 +93,32 @@ export function eventColumns(narrow: boolean): Column<Ev>[] {
     },
     ...common,
     { id: "user", label: "User", width: 160, hidden: true, sort: (e) => e.user, text: (e) => e.user },
-    { id: "pid", label: "Process ID", width: 84, hidden: true, align: "right", sort: (e) => e.pid ?? -1, text: (e) => numText(e.pid) },
-    { id: "tid", label: "Thread ID", width: 84, hidden: true, align: "right", sort: (e) => e.tid ?? -1, text: (e) => numText(e.tid) },
-    { id: "keywords", label: "Keywords", width: 150, hidden: true, sort: (e) => e.keywordNames, text: (e) => e.keywordNames },
+    {
+      id: "pid",
+      label: "Process ID",
+      width: 84,
+      hidden: true,
+      align: "right",
+      sort: (e) => e.pid ?? -1,
+      text: (e) => numText(e.pid),
+    },
+    {
+      id: "tid",
+      label: "Thread ID",
+      width: 84,
+      hidden: true,
+      align: "right",
+      sort: (e) => e.tid ?? -1,
+      text: (e) => numText(e.tid),
+    },
+    {
+      id: "keywords",
+      label: "Keywords",
+      width: 150,
+      hidden: true,
+      sort: (e) => e.keywordNames,
+      text: (e) => e.keywordNames,
+    },
     { id: "opcode", label: "Opcode", width: 100, hidden: true, sort: (e) => e.opcodeName, text: (e) => e.opcodeName },
   ];
 }
@@ -124,13 +171,67 @@ export function sysmonColumns(narrow: boolean): Column<Ev>[] {
       sort: (e) => e.sys?.details ?? e.firstLine,
       text: (e) => (e.sys ? e.sys.details : e.firstLine),
     },
-    { id: "user", label: "User", width: 180, hidden: narrow, sort: (e) => e.sys?.user || e.user, text: (e) => e.sys?.user || e.user },
-    { id: "pid", label: "PID", width: 70, hidden: narrow, align: "right", sort: (e) => e.sys?.pid ?? -1, text: (e) => numText(e.sys?.pid) },
-    { id: "parentImage", label: "ParentImage", width: 240, hidden: true, sort: (e) => e.sys?.parentImage ?? "", text: (e) => e.sys?.parentImage ?? "", render: (e) => <PathCell path={e.sys?.parentImage ?? ""} /> },
-    { id: "parentCommandLine", label: "ParentCommandLine", width: 360, hidden: true, mono: true, sort: (e) => e.sys?.parentCommandLine ?? "", text: (e) => e.sys?.parentCommandLine ?? "" },
-    { id: "hashes", label: "Hashes", width: 360, hidden: true, mono: true, sort: (e) => e.sys?.hashes ?? "", text: (e) => e.sys?.hashes ?? "" },
-    { id: "processGuid", label: "ProcessGuid", width: 300, hidden: true, mono: true, sort: (e) => e.sys?.processGuid ?? "", text: (e) => e.sys?.processGuid ?? "" },
-    { id: "ruleName", label: "RuleName", width: 160, hidden: true, sort: (e) => e.sys?.ruleName ?? "", text: (e) => e.sys?.ruleName ?? "" },
+    {
+      id: "user",
+      label: "User",
+      width: 180,
+      hidden: narrow,
+      sort: (e) => e.sys?.user || e.user,
+      text: (e) => e.sys?.user || e.user,
+    },
+    {
+      id: "pid",
+      label: "PID",
+      width: 70,
+      hidden: narrow,
+      align: "right",
+      sort: (e) => e.sys?.pid ?? -1,
+      text: (e) => numText(e.sys?.pid),
+    },
+    {
+      id: "parentImage",
+      label: "ParentImage",
+      width: 240,
+      hidden: true,
+      sort: (e) => e.sys?.parentImage ?? "",
+      text: (e) => e.sys?.parentImage ?? "",
+      render: (e) => <PathCell path={e.sys?.parentImage ?? ""} />,
+    },
+    {
+      id: "parentCommandLine",
+      label: "ParentCommandLine",
+      width: 360,
+      hidden: true,
+      mono: true,
+      sort: (e) => e.sys?.parentCommandLine ?? "",
+      text: (e) => e.sys?.parentCommandLine ?? "",
+    },
+    {
+      id: "hashes",
+      label: "Hashes",
+      width: 360,
+      hidden: true,
+      mono: true,
+      sort: (e) => e.sys?.hashes ?? "",
+      text: (e) => e.sys?.hashes ?? "",
+    },
+    {
+      id: "processGuid",
+      label: "ProcessGuid",
+      width: 300,
+      hidden: true,
+      mono: true,
+      sort: (e) => e.sys?.processGuid ?? "",
+      text: (e) => e.sys?.processGuid ?? "",
+    },
+    {
+      id: "ruleName",
+      label: "RuleName",
+      width: 160,
+      hidden: true,
+      sort: (e) => e.sys?.ruleName ?? "",
+      text: (e) => e.sys?.ruleName ?? "",
+    },
     ...common,
   ];
 }
@@ -138,7 +239,10 @@ export function sysmonColumns(narrow: boolean): Column<Ev>[] {
 /** The columns the table shows, in its order (the same rules as the kit's Table). */
 export function shownColumns<T>(columns: Column<T>[], layout: ColumnState): Column<T>[] {
   const byId = new Map(columns.map((c) => [c.id, c]));
-  const ordered = [...layout.order.filter((id) => byId.has(id)).map((id) => byId.get(id)!), ...columns.filter((c) => !layout.order.includes(c.id))];
+  const ordered = [
+    ...layout.order.filter((id) => byId.has(id)).map((id) => byId.get(id)!),
+    ...columns.filter((c) => !layout.order.includes(c.id)),
+  ];
   const vis = ordered.filter((c) => layout.visible[c.id] ?? !c.hidden);
   return vis.length ? vis : ordered.slice(0, 1);
 }

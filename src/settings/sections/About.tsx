@@ -29,10 +29,15 @@ function UpdateControls() {
     <>
       <div className="row about-links">
         <button className="btn small" onClick={check} disabled={checking}>
-          <Icon name={checking ? "loader" : "refresh"} size={13} className={checking ? "spin" : undefined} /> Check for updates
+          <Icon name={checking ? "loader" : "refresh"} size={13} className={checking ? "spin" : undefined} /> Check for
+          updates
         </button>
         {skipped && (
-          <button className="btn small subtle" title="Offer this version again at the next check" onClick={() => setSetting("updates.skipped", null)}>
+          <button
+            className="btn small subtle"
+            title="Offer this version again at the next check"
+            onClick={() => setSetting("updates.skipped", null)}
+          >
             Skipped v{skipped} · undo
           </button>
         )}
@@ -84,8 +89,8 @@ function UpdateChannel() {
         <div className="update-channel-warning">
           <Icon name="warning" size={14} />
           <span>
-            You're on the test channel. Test builds can be unstable or have bugs that cost you data. Switch back to Stable any time; you return to stable versions
-            with the next stable release newer than the build you have.
+            You're on the test channel. Test builds can be unstable or have bugs that cost you data. Switch back to
+            Stable any time; you return to stable versions with the next stable release newer than the build you have.
           </span>
         </div>
       )}
@@ -167,8 +172,8 @@ export function AboutSection() {
         <Searchable label="Shortcuts" keywords="keyboard palette hotkeys tips help">
           <ShortcutList />
           <p className="about-tip dim">
-            Tip: almost everything — tabs, panes, modules, themes, settings — is reachable from the command palette. Right-click tabs, panes and workspaces for
-            more options.
+            Tip: almost everything — tabs, panes, modules, themes, settings — is reachable from the command palette.
+            Right-click tabs, panes and workspaces for more options.
           </p>
         </Searchable>
       </Group>

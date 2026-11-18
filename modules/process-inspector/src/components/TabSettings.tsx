@@ -18,7 +18,9 @@ export function TabSettings({ prefs, onChange }: { prefs: Prefs; onChange: (p: P
     const next = tabs.map((t) => (t.id === id ? { ...t, visible: !t.visible } : t));
     if (!next.some((t) => t.visible)) return;
     // the default tab must stay visible
-    const def = next.find((t) => t.id === prefs.defaultTab)?.visible ? prefs.defaultTab : next.find((t) => t.visible)!.id;
+    const def = next.find((t) => t.id === prefs.defaultTab)?.visible
+      ? prefs.defaultTab
+      : next.find((t) => t.visible)!.id;
     onChange({ ...prefs, tabs: next, defaultTab: def });
   };
 
@@ -29,14 +31,23 @@ export function TabSettings({ prefs, onChange }: { prefs: Prefs; onChange: (p: P
         {tabs.map((t, i) => (
           <div key={t.id} className="pi-settings-tab">
             <label className="pi-settings-check">
-              <input type="checkbox" checked={t.visible} disabled={t.visible && shown <= 1} onChange={() => toggle(t.id)} />
+              <input
+                type="checkbox"
+                checked={t.visible}
+                disabled={t.visible && shown <= 1}
+                onChange={() => toggle(t.id)}
+              />
               <span>{TAB_LABELS[t.id]}</span>
             </label>
             {t.id === prefs.defaultTab && <span className="pi-settings-default">default</span>}
             <IconButton title={`Move ${TAB_LABELS[t.id]} up`} disabled={i === 0} onClick={() => move(i, -1)}>
               <ArrowUp size={13} />
             </IconButton>
-            <IconButton title={`Move ${TAB_LABELS[t.id]} down`} disabled={i === tabs.length - 1} onClick={() => move(i, 1)}>
+            <IconButton
+              title={`Move ${TAB_LABELS[t.id]} down`}
+              disabled={i === tabs.length - 1}
+              onClick={() => move(i, 1)}
+            >
               <ArrowDown size={13} />
             </IconButton>
           </div>
@@ -60,7 +71,9 @@ export function TabSettings({ prefs, onChange }: { prefs: Prefs; onChange: (p: P
           title="How often the tab on screen is refreshed (only while the pane is visible)"
         />
       </div>
-      <p className="pi-settings-note">Only the tab on screen refreshes, and only while the pane is visible. F5 refreshes now.</p>
+      <p className="pi-settings-note">
+        Only the tab on screen refreshes, and only while the pane is visible. F5 refreshes now.
+      </p>
       <div className="pi-settings-foot">
         <Button small kind="subtle" onClick={() => onChange(DEFAULT_PREFS)}>
           Reset to defaults

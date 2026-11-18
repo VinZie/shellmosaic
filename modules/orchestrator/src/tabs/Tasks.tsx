@@ -100,15 +100,65 @@ export function TasksTab({
     () => [
       { id: "id", label: "#", width: 52, mono: true, text: (t) => t.id, sort: (t) => taskNum(t.id) },
       { id: "title", label: "Title", width: 280, text: (t) => t.title, sort: (t) => t.title },
-      { id: "status", label: "Status", width: 100, render: (t) => <TaskChip status={t.status} />, text: (t) => TASK_LABEL[t.status], sort: (t) => TASK_RANK[t.status] },
-      { id: "difficulty", label: "Difficulty", width: 82, render: (t) => <Difficulty value={t.difficulty} />, text: (t) => `${t.difficulty} ${DIFFICULTY_LABEL[t.difficulty]}`, sort: (t) => t.difficulty },
-      { id: "assignee", label: "Worker", width: 100, text: (t) => nameOf(t.assignee), sort: (t) => nameOf(t.assignee) || null },
+      {
+        id: "status",
+        label: "Status",
+        width: 100,
+        render: (t) => <TaskChip status={t.status} />,
+        text: (t) => TASK_LABEL[t.status],
+        sort: (t) => TASK_RANK[t.status],
+      },
+      {
+        id: "difficulty",
+        label: "Difficulty",
+        width: 82,
+        render: (t) => <Difficulty value={t.difficulty} />,
+        text: (t) => `${t.difficulty} ${DIFFICULTY_LABEL[t.difficulty]}`,
+        sort: (t) => t.difficulty,
+      },
+      {
+        id: "assignee",
+        label: "Worker",
+        width: 100,
+        text: (t) => nameOf(t.assignee),
+        sort: (t) => nameOf(t.assignee) || null,
+      },
       { id: "model", label: "Model", width: 90, text: (t) => modelLabel(t.model), sort: (t) => t.model },
-      { id: "attempts", label: "Tries", width: 52, align: "right", text: (t) => (t.attempts ? String(t.attempts) : ""), sort: (t) => t.attempts, title: "How often it was started or sent back" },
-      { id: "failures", label: "Failures", width: 64, align: "right", text: (t) => (t.failures ? String(t.failures) : ""), sort: (t) => t.failures, title: "Times it failed, was blocked or was sent back (from 2 on a retry runs one level up)", hidden: true },
-      { id: "updated", label: "Updated", width: 100, text: (t) => formatAgo(t.updatedAt, now), sort: (t) => t.updatedAt },
+      {
+        id: "attempts",
+        label: "Tries",
+        width: 52,
+        align: "right",
+        text: (t) => (t.attempts ? String(t.attempts) : ""),
+        sort: (t) => t.attempts,
+        title: "How often it was started or sent back",
+      },
+      {
+        id: "failures",
+        label: "Failures",
+        width: 64,
+        align: "right",
+        text: (t) => (t.failures ? String(t.failures) : ""),
+        sort: (t) => t.failures,
+        title: "Times it failed, was blocked or was sent back (from 2 on a retry runs one level up)",
+        hidden: true,
+      },
+      {
+        id: "updated",
+        label: "Updated",
+        width: 100,
+        text: (t) => formatAgo(t.updatedAt, now),
+        sort: (t) => t.updatedAt,
+      },
       { id: "branch", label: "Branch", width: 150, mono: true, text: (t) => t.branch ?? "", hidden: true },
-      { id: "created", label: "Created", width: 140, text: (t) => formatDateTime(t.createdAt), sort: (t) => t.createdAt, hidden: true },
+      {
+        id: "created",
+        label: "Created",
+        width: 140,
+        text: (t) => formatDateTime(t.createdAt),
+        sort: (t) => t.createdAt,
+        hidden: true,
+      },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [agents, now],
@@ -135,11 +185,22 @@ export function TasksTab({
   const list = (
     <div className="orc-tab-col">
       <Toolbar>
-        <Button small kind="primary" disabled={!manage} onClick={() => openNewTask(snap, run, { onCreated: (t) => onSelect(t.id) })} title={manage ? "Create a task for a worker" : "Needs a running team and the agents.manage permission"}>
+        <Button
+          small
+          kind="primary"
+          disabled={!manage}
+          onClick={() => openNewTask(snap, run, { onCreated: (t) => onSelect(t.id) })}
+          title={manage ? "Create a task for a worker" : "Needs a running team and the agents.manage permission"}
+        >
           <Plus size={13} /> New task
         </Button>
         <Select value={filter} onChange={setFilter} options={FILTERS} title="Which tasks to show" />
-        <Select value={who} onChange={setWho} options={[{ value: "", label: "Every worker" }, ...workers.map((w) => ({ value: w.id, label: w.name }))]} title="Tasks of one worker" />
+        <Select
+          value={who}
+          onChange={setWho}
+          options={[{ value: "", label: "Every worker" }, ...workers.map((w) => ({ value: w.id, label: w.name }))]}
+          title="Tasks of one worker"
+        />
         <SearchBox value={q} onChange={setQ} placeholder="Filter tasks" width={180} />
         <Grow />
         <span className="orc-counts">
@@ -163,7 +224,8 @@ export function TasksTab({
         empty={
           all.length === 0 ? (
             <span>
-              No tasks yet. Tell the lead what you want done (above) and it creates them, or add one with <b>New task</b>.
+              No tasks yet. Tell the lead what you want done (above) and it creates them, or add one with{" "}
+              <b>New task</b>.
             </span>
           ) : (
             "No task matches"
@@ -178,7 +240,23 @@ export function TasksTab({
       side={side}
       open={!!current}
       list={list}
-      details={current && <TaskDetails key={current.id} task={current} snap={snap} run={run} agents={agents} workers={workers} manage={manage} menu={menuFor(current)} onFollowUp={followUp} onShowAgent={onShowAgent} onSelect={onSelect} />}
+      details={
+        current && (
+          <TaskDetails
+            key={current.id}
+            task={current}
+            snap={snap}
+            run={run}
+            agents={agents}
+            workers={workers}
+            manage={manage}
+            menu={menuFor(current)}
+            onFollowUp={followUp}
+            onShowAgent={onShowAgent}
+            onSelect={onSelect}
+          />
+        )
+      }
     />
   );
 }
@@ -223,56 +301,87 @@ function TaskDetails({
           <Ellipsis size={15} />
         </IconButton>
       </div>
-      {manage && (t.status === "queued" || reviewable || t.status === "done" || t.status === "working" || t.status === "assigned") && (
-        <Toolbar className="orc-details-actions">
-          {t.status === "queued" && (
-            <Button small kind="primary" onClick={(e) => openMenu(e.currentTarget, assignItems(t, workers, snap.routing.maxWorkers))}>
-              <Play size={13} /> Assign…
-            </Button>
-          )}
-          {t.status === "failed" && (
-            <Button small kind="primary" onClick={(e) => openMenu(e.currentTarget, assignItems(t, workers, snap.routing.maxWorkers))} title="Start it again, in a fresh session">
-              <RotateCw size={13} /> {t.failures >= 2 ? "Retry one level up…" : "Retry…"}
-            </Button>
-          )}
-          {reviewable && (
-            <>
-              <Button small kind={t.status === "review" ? "primary" : undefined} onClick={() => acceptTask(t)} title="Merge its branch into orch/integration">
-                <Check size={13} /> {t.status === "review" ? "Accept" : "Accept as is"}
+      {manage &&
+        (t.status === "queued" ||
+          reviewable ||
+          t.status === "done" ||
+          t.status === "working" ||
+          t.status === "assigned") && (
+          <Toolbar className="orc-details-actions">
+            {t.status === "queued" && (
+              <Button
+                small
+                kind="primary"
+                onClick={(e) => openMenu(e.currentTarget, assignItems(t, workers, snap.routing.maxWorkers))}
+              >
+                <Play size={13} /> Assign…
               </Button>
-              <Button small onClick={() => sendBack(t, worker)} disabled={!t.assignee}>
-                <Undo2 size={13} /> Send back…
+            )}
+            {t.status === "failed" && (
+              <Button
+                small
+                kind="primary"
+                onClick={(e) => openMenu(e.currentTarget, assignItems(t, workers, snap.routing.maxWorkers))}
+                title="Start it again, in a fresh session"
+              >
+                <RotateCw size={13} /> {t.failures >= 2 ? "Retry one level up…" : "Retry…"}
               </Button>
-            </>
-          )}
-          {(t.status === "done" || reviewable) && (
-            <Button small onClick={() => onFollowUp(t)}>
-              <ListPlus size={13} /> Follow-up…
-            </Button>
-          )}
-          <span className="sm-grow" />
-          {["queued", "assigned", "working", "review"].includes(t.status) && (
-            <Button small kind="subtle" onClick={() => cancelTask(t)}>
-              <Ban size={13} /> Cancel
-            </Button>
-          )}
-        </Toolbar>
+            )}
+            {reviewable && (
+              <>
+                <Button
+                  small
+                  kind={t.status === "review" ? "primary" : undefined}
+                  onClick={() => acceptTask(t)}
+                  title="Merge its branch into orch/integration"
+                >
+                  <Check size={13} /> {t.status === "review" ? "Accept" : "Accept as is"}
+                </Button>
+                <Button small onClick={() => sendBack(t, worker)} disabled={!t.assignee}>
+                  <Undo2 size={13} /> Send back…
+                </Button>
+              </>
+            )}
+            {(t.status === "done" || reviewable) && (
+              <Button small onClick={() => onFollowUp(t)}>
+                <ListPlus size={13} /> Follow-up…
+              </Button>
+            )}
+            <span className="sm-grow" />
+            {["queued", "assigned", "working", "review"].includes(t.status) && (
+              <Button small kind="subtle" onClick={() => cancelTask(t)}>
+                <Ban size={13} /> Cancel
+              </Button>
+            )}
+          </Toolbar>
+        )}
+      {(t.status === "failed" || t.status === "queued") && retryLevel(t, snap.routing) && (
+        <div className="orc-retry-note">{retryLevel(t, snap.routing)}</div>
       )}
-      {(t.status === "failed" || t.status === "queued") && retryLevel(t, snap.routing) && <div className="orc-retry-note">{retryLevel(t, snap.routing)}</div>}
       <div className="sm-scroll sm-pad">
         {t.summary && (
           <Section title={t.status === "failed" ? "Worker's report (didn't finish)" : "Worker's report"}>
-            <div className={`orc-prose sm-selectable orc-report ${t.status === "failed" ? "failed" : ""}`}>{t.summary}</div>
+            <div className={`orc-prose sm-selectable orc-report ${t.status === "failed" ? "failed" : ""}`}>
+              {t.summary}
+            </div>
           </Section>
         )}
         <Section title="Task">
-          {t.description ? <div className="orc-prose sm-selectable">{t.description}</div> : <p className="sm-dim orc-none">No description.</p>}
+          {t.description ? (
+            <div className="orc-prose sm-selectable">{t.description}</div>
+          ) : (
+            <p className="sm-dim orc-none">No description.</p>
+          )}
         </Section>
         <Section title="Details">
           <KeyValues
             labelWidth={110}
             rows={[
-              { label: "Difficulty", value: `${t.difficulty} of 5 · ${DIFFICULTY_LABEL[t.difficulty]}`, copyText: null },
+              {
+                label: "Difficulty",
+                value: `${t.difficulty} of 5 · ${DIFFICULTY_LABEL[t.difficulty]}`,
+                copyText: null,
+              },
               {
                 label: "Worker",
                 value: worker ? (
@@ -296,7 +405,13 @@ function TaskDetails({
               },
               parent && {
                 label: "Follow-up of",
-                value: <button type="button" className="orc-link" onClick={() => onSelect(parent.id)}>{`${parent.id} · ${parent.title}`}</button>,
+                value: (
+                  <button
+                    type="button"
+                    className="orc-link"
+                    onClick={() => onSelect(parent.id)}
+                  >{`${parent.id} · ${parent.title}`}</button>
+                ),
                 copyText: parent.id,
               },
               followUps.length > 0 && {
@@ -322,7 +437,9 @@ function TaskDetails({
             <DiffView taskId={t.id} branch={t.branch} auto={reviewable || t.status === "done"} />
           </Section>
         )}
-        {run.status !== "active" && t.status !== "done" && t.status !== "cancelled" && <p className="sm-dim orc-none">This team was stopped: start a new team to continue the work.</p>}
+        {run.status !== "active" && t.status !== "done" && t.status !== "cancelled" && (
+          <p className="sm-dim orc-none">This team was stopped: start a new team to continue the work.</p>
+        )}
       </div>
     </>
   );

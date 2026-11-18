@@ -1,5 +1,15 @@
 // Words, colors and small derivations shared by the Orchestrator's views.
-import { errorText, type Agent, type AgentRequest, type AgentRun, type AgentSnapshot, type AgentState, type AgentTask, type TaskStatus, type Tone } from "../../shared";
+import {
+  errorText,
+  type Agent,
+  type AgentRequest,
+  type AgentRun,
+  type AgentSnapshot,
+  type AgentState,
+  type AgentTask,
+  type TaskStatus,
+  type Tone,
+} from "../../shared";
 
 export const STATE_LABEL: Record<AgentState, string> = {
   starting: "Starting",
@@ -35,7 +45,8 @@ export const STATE_HINT: Record<AgentState, string> = {
 /** The `tool` of a request that stands for Claude Code's folder trust prompt. */
 export const TRUST_TOOL = "Trust";
 /** Its trust prompt waits for an answer: nothing can be typed into it or interrupted until then. */
-export const trustPending = (snap: AgentSnapshot, a: Agent) => snap.requests.some((q) => q.agentId === a.id && q.status === "pending" && q.tool === TRUST_TOOL);
+export const trustPending = (snap: AgentSnapshot, a: Agent) =>
+  snap.requests.some((q) => q.agentId === a.id && q.status === "pending" && q.tool === TRUST_TOOL);
 export const TRUST_HINT = "Claude Code asks whether to trust its folder: answer in Requests or in its pane";
 
 /** Still starting after this long: it may be stuck on a screen in its pane (a sign-in, an update notice…). */
@@ -64,7 +75,15 @@ export const TASK_TONE: Record<TaskStatus, Tone | undefined> = {
 };
 
 /** Sort order of task states: what needs attention first. */
-export const TASK_RANK: Record<TaskStatus, number> = { review: 0, failed: 1, working: 2, assigned: 3, queued: 4, done: 5, cancelled: 6 };
+export const TASK_RANK: Record<TaskStatus, number> = {
+  review: 0,
+  failed: 1,
+  working: 2,
+  assigned: 3,
+  queued: 4,
+  done: 5,
+  cancelled: 6,
+};
 
 export const DIFFICULTY_LABEL = ["", "Trivial", "Easy", "Normal", "Hard", "Very hard"];
 
@@ -100,8 +119,10 @@ export function runAgents(snap: AgentSnapshot, run: AgentRun): Agent[] {
     .sort((a, b) => (a.role === b.role ? a.slot.localeCompare(b.slot) : a.role === "lead" ? -1 : 1));
 }
 
-export const runTasks = (snap: AgentSnapshot, run: AgentRun): AgentTask[] => snap.tasks.filter((t) => t.runId === run.id);
-export const runRequests = (snap: AgentSnapshot, run: AgentRun): AgentRequest[] => snap.requests.filter((q) => q.runId === run.id);
+export const runTasks = (snap: AgentSnapshot, run: AgentRun): AgentTask[] =>
+  snap.tasks.filter((t) => t.runId === run.id);
+export const runRequests = (snap: AgentSnapshot, run: AgentRun): AgentRequest[] =>
+  snap.requests.filter((q) => q.runId === run.id);
 
 export const isLive = (a: Agent) => a.state !== "stopped" && a.state !== "exited";
 export const isBusy = (a: Agent) => a.state === "working" || a.state === "waiting";
@@ -126,7 +147,12 @@ export interface Usage {
   at: number;
 }
 
-const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() && Number.isFinite(Number(v)) ? Number(v) : null);
+const num = (v: unknown): number | null =>
+  typeof v === "number" && Number.isFinite(v)
+    ? v
+    : typeof v === "string" && v.trim() && Number.isFinite(Number(v))
+      ? Number(v)
+      : null;
 
 function when(v: unknown): number | null {
   const n = num(v);
@@ -164,8 +190,10 @@ export function usageFromAccount(res: { fetchedAt: number; usage: Record<string,
       else if (l.kind === "weekly_all") sevenDay ??= { pct, resetsAt: when(l.resets_at) };
     }
   }
-  if (!fiveHour && num(u.five_hour?.utilization) !== null) fiveHour = { pct: num(u.five_hour.utilization)!, resetsAt: when(u.five_hour.resets_at) };
-  if (!sevenDay && num(u.seven_day?.utilization) !== null) sevenDay = { pct: num(u.seven_day.utilization)!, resetsAt: when(u.seven_day.resets_at) };
+  if (!fiveHour && num(u.five_hour?.utilization) !== null)
+    fiveHour = { pct: num(u.five_hour.utilization)!, resetsAt: when(u.five_hour.resets_at) };
+  if (!sevenDay && num(u.seven_day?.utilization) !== null)
+    sevenDay = { pct: num(u.seven_day.utilization)!, resetsAt: when(u.seven_day.resets_at) };
   return fiveHour || sevenDay ? { fiveHour, sevenDay, source: "account", at: res!.fetchedAt } : null;
 }
 

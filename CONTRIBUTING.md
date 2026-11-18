@@ -57,7 +57,7 @@ src/
 ## Guidelines
 
 - Keep the style of the surrounding code: naming, structure and comment density. Comments say
-  *why*, briefly.
+  _why_, briefly.
 - Treat everything outside the app as hostile: files, repositories, terminal output, web pages,
   plugins and SSH servers. Never build shell commands from them without quoting for the target
   shell, never touch a path from them before checking it's local, and never pass them to

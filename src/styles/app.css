@@ -155,7 +155,9 @@ kbd {
   font: inherit;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
 }
 .btn:hover {
   border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
@@ -210,7 +212,9 @@ kbd {
   background: transparent;
   color: var(--text-dim);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
 }
 .icon-btn:hover {
   background: var(--hover-strong);
@@ -618,7 +622,10 @@ kbd {
   border-radius: calc(var(--radius) + 2px);
   background: var(--ws-soft);
   cursor: pointer;
-  transition: border-radius 0.18s var(--ease), background 0.15s, transform 0.12s;
+  transition:
+    border-radius 0.18s var(--ease),
+    background 0.15s,
+    transform 0.12s;
   flex: none;
 }
 .rail-item:hover {
@@ -815,7 +822,9 @@ body.dragging .rail-item:hover .rail-tip {
   color: var(--text-dim);
   cursor: default;
   flex: none;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
 }
 .tab:hover {
   background: var(--hover);
@@ -1116,7 +1125,9 @@ body.dragging .rail-item:hover .rail-tip {
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 .pane.focused {
   border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
@@ -1197,7 +1208,9 @@ body.dragging .rail-item:hover .rail-tip {
   position: absolute;
   inset: 2.5%;
   z-index: 20;
-  box-shadow: var(--shadow), 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow:
+    var(--shadow),
+    0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
   animation: zoom-in 0.18s var(--ease);
 }
 .tab-content.zoom-fill .pane.zoomed {
@@ -1235,7 +1248,8 @@ body.dragging .rail-item:hover .rail-tip {
 }
 .term-host .xterm {
   height: 100%;
-  padding: calc(var(--term-pad, 8px) * 0.75) calc(var(--term-pad, 8px) * 0.5) calc(var(--term-pad, 8px) * 0.5) var(--term-pad, 8px);
+  padding: calc(var(--term-pad, 8px) * 0.75) calc(var(--term-pad, 8px) * 0.5) calc(var(--term-pad, 8px) * 0.5)
+    var(--term-pad, 8px);
 }
 .term-host .xterm-viewport {
   background: transparent !important;
@@ -1395,7 +1409,9 @@ body.dragging .rail-item:hover .rail-tip {
   border: 1px dashed var(--text-dim);
 }
 .swatch.selected {
-  box-shadow: 0 0 0 2px var(--surface-2), 0 0 0 4px var(--text);
+  box-shadow:
+    0 0 0 2px var(--surface-2),
+    0 0 0 4px var(--text);
 }
 .swatch.big {
   width: 26px;

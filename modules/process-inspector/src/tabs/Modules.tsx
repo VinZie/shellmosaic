@@ -25,7 +25,15 @@ import { reveal } from "../components/actions";
 import { Addr, ResourceView } from "../components/common";
 import type { TabProps } from "../lib/prefs";
 import { useResource } from "../lib/resource";
-import { checkSignatureNow, getSignature, requestSignature, SigChip, sigRank, sigText, useSignatureVersion } from "../lib/signatures";
+import {
+  checkSignatureNow,
+  getSignature,
+  requestSignature,
+  SigChip,
+  sigRank,
+  sigText,
+  useSignatureVersion,
+} from "../lib/signatures";
 import { isUserWritable } from "../lib/util";
 
 const rowKey = (m: ProcModule) => `${m.base}|${m.path}`;
@@ -55,7 +63,14 @@ function ModulesTable({ mods }: { mods: ProcModule[] }) {
   const rows = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return mods;
-    return mods.filter((m) => m.name.toLowerCase().includes(s) || m.path.toLowerCase().includes(s) || m.base.toLowerCase().includes(s) || m.description?.toLowerCase().includes(s) || m.company?.toLowerCase().includes(s));
+    return mods.filter(
+      (m) =>
+        m.name.toLowerCase().includes(s) ||
+        m.path.toLowerCase().includes(s) ||
+        m.base.toLowerCase().includes(s) ||
+        m.description?.toLowerCase().includes(s) ||
+        m.company?.toLowerCase().includes(s),
+    );
   }, [mods, q]);
 
   const stats = useMemo(() => {
@@ -96,7 +111,15 @@ function ModulesTable({ mods }: { mods: ProcModule[] }) {
           </>
         ),
       },
-      { id: "base", label: "Base", width: 150, mono: true, sort: (m) => toBig(m.base), text: (m) => m.base, render: (m) => <Addr value={m.base} /> },
+      {
+        id: "base",
+        label: "Base",
+        width: 150,
+        mono: true,
+        sort: (m) => toBig(m.base),
+        text: (m) => m.base,
+        render: (m) => <Addr value={m.base} />,
+      },
       { id: "size", label: "Size", width: 80, align: "right", sort: (m) => m.size, text: (m) => formatBytes(m.size) },
       {
         id: "signature",
@@ -106,11 +129,32 @@ function ModulesTable({ mods }: { mods: ProcModule[] }) {
         text: (m) => sigText(getSignature(m.path)),
         render: (m) => <SigChip entry={getSignature(m.path)} />,
       },
-      { id: "description", label: "Description", width: 220, sort: (m) => m.description, text: (m) => m.description ?? "" },
+      {
+        id: "description",
+        label: "Description",
+        width: 220,
+        sort: (m) => m.description,
+        text: (m) => m.description ?? "",
+      },
       { id: "company", label: "Company", width: 170, sort: (m) => m.company, text: (m) => m.company ?? "" },
-      { id: "version", label: "Version", width: 120, hidden: true, sort: (m) => m.version, text: (m) => m.version ?? "" },
+      {
+        id: "version",
+        label: "Version",
+        width: 120,
+        hidden: true,
+        sort: (m) => m.version,
+        text: (m) => m.version ?? "",
+      },
       { id: "path", label: "Path", width: 380, sort: (m) => m.path, text: (m) => m.path },
-      { id: "end", label: "End address", width: 150, mono: true, hidden: true, sort: (m) => toBig(m.base) + BigInt(m.size), text: (m) => "0x" + (toBig(m.base) + BigInt(m.size)).toString(16).padStart(16, "0") },
+      {
+        id: "end",
+        label: "End address",
+        width: 150,
+        mono: true,
+        hidden: true,
+        sort: (m) => toBig(m.base) + BigInt(m.size),
+        text: (m) => "0x" + (toBig(m.base) + BigInt(m.size)).toString(16).padStart(16, "0"),
+      },
     ],
     // getSignature is read at render time; sigv makes the table re-sort when results arrive
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,9 +165,21 @@ function ModulesTable({ mods }: { mods: ProcModule[] }) {
     const m = sel[0];
     if (!m) return;
     openMenu(at, [
-      { label: "Copy name", icon: <Copy size={14} />, onSelect: () => copy(sel.map((x) => x.name).join("\n"), sel.length > 1 ? "names" : "name") },
-      { label: "Copy path", icon: <Copy size={14} />, onSelect: () => copy(sel.map((x) => x.path).join("\n"), sel.length > 1 ? "paths" : "path") },
-      { label: "Copy base address", icon: <Hash size={14} />, onSelect: () => copy(sel.map((x) => x.base).join("\n"), "base address") },
+      {
+        label: "Copy name",
+        icon: <Copy size={14} />,
+        onSelect: () => copy(sel.map((x) => x.name).join("\n"), sel.length > 1 ? "names" : "name"),
+      },
+      {
+        label: "Copy path",
+        icon: <Copy size={14} />,
+        onSelect: () => copy(sel.map((x) => x.path).join("\n"), sel.length > 1 ? "paths" : "path"),
+      },
+      {
+        label: "Copy base address",
+        icon: <Hash size={14} />,
+        onSelect: () => copy(sel.map((x) => x.base).join("\n"), "base address"),
+      },
       { separator: true },
       { label: "Open file location", icon: <FolderOpen size={14} />, onSelect: () => reveal(m.path) },
       {
@@ -135,7 +191,11 @@ function ModulesTable({ mods }: { mods: ProcModule[] }) {
             return;
           }
           checkSignatureNow(m.path).then(
-            (sig) => sm.ui.notify(`${m.name}: ${sigText({ state: "done", sig })}`, sig.status === "valid" ? "success" : sig.status === "invalid" ? "error" : "warning"),
+            (sig) =>
+              sm.ui.notify(
+                `${m.name}: ${sigText({ state: "done", sig })}`,
+                sig.status === "valid" ? "success" : sig.status === "invalid" ? "error" : "warning",
+              ),
             (e) => sm.ui.notify(`Couldn't check ${m.name}: ${errorText(e)}`, "error"),
           );
         },
@@ -167,7 +227,11 @@ function ModulesTable({ mods }: { mods: ProcModule[] }) {
         empty={q ? `No module matches “${q}”` : "No modules"}
       />
       <Footer>
-        <span>{rows.length === mods.length ? `${formatNumber(mods.length)} modules` : `${formatNumber(rows.length)} of ${formatNumber(mods.length)} modules`}</span>
+        <span>
+          {rows.length === mods.length
+            ? `${formatNumber(mods.length)} modules`
+            : `${formatNumber(rows.length)} of ${formatNumber(mods.length)} modules`}
+        </span>
         <span>·</span>
         <span>{formatBytes(stats.size)}</span>
         {stats.pending > 0 && (

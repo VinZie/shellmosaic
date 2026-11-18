@@ -135,7 +135,11 @@ function beep() {
 export async function copySelection(e: TermEntry): Promise<boolean> {
   let text = e.term.getSelection();
   if (!text) return false;
-  if (settings().terminal.trimSelection) text = text.split("\n").map((l) => l.replace(/\s+$/, "")).join("\n");
+  if (settings().terminal.trimSelection)
+    text = text
+      .split("\n")
+      .map((l) => l.replace(/\s+$/, ""))
+      .join("\n");
   await writeText(text);
   return true;
 }
@@ -230,7 +234,15 @@ export function ensureTerm(paneId: string): TermEntry {
   term.attachCustomKeyEventHandler((ev) => {
     // Shift+Enter → ESC CR, which Claude Code reads as a new line. preventDefault stops the
     // keypress that would otherwise make xterm send a plain Enter right after it.
-    if (ev.key === "Enter" && ev.shiftKey && !ev.ctrlKey && !ev.altKey && !ev.metaKey && !ev.isComposing && settings().terminal.shiftEnter === "newline") {
+    if (
+      ev.key === "Enter" &&
+      ev.shiftKey &&
+      !ev.ctrlKey &&
+      !ev.altKey &&
+      !ev.metaKey &&
+      !ev.isComposing &&
+      settings().terminal.shiftEnter === "newline"
+    ) {
       if (ev.type === "keydown") {
         ev.preventDefault();
         term.input("\x1b\r", true);
@@ -239,7 +251,14 @@ export function ensureTerm(paneId: string): TermEntry {
     }
     if (ev.type !== "keydown") return true;
     const t = settings().terminal;
-    if (ev.ctrlKey && !ev.shiftKey && !ev.altKey && ev.key.toLowerCase() === "c" && t.ctrlCCopies && term.hasSelection()) {
+    if (
+      ev.ctrlKey &&
+      !ev.shiftKey &&
+      !ev.altKey &&
+      ev.key.toLowerCase() === "c" &&
+      t.ctrlCCopies &&
+      term.hasSelection()
+    ) {
       copySelection(entry).then(() => term.clearSelection());
       return false;
     }
@@ -256,7 +275,8 @@ export function ensureTerm(paneId: string): TermEntry {
       ev.stopImmediatePropagation();
       const data = ev.clipboardData;
       const text = data?.getData("text/plain") ?? "";
-      if (!text && data && [...data.items].some((i) => i.kind === "file" && i.type.startsWith("image/"))) pasteImage(entry);
+      if (!text && data && [...data.items].some((i) => i.kind === "file" && i.type.startsWith("image/")))
+        pasteImage(entry);
       else pasteInto(entry, text);
     },
     true,
@@ -360,7 +380,19 @@ async function startPty(e: TermEntry, restore: boolean) {
   try {
     // an agent's terminal is already running (or stopped): the view only attaches to it
     const spec = agent
-      ? { profileId: "agent", command: "", args: [], kind: "custom", env: {}, cwd: null, shellIntegration: false, restore: false, freshEnv: true, ssh: null, agent }
+      ? {
+          profileId: "agent",
+          command: "",
+          args: [],
+          kind: "custom",
+          env: {},
+          cwd: null,
+          shellIntegration: false,
+          restore: false,
+          freshEnv: true,
+          ssh: null,
+          agent,
+        }
       : { ...spawnSpec(pane.meta.profile, pane.meta.cwd, restore), ssh };
     const info = await ipc.ptyAttach(e.paneId, spec, cols, rows, channel);
     // disposed meanwhile (maybe already replaced by a new entry for the same pane)
@@ -605,7 +637,9 @@ useModel.subscribe((s) => {
     const owner = ws ? windowOfWorkspace(s.model, ws.id) : undefined;
     if (owner && owner !== s.label) disposeTerm(id);
   }
-  const sig = [...entries.keys()].map((id) => `${id}:${s.model.panes[id]?.meta.fontSize}:${s.model.panes[id]?.meta.theme}`).join("|");
+  const sig = [...entries.keys()]
+    .map((id) => `${id}:${s.model.panes[id]?.meta.fontSize}:${s.model.panes[id]?.meta.theme}`)
+    .join("|");
   if (sig !== lastPaneMeta) {
     lastPaneMeta = sig;
     reapplyOptions();

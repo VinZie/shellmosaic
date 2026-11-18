@@ -31,7 +31,9 @@ export function ready(): Promise<ReadyInfo> {
     readyPromise =
       own ??
       new Promise<ReadyInfo>((resolve) =>
-        window.addEventListener("shellmosaic:ready", (e) => resolve((e as CustomEvent<ReadyInfo>).detail), { once: true }),
+        window.addEventListener("shellmosaic:ready", (e) => resolve((e as CustomEvent<ReadyInfo>).detail), {
+          once: true,
+        }),
       );
   }
   return readyPromise;

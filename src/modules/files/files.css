@@ -278,7 +278,9 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.12s, background 0.12s;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
 }
 .files-pc-item:hover {
   border-color: color-mix(in srgb, var(--accent) 60%, var(--border));

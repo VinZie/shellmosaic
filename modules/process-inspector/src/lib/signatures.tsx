@@ -82,7 +82,8 @@ export async function checkSignatureNow(path: string): Promise<Signature> {
   }
 }
 
-export const getSignature = (path: string | null | undefined): SigEntry | undefined => (path ? cache.get(keyOf(path)) : undefined);
+export const getSignature = (path: string | null | undefined): SigEntry | undefined =>
+  path ? cache.get(keyOf(path)) : undefined;
 
 /** Re-renders whenever new results arrive; the number changes each time. */
 export function useSignatureVersion(): number {
@@ -138,7 +139,9 @@ export function SigChip({ entry }: { entry: SigEntry | undefined }) {
       </Chip>
     );
   const s = entry.sig;
-  const title = [s.detail, s.signer && `Signer: ${s.signer}`, s.catalog && "Signed through a security catalog"].filter(Boolean).join("\n");
+  const title = [s.detail, s.signer && `Signer: ${s.signer}`, s.catalog && "Signed through a security catalog"]
+    .filter(Boolean)
+    .join("\n");
   const text = <span>{sigText(entry)}</span>;
   switch (s.status) {
     case "valid":

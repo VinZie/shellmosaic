@@ -1,5 +1,20 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { ArrowUp, ChevronDown, CircleX, LoaderCircle, PanelBottom, PanelLeftClose, PanelLeftOpen, PanelRight, Play, Radar, RefreshCw, ScrollText, SearchX, ShieldAlert } from "lucide-react";
+import {
+  ArrowUp,
+  ChevronDown,
+  CircleX,
+  LoaderCircle,
+  PanelBottom,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRight,
+  Play,
+  Radar,
+  RefreshCw,
+  ScrollText,
+  SearchX,
+  ShieldAlert,
+} from "lucide-react";
 import {
   Button,
   cx,
@@ -37,7 +52,17 @@ import { useEventFeed, useLiveTail, type FeedQuery } from "./feed";
 import { FilterBar, XPathEditor, type BarMode } from "./FilterBar";
 import { DEFAULT_EXPANDED, DEFAULT_FAVORITES, LogList, shortLogName, WINDOWS_LOGS } from "./LogList";
 import type { Ev } from "./parse";
-import { buildXPath, excludeId, filterCount, NO_FILTERS, parseIds, type Audit, type Filters, type IdSpec, type RangeId } from "./query";
+import {
+  buildXPath,
+  excludeId,
+  filterCount,
+  NO_FILTERS,
+  parseIds,
+  type Audit,
+  type Filters,
+  type IdSpec,
+  type RangeId,
+} from "./query";
 import { SYSMON_CHANNEL } from "./sysmon";
 import "./app.css";
 
@@ -58,7 +83,15 @@ type PaneState = {
   fromArgs: string;
 };
 
-const INITIAL: PaneState = { channel: "", ...NO_FILTERS, text: "", xpath: null, sysmon: null, live: false, fromArgs: "" };
+const INITIAL: PaneState = {
+  channel: "",
+  ...NO_FILTERS,
+  text: "",
+  xpath: null,
+  sysmon: null,
+  live: false,
+  fromArgs: "",
+};
 
 type Layout = {
   sidebar: number;
@@ -70,12 +103,21 @@ type Layout = {
   tab: DetailsTab;
 };
 
-const LAYOUT: Layout = { sidebar: 250, sidebarHidden: false, details: "auto", detailsHidden: false, detailsH: 280, detailsW: 430, tab: "general" };
+const LAYOUT: Layout = {
+  sidebar: 250,
+  sidebarHidden: false,
+  details: "auto",
+  detailsHidden: false,
+  detailsH: 280,
+  detailsW: 430,
+  tab: "general",
+};
 
 const ROW_H = 24;
 const rowKey = (e: Ev) => e.key;
 
-const isInvalidQuery = (e: string) => /valid event query|invalid query|query is invalid|15001|EVT_INVALID_QUERY/i.test(e);
+const isInvalidQuery = (e: string) =>
+  /valid event query|invalid query|query is invalid|15001|EVT_INVALID_QUERY/i.test(e);
 const isNoSuchLog = (e: string) => /no such log|could not be found|couldn't be found|not found|15007/i.test(e);
 
 export function App() {
@@ -142,11 +184,16 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
   }, []);
   useEffect(() => {
     if (!channels || psRef.current.channel) return;
-    const pick = ["Application", ...DEFAULT_FAVORITES].find((n) => channels.some((c) => c.name === n)) ?? channels[0]?.name;
+    const pick =
+      ["Application", ...DEFAULT_FAVORITES].find((n) => channels.some((c) => c.name === n)) ?? channels[0]?.name;
     if (pick) setPs({ channel: pick });
   }, [channels, setPs]);
-  const favList = useMemo(() => favorites ?? DEFAULT_FAVORITES.filter((n) => !channels || channels.some((c) => c.name === n)), [favorites, channels]);
-  const togglePin = (name: string) => setFavorites(() => (favList.includes(name) ? favList.filter((x) => x !== name) : [...favList, name]));
+  const favList = useMemo(
+    () => favorites ?? DEFAULT_FAVORITES.filter((n) => !channels || channels.some((c) => c.name === n)),
+    [favorites, channels],
+  );
+  const togglePin = (name: string) =>
+    setFavorites(() => (favList.includes(name) ? favList.filter((x) => x !== name) : [...favList, name]));
   const channel = ps.channel;
   const channelInfo = channels?.find((c) => c.name === channel) ?? null;
 
@@ -161,7 +208,13 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
   const lastIds = useRef<IdSpec | null>(null);
   if (idsParsed.ok) lastIds.current = idsParsed.value;
   const idsError = idsParsed.ok ? null : idsParsed.error;
-  const filters: Filters = { levels: ps.levels, audit: ps.audit, ids: ps.ids, providers: ps.providers, range: ps.range };
+  const filters: Filters = {
+    levels: ps.levels,
+    audit: ps.audit,
+    ids: ps.ids,
+    providers: ps.providers,
+    range: ps.range,
+  };
   let generated: string | null = null;
   let genError: string | null = null;
   try {
@@ -171,7 +224,8 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
   }
   const xpath = ps.xpath ?? generated;
   const [nonce, setNonce] = useState(0);
-  const q: FeedQuery | null = channel && !(genError && ps.xpath === null) ? { channel, xpath, text: textQ, nonce } : null;
+  const q: FeedQuery | null =
+    channel && !(genError && ps.xpath === null) ? { channel, xpath, text: textQ, nonce } : null;
   const feed = useEventFeed(q, ctx.visible);
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
 
@@ -209,7 +263,8 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
   const active = filterCount(filters);
   const anyFilter = active > 0 || !!ps.xpath || !!ps.text.trim();
   // room for the level chips' labels on one line with everything else
-  const labelsAt = 1190 + (channel === "Security" ? 150 : 0) + (isSysmonChannel ? 85 : 0) + (anyFilter ? 30 : 0) + (ps.xpath ? 50 : 0);
+  const labelsAt =
+    1190 + (channel === "Security" ? 150 : 0) + (isSysmonChannel ? 85 : 0) + (anyFilter ? 30 : 0) + (ps.xpath ? 50 : 0);
   const barMode: BarMode = mainW < 620 ? "compact" : mainW < labelsAt ? "icons" : "full";
   const narrow = mainW < 560;
 
@@ -220,7 +275,13 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
   const colEventsNarrow = useColumnState("events-narrow");
   const colSysmon = useColumnState("sysmon");
   const colSysmonNarrow = useColumnState("sysmon-narrow");
-  const [colState, setColState] = sysmonView ? (narrow ? colSysmonNarrow : colSysmon) : narrow ? colEventsNarrow : colEvents;
+  const [colState, setColState] = sysmonView
+    ? narrow
+      ? colSysmonNarrow
+      : colSysmon
+    : narrow
+      ? colEventsNarrow
+      : colEvents;
 
   const [sort, setSort] = useState<SortState | null>(null);
   const [sel, setSel] = useState<Key[]>([]);
@@ -390,7 +451,9 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
       records={info?.records ?? null}
       onOpenInPane={(name) => {
         setLogPop(false);
-        sm.ui.openModule({ module: "plugin:event-viewer", args: { channel: name } }).catch((e) => sm.ui.notify(errorText(e), "error"));
+        sm.ui
+          .openModule({ module: "plugin:event-viewer", args: { channel: name } })
+          .catch((e) => sm.ui.notify(errorText(e), "error"));
       }}
       autoFocus={inPopover}
       className={inPopover ? "in-popover" : undefined}
@@ -400,12 +463,21 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
   const left = (
     <>
       {!sidebarForcedOff && (
-        <IconButton title={sidebarShown ? "Hide the log list" : "Show the log list"} onClick={() => setLayout((l) => ({ ...l, sidebarHidden: !l.sidebarHidden }))}>
+        <IconButton
+          title={sidebarShown ? "Hide the log list" : "Show the log list"}
+          onClick={() => setLayout((l) => ({ ...l, sidebarHidden: !l.sidebarHidden }))}
+        >
           {sidebarShown ? <PanelLeftClose size={15} /> : <PanelLeftOpen size={15} />}
         </IconButton>
       )}
       {!sidebarShown && (
-        <button ref={logBtn} type="button" className="ev-pick ev-logpick" title={channel || "Choose a log"} onClick={() => setLogPop((o) => !o)}>
+        <button
+          ref={logBtn}
+          type="button"
+          className="ev-pick ev-logpick"
+          title={channel || "Choose a log"}
+          onClick={() => setLogPop((o) => !o)}
+        >
           <ScrollText size={13} />
           <span className="sm-ellipsis">{channel ? shortLogName(channel) : "Choose a log"}</span>
           <ChevronDown size={12} />
@@ -418,7 +490,12 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
   const right = (
     <>
       {isSysmonChannel && !compact && (
-        <button type="button" className={cx("ev-pick", sysmonView && "on")} title="Sysmon view: columns from Sysmon's event data" onClick={() => setPs({ sysmon: !sysmonView })}>
+        <button
+          type="button"
+          className={cx("ev-pick", sysmonView && "on")}
+          title="Sysmon view: columns from Sysmon's event data"
+          onClick={() => setPs({ sysmon: !sysmonView })}
+        >
           <Radar size={13} />
           <span>Sysmon</span>
         </button>
@@ -447,13 +524,27 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
     </>
   );
 
-  const filterError = idsError ? `Event IDs: ${idsError}` : genError ?? queryError;
+  const filterError = idsError ? `Event IDs: ${idsError}` : (genError ?? queryError);
 
   let tableArea: React.ReactNode;
-  if (!channel) tableArea = channelsError ? <Message tone="danger" icon={<CircleX size={22} />} title="Couldn't list the event logs">{channelsError}</Message> : <Loading label="Reading the event logs…" />;
-  else if (feed.status === "error" && feed.error && !queryError) tableArea = <QueryError ctx={ctx} channel={channel} error={feed.error} onRetry={refresh} onPick={selectChannel} />;
-  else if (queryError) tableArea = <Message icon={<SearchX size={22} />} title="No results">The filter isn't a valid event query; fix it above.</Message>;
-  else if ((feed.status === "loading" && !feed.events.length) || feed.status === "idle") tableArea = <Loading label={`Reading ${shortLogName(channel)}…`} />;
+  if (!channel)
+    tableArea = channelsError ? (
+      <Message tone="danger" icon={<CircleX size={22} />} title="Couldn't list the event logs">
+        {channelsError}
+      </Message>
+    ) : (
+      <Loading label="Reading the event logs…" />
+    );
+  else if (feed.status === "error" && feed.error && !queryError)
+    tableArea = <QueryError ctx={ctx} channel={channel} error={feed.error} onRetry={refresh} onPick={selectChannel} />;
+  else if (queryError)
+    tableArea = (
+      <Message icon={<SearchX size={22} />} title="No results">
+        The filter isn't a valid event query; fix it above.
+      </Message>
+    );
+  else if ((feed.status === "loading" && !feed.events.length) || feed.status === "idle")
+    tableArea = <Loading label={`Reading ${shortLogName(channel)}…`} />;
   else
     tableArea = (
       <div
@@ -476,21 +567,24 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
           onSelect={onSelect}
           multi
           onOpen={openDetails}
-          onContextMenu={(at, rows) => openMenu(at, rowMenu(rows, actions, () => rowsTsv(rows, shownColumns(columns, colState))))}
+          onContextMenu={(at, rows) =>
+            openMenu(
+              at,
+              rowMenu(rows, actions, () => rowsTsv(rows, shownColumns(columns, colState))),
+            )
+          }
           rowClass={(e) => fresh.has(e.key) && "ev-fresh"}
           onEndReached={feed.loadMore}
           rowHeight={ROW_H}
           scrollTo={current?.key ?? null}
           empty={
-            !feed.done ? (
-              "Searching…"
-            ) : anyFilter ? (
-              "No events match the filters."
-            ) : channelInfo && !channelInfo.enabled ? (
-              "This log is disabled, and empty."
-            ) : (
-              "This log is empty."
-            )
+            !feed.done
+              ? "Searching…"
+              : anyFilter
+                ? "No events match the filters."
+                : channelInfo && !channelInfo.enabled
+                  ? "This log is disabled, and empty."
+                  : "This log is empty."
           }
         />
         {pending > 0 && (
@@ -502,7 +596,8 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
           <div className="ev-scan">
             <LoaderCircle size={13} className="sm-spin" />
             <span>
-              Scanned {formatNumber(feed.scanned)} events… <span className="sm-dim">{formatNumber(feed.events.length)} found</span>
+              Scanned {formatNumber(feed.scanned)} events…{" "}
+              <span className="sm-dim">{formatNumber(feed.events.length)} found</span>
             </span>
             <Button small kind="subtle" onClick={feed.stop}>
               Stop
@@ -512,7 +607,8 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
         {feed.stopped && !feed.done && (
           <div className="ev-scan">
             <span>
-              Stopped after {formatNumber(feed.scanned)} events. <span className="sm-dim">{formatNumber(feed.events.length)} found</span>
+              Stopped after {formatNumber(feed.scanned)} events.{" "}
+              <span className="sm-dim">{formatNumber(feed.events.length)} found</span>
             </span>
             <Button small kind="subtle" onClick={feed.resume}>
               Continue
@@ -578,7 +674,15 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
           )
         }
       />
-      {xpathOpen && <XPathEditor generated={generated} custom={ps.xpath} onApply={(x) => setPs({ xpath: x })} onClose={() => setXpathOpen(false)} error={queryError} />}
+      {xpathOpen && (
+        <XPathEditor
+          generated={generated}
+          custom={ps.xpath}
+          onApply={(x) => setPs({ xpath: x })}
+          onClose={() => setXpathOpen(false)}
+          error={queryError}
+        />
+      )}
       {filterError && (
         <div className="ev-filter-error" role="alert">
           <CircleX size={14} />
@@ -598,7 +702,11 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
       <Split
         direction={side === "right" ? "horizontal" : "vertical"}
         sizeOf="second"
-        size={side === "right" ? Math.min(layout.detailsW, Math.max(260, mainW - 340)) : Math.min(layout.detailsH, Math.max(110, main.h - 230))}
+        size={
+          side === "right"
+            ? Math.min(layout.detailsW, Math.max(260, mainW - 340))
+            : Math.min(layout.detailsH, Math.max(110, main.h - 230))
+        }
         onSize={(px) => setLayout((l) => (side === "right" ? { ...l, detailsW: px } : { ...l, detailsH: px }))}
         min={side === "right" ? 260 : 110}
         collapsed={layout.detailsHidden || !current || feed.status === "error"}
@@ -606,7 +714,11 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
         second={detailsPane}
       />
       <Footer>
-        {ps.live && <span className={cx("ev-foot-live", live.state === "on" && "on")}>{live.state === "on" ? (ctx.visible ? "Live" : "Live (paused while hidden)") : "Connecting…"}</span>}
+        {ps.live && (
+          <span className={cx("ev-foot-live", live.state === "on" && "on")}>
+            {live.state === "on" ? (ctx.visible ? "Live" : "Live (paused while hidden)") : "Connecting…"}
+          </span>
+        )}
         <span className="sm-ellipsis ev-foot-log" title={channel}>
           {channel ? shortLogName(channel) : "—"}
         </span>
@@ -620,10 +732,17 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
         {(feed.loadingMore || feed.status === "loading") && <LoaderCircle size={11} className="sm-spin" />}
         <div className="sm-grow" />
         {sel.length > 1 && <span>{formatNumber(sel.length)} selected</span>}
-        {feed.refreshedAt && <span title={formatDateTime(feed.refreshedAt)}>refreshed {formatDateTime(feed.refreshedAt).slice(11)}</span>}
+        {feed.refreshedAt && (
+          <span title={formatDateTime(feed.refreshedAt)}>refreshed {formatDateTime(feed.refreshedAt).slice(11)}</span>
+        )}
       </Footer>
       {logPop && !sidebarShown && (
-        <Popover anchor={logBtn.current} onClose={() => setLogPop(false)} width={Math.min(330, root.w - 8)} align="left">
+        <Popover
+          anchor={logBtn.current}
+          onClose={() => setLogPop(false)}
+          width={Math.min(330, root.w - 8)}
+          align="left"
+        >
           {logList(true)}
         </Popover>
       )}
@@ -645,7 +764,19 @@ function Viewer({ ctx }: { ctx: PaneContext }) {
   );
 }
 
-function QueryError({ ctx, channel, error, onRetry, onPick }: { ctx: PaneContext; channel: string; error: string; onRetry: () => void; onPick: (c: string) => void }) {
+function QueryError({
+  ctx,
+  channel,
+  error,
+  onRetry,
+  onPick,
+}: {
+  ctx: PaneContext;
+  channel: string;
+  error: string;
+  onRetry: () => void;
+  onPick: (c: string) => void;
+}) {
   const [busy, setBusy] = useState(false);
   if (isAccessDenied(error)) {
     return (
@@ -680,7 +811,8 @@ function QueryError({ ctx, channel, error, onRetry, onPick }: { ctx: PaneContext
           <p>Windows refused to open this log even for an administrator. {error}</p>
         ) : (
           <p>
-            Windows only lets administrators read the <b>{shortLogName(channel)}</b> log. Restart Shellmosaic as administrator to see its events.
+            Windows only lets administrators read the <b>{shortLogName(channel)}</b> log. Restart Shellmosaic as
+            administrator to see its events.
           </p>
         )}
       </Message>
@@ -691,13 +823,7 @@ function QueryError({ ctx, channel, error, onRetry, onPick }: { ctx: PaneContext
       <Message
         icon={<SearchX size={22} />}
         title="No such log"
-        actions={
-          channel !== "Application" && (
-            <Button onClick={() => onPick(WINDOWS_LOGS[0])}>
-              Open Application
-            </Button>
-          )
-        }
+        actions={channel !== "Application" && <Button onClick={() => onPick(WINDOWS_LOGS[0])}>Open Application</Button>}
       >
         <p>
           There is no log named <b className="sm-selectable">{channel}</b> on this computer.
@@ -706,7 +832,12 @@ function QueryError({ ctx, channel, error, onRetry, onPick }: { ctx: PaneContext
     );
   }
   return (
-    <Message tone="danger" icon={<CircleX size={22} />} title="Couldn't read the log" actions={<Button onClick={onRetry}>Try again</Button>}>
+    <Message
+      tone="danger"
+      icon={<CircleX size={22} />}
+      title="Couldn't read the log"
+      actions={<Button onClick={onRetry}>Try again</Button>}
+    >
       <p className="sm-selectable">{error}</p>
     </Message>
   );

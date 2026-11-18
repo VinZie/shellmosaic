@@ -11,10 +11,29 @@ import { ui } from "../../state/ui";
 import { useAlive, useFocusWhen } from "./VaultForms";
 import { sentence, syncPaneNames, useVault } from "./vault";
 
-const HOST_ICONS = ["server", "database", "cloud", "globe", "router", "container", "box", "monitor", "cpu", "hard-drive", "shield", "flask", "rocket", "bot"];
+const HOST_ICONS = [
+  "server",
+  "database",
+  "cloud",
+  "globe",
+  "router",
+  "container",
+  "box",
+  "monitor",
+  "cpu",
+  "hard-drive",
+  "shield",
+  "flask",
+  "rocket",
+  "bot",
+];
 
 const AUTH: { value: HostAuth; label: string; hint: string }[] = [
-  { value: "auto", label: "Auto", hint: "Tries the private key (if one is set), then the saved password; anything else is asked when connecting." },
+  {
+    value: "auto",
+    label: "Auto",
+    hint: "Tries the private key (if one is set), then the saved password; anything else is asked when connecting.",
+  },
   { value: "password", label: "Password", hint: "Logs in with the saved password, or asks for it when connecting." },
   { value: "key", label: "Private key", hint: "Logs in with the private key only." },
 ];
@@ -40,7 +59,20 @@ interface Draft {
 }
 
 function draftOf(h: HostView | undefined, duplicate: boolean | undefined): Draft {
-  if (!h) return { name: "", host: "", port: "22", user: "", group: "", tags: [], color: null, icon: null, notes: "", auth: "auto", keyPath: "" };
+  if (!h)
+    return {
+      name: "",
+      host: "",
+      port: "22",
+      user: "",
+      group: "",
+      tags: [],
+      color: null,
+      icon: null,
+      notes: "",
+      auth: "auto",
+      keyPath: "",
+    };
   return {
     name: duplicate ? `${h.name} copy` : h.name,
     host: h.host,
@@ -107,7 +139,12 @@ export function HostEditor({
 
   const browseKey = async () => {
     const start = d.keyPath.trim() || (await sshFolder());
-    const picked = await openDialog({ multiple: false, directory: false, defaultPath: start, title: "Choose a private key" }).catch(() => null);
+    const picked = await openDialog({
+      multiple: false,
+      directory: false,
+      defaultPath: start,
+      title: "Choose a private key",
+    }).catch(() => null);
     if (typeof picked === "string") set("keyPath", picked);
   };
 
@@ -184,7 +221,12 @@ export function HostEditor({
     if (e.key === "Escape") {
       e.stopPropagation();
       cancel();
-    } else if (e.key === "Enter" && t.tagName === "INPUT" && !(t as HTMLInputElement).list && !e.nativeEvent.isComposing) {
+    } else if (
+      e.key === "Enter" &&
+      t.tagName === "INPUT" &&
+      !(t as HTMLInputElement).list &&
+      !e.nativeEvent.isComposing
+    ) {
       e.preventDefault();
       save();
     }
@@ -212,12 +254,14 @@ export function HostEditor({
       <div className="module-scroll hosts-editor-body">
         {gone && (
           <div className="hosts-note warn">
-            <Icon name="warning" size={13} /> This host was deleted (maybe from another window). It can't be saved any more.
+            <Icon name="warning" size={13} /> This host was deleted (maybe from another window). It can't be saved any
+            more.
           </div>
         )}
         {target.duplicate && (
           <div className="hosts-note">
-            <Icon name="info" size={13} /> Saved passwords and keys are copied too; type new ones to replace them. Trusted host keys aren't.
+            <Icon name="info" size={13} /> Saved passwords and keys are copied too; type new ones to replace them.
+            Trusted host keys aren't.
           </div>
         )}
 
@@ -225,7 +269,14 @@ export function HostEditor({
           <div className="hosts-grid">
             <div className="hosts-field wide">
               <label className="field-label">Name</label>
-              <input ref={nameRef} className="input wide" value={d.name} placeholder={d.host.trim() || "e.g. web01"} spellCheck={false} onChange={(e) => set("name", e.target.value)} />
+              <input
+                ref={nameRef}
+                className="input wide"
+                value={d.name}
+                placeholder={d.host.trim() || "e.g. web01"}
+                spellCheck={false}
+                onChange={(e) => set("name", e.target.value)}
+              />
             </div>
             <div className="hosts-field hosts-host">
               <label className="field-label">Host</label>
@@ -241,11 +292,24 @@ export function HostEditor({
             </div>
             <div className="hosts-field hosts-port">
               <label className="field-label">Port</label>
-              <input className="input wide mono" type="number" min={1} max={65535} value={d.port} onChange={(e) => set("port", e.target.value)} />
+              <input
+                className="input wide mono"
+                type="number"
+                min={1}
+                max={65535}
+                value={d.port}
+                onChange={(e) => set("port", e.target.value)}
+              />
             </div>
             <div className="hosts-field">
               <label className="field-label">User</label>
-              <input className="input wide mono" value={d.user} placeholder="asked when connecting" spellCheck={false} onChange={(e) => set("user", e.target.value)} />
+              <input
+                className="input wide mono"
+                value={d.user}
+                placeholder="asked when connecting"
+                spellCheck={false}
+                onChange={(e) => set("user", e.target.value)}
+              />
             </div>
           </div>
         </section>
@@ -255,7 +319,13 @@ export function HostEditor({
           <div className="hosts-grid">
             <div className="hosts-field">
               <label className="field-label">Group</label>
-              <input className="input wide" list={groupList} value={d.group} placeholder="e.g. Production" onChange={(e) => set("group", e.target.value)} />
+              <input
+                className="input wide"
+                list={groupList}
+                value={d.group}
+                placeholder="e.g. Production"
+                onChange={(e) => set("group", e.target.value)}
+              />
               <datalist id={groupList}>
                 {groups.map((g) => (
                   <option key={g} value={g} />
@@ -269,14 +339,29 @@ export function HostEditor({
           </div>
           <label className="field-label">Color</label>
           <div className="swatch-row">
-            <button type="button" className={cx("swatch big none", !d.color && "selected")} title="No color" onClick={() => set("color", null)}>
+            <button
+              type="button"
+              className={cx("swatch big none", !d.color && "selected")}
+              title="No color"
+              onClick={() => set("color", null)}
+            >
               <Icon name="x" size={12} />
             </button>
             {WORKSPACE_COLORS.map((c) => (
-              <button type="button" key={c} className={cx("swatch big", d.color?.toLowerCase() === c && "selected")} style={{ background: c }} title={c} onClick={() => set("color", c)} />
+              <button
+                type="button"
+                key={c}
+                className={cx("swatch big", d.color?.toLowerCase() === c && "selected")}
+                style={{ background: c }}
+                title={c}
+                onClick={() => set("color", c)}
+              />
             ))}
             <label
-              className={cx("swatch big custom", d.color && !WORKSPACE_COLORS.includes(d.color.toLowerCase()) && "selected")}
+              className={cx(
+                "swatch big custom",
+                d.color && !WORKSPACE_COLORS.includes(d.color.toLowerCase()) && "selected",
+              )}
               title="Custom color…"
               style={d.color && !WORKSPACE_COLORS.includes(d.color.toLowerCase()) ? { background: d.color } : undefined}
             >
@@ -305,7 +390,12 @@ export function HostEditor({
           <h4>Authentication</h4>
           <div className="segmented hosts-auth">
             {AUTH.map((a) => (
-              <button type="button" key={a.value} className={cx(d.auth === a.value && "on")} onClick={() => set("auth", a.value)}>
+              <button
+                type="button"
+                key={a.value}
+                className={cx(d.auth === a.value && "on")}
+                onClick={() => set("auth", a.value)}
+              >
                 {a.label}
               </button>
             ))}
@@ -339,14 +429,26 @@ export function HostEditor({
                 <Icon name="folder-open" size={14} /> Browse…
               </button>
             </div>
-            {pubKey && <p className="hosts-hint warn-text">That's a public key: choose the private key (the same name without .pub).</p>}
+            {pubKey && (
+              <p className="hosts-hint warn-text">
+                That's a public key: choose the private key (the same name without .pub).
+              </p>
+            )}
 
             <label className="field-label">…or paste a private key</label>
             {hasKeyData && (
               <div className={cx("hosts-saved", clear.keyData && "cleared")}>
                 <Icon name="key-round" size={13} />
-                <span className="grow">{clear.keyData ? "The saved key will be removed" : "A pasted key is saved (it's used instead of the key file)"}</span>
-                <button type="button" className="btn small subtle" onClick={() => setClear((c) => ({ ...c, keyData: !c.keyData }))}>
+                <span className="grow">
+                  {clear.keyData
+                    ? "The saved key will be removed"
+                    : "A pasted key is saved (it's used instead of the key file)"}
+                </span>
+                <button
+                  type="button"
+                  className="btn small subtle"
+                  onClick={() => setClear((c) => ({ ...c, keyData: !c.keyData }))}
+                >
                   {clear.keyData ? "Keep it" : "Remove"}
                 </button>
               </div>
@@ -358,7 +460,9 @@ export function HostEditor({
               spellCheck={false}
               autoComplete="off"
               disabled={clear.keyData}
-              placeholder={hasKeyData ? "Paste a key here to replace the saved one" : "-----BEGIN OPENSSH PRIVATE KEY-----"}
+              placeholder={
+                hasKeyData ? "Paste a key here to replace the saved one" : "-----BEGIN OPENSSH PRIVATE KEY-----"
+              }
             />
 
             <label className="field-label">Key passphrase</label>
@@ -375,7 +479,13 @@ export function HostEditor({
 
         <section className="hosts-section">
           <h4>Notes</h4>
-          <textarea className="input wide hosts-notes" rows={3} value={d.notes} placeholder="Anything worth remembering about this server" onChange={(e) => set("notes", e.target.value)} />
+          <textarea
+            className="input wide hosts-notes"
+            rows={3}
+            value={d.notes}
+            placeholder="Anything worth remembering about this server"
+            onChange={(e) => set("notes", e.target.value)}
+          />
         </section>
 
         {editId && live && (
@@ -399,7 +509,9 @@ export function HostEditor({
                 </div>
               </>
             ) : (
-              <p className="hosts-hint">None yet: the server's key fingerprint is shown and confirmed on the first connection.</p>
+              <p className="hosts-hint">
+                None yet: the server's key fingerprint is shown and confirmed on the first connection.
+              </p>
             )}
           </section>
         )}
@@ -474,7 +586,15 @@ function SecretRow({
   );
 }
 
-function TagInput({ tags, suggestions, onChange }: { tags: string[]; suggestions: string[]; onChange: (tags: string[]) => void }) {
+function TagInput({
+  tags,
+  suggestions,
+  onChange,
+}: {
+  tags: string[];
+  suggestions: string[];
+  onChange: (tags: string[]) => void;
+}) {
   const [text, setText] = useState("");
   const listId = useId();
   const clean = (raw: string) => raw.trim().replace(/^#/, "");
@@ -484,7 +604,10 @@ function TagInput({ tags, suggestions, onChange }: { tags: string[]; suggestions
     if (next.length !== tags.length) onChange(next);
   };
   return (
-    <div className="hosts-taginput input" onClick={(e) => (e.currentTarget.querySelector("input") as HTMLInputElement | null)?.focus()}>
+    <div
+      className="hosts-taginput input"
+      onClick={(e) => (e.currentTarget.querySelector("input") as HTMLInputElement | null)?.focus()}
+    >
       {tags.map((t) => (
         <span key={t} className="chip">
           {t}
@@ -501,7 +624,10 @@ function TagInput({ tags, suggestions, onChange }: { tags: string[]; suggestions
         onChange={(e) => {
           const v = e.target.value;
           // a suggestion picked from the list completes the tag, and so does a comma
-          if ((e.nativeEvent as InputEvent).inputType === "insertReplacementText" || !(e.nativeEvent instanceof InputEvent)) {
+          if (
+            (e.nativeEvent as InputEvent).inputType === "insertReplacementText" ||
+            !(e.nativeEvent instanceof InputEvent)
+          ) {
             add(v);
             setText("");
           } else if (v.includes(",")) {

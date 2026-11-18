@@ -37,7 +37,9 @@ function TabChip({ tabId, active }: { tabId: string; active: boolean }) {
   const badge = useTabBadge(tabId);
   const broadcast = useUi((s) => !!s.broadcast[tabId]);
   const showIcons = useSettings((s) => s.settings.appearance.showTabIcons);
-  const drop = useDrag((s) => (s.target?.kind === "tab" && s.target.tabId === tabId ? (s.target.before ? "before" : "after") : null));
+  const drop = useDrag((s) =>
+    s.target?.kind === "tab" && s.target.tabId === tabId ? (s.target.before ? "before" : "after") : null,
+  );
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -78,7 +80,11 @@ function TabChip({ tabId, active }: { tabId: string; active: boolean }) {
       title={`${label}${paneCount > 1 ? ` · ${paneCount} panes` : ""}`}
     >
       {tab.color && <span className="tab-flag" />}
-      {tab.pinned ? <Icon name="pin" size={13} className="tab-icon" /> : showIcons && <Icon name={icon} size={14} className="tab-icon" />}
+      {tab.pinned ? (
+        <Icon name="pin" size={13} className="tab-icon" />
+      ) : (
+        showIcons && <Icon name={icon} size={14} className="tab-icon" />
+      )}
       {editing ? (
         <input
           ref={inputRef}
@@ -149,7 +155,11 @@ function AdminBadge() {
   }, []);
   if (!elevated) return null;
   return (
-    <span className="chip titlebar-admin" title="Shellmosaic runs as administrator: shells and modules have full rights. Restart it normally to drop them." data-tauri-drag-region>
+    <span
+      className="chip titlebar-admin"
+      title="Shellmosaic runs as administrator: shells and modules have full rights. Restart it normally to drop them."
+      data-tauri-drag-region
+    >
       <Icon name="shield" size={12} /> Administrator
     </span>
   );
@@ -171,7 +181,9 @@ export function TitleBar() {
       {ws && (
         <div className="ws-title" data-tauri-drag-region onContextMenu={(e) => e.preventDefault()}>
           <span className="ws-dot" style={{ background: ws.color }} />
-          <span className="ws-name" data-tauri-drag-region>{ws.name}</span>
+          <span className="ws-name" data-tauri-drag-region>
+            {ws.name}
+          </span>
         </div>
       )}
       <div
@@ -185,7 +197,9 @@ export function TitleBar() {
           if (e.target === e.currentTarget) A.newTab();
         }}
       >
-        {ws?.tabs.map((t) => <TabChip key={t} tabId={t} active={t === ws.activeTab} />)}
+        {ws?.tabs.map((t) => (
+          <TabChip key={t} tabId={t} active={t === ws.activeTab} />
+        ))}
         <div className="new-tab-group">
           <button
             className="icon-btn new-tab"
@@ -212,7 +226,11 @@ export function TitleBar() {
       </div>
       <div className="titlebar-spacer" data-tauri-drag-region />
       <AdminBadge />
-      <button className="icon-btn titlebar-btn" onClick={() => ui.openPalette()} title={`Command palette (${shortcutLabel("palette.open")})`}>
+      <button
+        className="icon-btn titlebar-btn"
+        onClick={() => ui.openPalette()}
+        title={`Command palette (${shortcutLabel("palette.open")})`}
+      >
         <Icon name="command" size={15} />
       </button>
       <WindowControls />

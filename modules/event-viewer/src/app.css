@@ -135,7 +135,9 @@
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
 }
 .ev-seg-btn + .ev-seg-btn {
   border-left: 1px solid var(--line);

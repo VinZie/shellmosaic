@@ -19,7 +19,7 @@ export function BackgroundLayer({ bg, className }: { bg?: Background | null; cla
   if (bg.kind === "image") {
     // served by name only from the backgrounds folder (smbg protocol), never by path
     style.backgroundImage = `url("${convertFileSrc(basename(bg.value), "smbg")}")`;
-    style.backgroundSize = bg.fit === "tile" ? "auto" : bg.fit ?? "cover";
+    style.backgroundSize = bg.fit === "tile" ? "auto" : (bg.fit ?? "cover");
     style.backgroundRepeat = bg.fit === "tile" ? "repeat" : "no-repeat";
     style.backgroundPosition = "center";
   } else {
@@ -51,7 +51,9 @@ export class ErrorBoundary extends Component<
       <div className="empty-state">
         <Icon name="warning" size={26} />
         <h2 style={{ fontSize: 14 }}>{this.props.name} stopped working</h2>
-        <p className="dim selectable" style={{ maxWidth: 420 }}>{this.state.error.message}</p>
+        <p className="dim selectable" style={{ maxWidth: 420 }}>
+          {this.state.error.message}
+        </p>
         <button className="btn" onClick={this.retry}>
           <Icon name="rotate-cw" size={14} /> Reload pane
         </button>
@@ -60,7 +62,15 @@ export class ErrorBoundary extends Component<
   }
 }
 
-function Resizer({ split, index, containerRef }: { split: Extract<LayoutNode, { kind: "split" }>; index: number; containerRef: React.RefObject<HTMLDivElement | null> }) {
+function Resizer({
+  split,
+  index,
+  containerRef,
+}: {
+  split: Extract<LayoutNode, { kind: "split" }>;
+  index: number;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+}) {
   const tabId = useRef<string | null>(null);
   const onPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -104,7 +114,20 @@ function Resizer({ split, index, containerRef }: { split: Extract<LayoutNode, { 
       onPointerDown={onPointerDown}
       onDoubleClick={() => {
         const id = containerRef.current?.closest<HTMLElement>("[data-tab-id]")?.dataset.tabId;
-        if (id) commit((m) => m.tabs[id]?.root && setTabRoot(m, id, setSizes(m.tabs[id].root!, split.id, split.sizes.map(() => 1))));
+        if (id)
+          commit(
+            (m) =>
+              m.tabs[id]?.root &&
+              setTabRoot(
+                m,
+                id,
+                setSizes(
+                  m.tabs[id].root!,
+                  split.id,
+                  split.sizes.map(() => 1),
+                ),
+              ),
+          );
       }}
     />
   );
@@ -140,7 +163,7 @@ function PaneFrame({ paneId, tabId, visible }: { paneId: string; tabId: string; 
   if (!pane) return null;
 
   const Cmp = def?.component;
-  const title = pane.title || (def?.title ? def.title(pane, { cwd, title: rtTitle }) : def?.name ?? pane.module);
+  const title = pane.title || (def?.title ? def.title(pane, { cwd, title: rtTitle }) : (def?.name ?? pane.module));
   const headerMode = pane.module === "terminal" ? headers : "always";
   const Actions = def?.headerActions;
 
@@ -152,7 +175,13 @@ function PaneFrame({ paneId, tabId, visible }: { paneId: string; tabId: string; 
 
   return (
     <div
-      className={cx("pane", focused && multi && "focused", zoomed && "zoomed", `headers-${headerMode}`, badge && `has-${badge}`)}
+      className={cx(
+        "pane",
+        focused && multi && "focused",
+        zoomed && "zoomed",
+        `headers-${headerMode}`,
+        badge && `has-${badge}`,
+      )}
       data-pane-id={paneId}
       onPointerDownCapture={() => {
         if (!focused) A.focusPane(paneId);
@@ -179,21 +208,37 @@ function PaneFrame({ paneId, tabId, visible }: { paneId: string; tabId: string; 
           {badge && <span className={cx("badge", `badge-${badge}`)} />}
           <div className="pane-actions">
             {Actions && <Actions pane={pane} tabId={tabId} visible={visible} focused={focused} />}
-            <button className="icon-btn" title={`Split right (${shortcutLabel("pane.splitRight")})`} onClick={() => A.splitPane(paneId, "right")}>
+            <button
+              className="icon-btn"
+              title={`Split right (${shortcutLabel("pane.splitRight")})`}
+              onClick={() => A.splitPane(paneId, "right")}
+            >
               <Icon name="columns-2" size={13} />
             </button>
-            <button className="icon-btn" title={`Split down (${shortcutLabel("pane.splitDown")})`} onClick={() => A.splitPane(paneId, "bottom")}>
+            <button
+              className="icon-btn"
+              title={`Split down (${shortcutLabel("pane.splitDown")})`}
+              onClick={() => A.splitPane(paneId, "bottom")}
+            >
               <Icon name="rows-2" size={13} />
             </button>
             {multi && (
-              <button className="icon-btn" title={`${zoomed ? "Restore" : "Magnify"} (${shortcutLabel("pane.zoom")})`} onClick={() => A.toggleZoom(tabId, paneId)}>
+              <button
+                className="icon-btn"
+                title={`${zoomed ? "Restore" : "Magnify"} (${shortcutLabel("pane.zoom")})`}
+                onClick={() => A.toggleZoom(tabId, paneId)}
+              >
                 <Icon name={zoomed ? "minimize" : "maximize"} size={13} />
               </button>
             )}
             <button className="icon-btn" title="More" onClick={openMenu}>
               <Icon name="ellipsis" size={14} />
             </button>
-            <button className="icon-btn close" title={`Close pane (${shortcutLabel("pane.close")})`} onClick={() => A.closePane(paneId)}>
+            <button
+              className="icon-btn close"
+              title={`Close pane (${shortcutLabel("pane.close")})`}
+              onClick={() => A.closePane(paneId)}
+            >
               <Icon name="x" size={14} />
             </button>
           </div>
@@ -233,11 +278,7 @@ function TabContent({ tabId, active }: { tabId: string; active: boolean }) {
       aria-hidden={!active}
     >
       <BackgroundLayer bg={tab.background} />
-      {tab.root ? (
-        <LayoutView node={tab.root} tabId={tabId} visible={active} />
-      ) : (
-        <EmptyWorkspace />
-      )}
+      {tab.root ? <LayoutView node={tab.root} tabId={tabId} visible={active} /> : <EmptyWorkspace />}
       {tab.zoomed && <div className="zoom-scrim" onClick={() => A.toggleZoom(tabId)} />}
     </div>
   );

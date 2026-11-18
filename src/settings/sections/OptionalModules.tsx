@@ -36,7 +36,9 @@ function statusOf(m: CatalogEntry, state: StoreState | null): Status {
   if (queued) return queued.op === "remove" ? { kind: "queued-remove" } : { kind: "queued-install", update: !!have };
   if (state && !versionAtLeast(state.appVersion, m.minAppVersion)) return { kind: "incompatible" };
   if (!have) return { kind: "available" };
-  return isNewer(m.version, have.version) ? { kind: "update", version: have.version } : { kind: "installed", version: have.version };
+  return isNewer(m.version, have.version)
+    ? { kind: "update", version: have.version }
+    : { kind: "installed", version: have.version };
 }
 
 function permissionList(perms: string[]): string {
@@ -53,11 +55,14 @@ async function install(m: CatalogEntry, update: boolean) {
       </p>
       {m.permissions.includes("agents.manage") && (
         <p className="warn-text">
-          Its agents are Claude Code sessions on your account: they use your plan's usage, and they run commands and change files in the
-          repositories you start them in.
+          Its agents are Claude Code sessions on your account: they use your plan's usage, and they run commands and
+          change files in the repositories you start them in.
         </p>
       )}
-      <p className="dim">It's downloaded and checked now, and {update ? "updated" : "installed"} the next time Shellmosaic starts. You can queue more modules and restart once.</p>
+      <p className="dim">
+        It's downloaded and checked now, and {update ? "updated" : "installed"} the next time Shellmosaic starts. You
+        can queue more modules and restart once.
+      </p>
     </>,
     { okLabel: update ? "Update" : "Install" },
   );
@@ -79,7 +84,11 @@ function ModuleCard({ m, state }: { m: CatalogEntry; state: StoreState | null })
     available: null,
     installed: <span className="chip granted">Installed</span>,
     update: <span className="chip accent">Update available</span>,
-    "queued-install": <span className="chip accent">{st.kind === "queued-install" && st.update ? "Updates" : "Installs"} at restart</span>,
+    "queued-install": (
+      <span className="chip accent">
+        {st.kind === "queued-install" && st.update ? "Updates" : "Installs"} at restart
+      </span>
+    ),
     "queued-remove": <span className="chip risky">Removed at restart</span>,
     incompatible: <span className="chip risky">Needs Shellmosaic {m.minAppVersion}</span>,
   }[st.kind];
@@ -105,7 +114,9 @@ function ModuleCard({ m, state }: { m: CatalogEntry; state: StoreState | null })
                 title={disabled ? "Enable" : "Disable"}
                 onChange={(on) =>
                   updateSettings((s) => {
-                    s.plugins.disabled = on ? s.plugins.disabled.filter((x) => x !== m.id) : [...new Set([...s.plugins.disabled, m.id])];
+                    s.plugins.disabled = on
+                      ? s.plugins.disabled.filter((x) => x !== m.id)
+                      : [...new Set([...s.plugins.disabled, m.id])];
                   })
                 }
               />
@@ -127,7 +138,8 @@ function ModuleCard({ m, state }: { m: CatalogEntry; state: StoreState | null })
         </div>
         {replacesLocal && st.kind === "available" && (
           <p className="optmod-note warn-text">
-            <Icon name="warning" size={12} /> You have your own plugin named “{m.id}”. Installing this replaces it (your copy is kept in the data folder under store\replaced).
+            <Icon name="warning" size={12} /> You have your own plugin named “{m.id}”. Installing this replaces it (your
+            copy is kept in the data folder under store\replaced).
           </p>
         )}
         <div className="plugin-foot">
@@ -178,9 +190,15 @@ function OrphanCard({ id, version, state }: { id: string; version: string; state
             <Hl text={id} />
           </strong>
           <span className="chip">v{version}</span>
-          {queued ? <span className="chip risky">Removed at restart</span> : <span className="chip granted">Installed</span>}
+          {queued ? (
+            <span className="chip risky">Removed at restart</span>
+          ) : (
+            <span className="chip granted">Installed</span>
+          )}
         </div>
-        <p className="plugin-desc">Not in the catalog for this update channel. It keeps working; remove it if you don't use it.</p>
+        <p className="plugin-desc">
+          Not in the catalog for this update channel. It keeps working; remove it if you don't use it.
+        </p>
         <div className="plugin-foot">
           <code className="plugin-id">{id}</code>
           <span className="grow" />
@@ -202,13 +220,16 @@ function OrphanCard({ id, version, state }: { id: string; version: string; state
 function PendingBanner({ state }: { state: StoreState }) {
   const busy = useModuleStore((s) => Object.keys(s.busy).length > 0);
   if (!state.pending.length) return null;
-  const describe = state.pending.map((p) => `${p.op === "remove" ? "remove" : state.installed[p.id] ? "update" : "install"} ${p.name}`).join(" · ");
+  const describe = state.pending
+    .map((p) => `${p.op === "remove" ? "remove" : state.installed[p.id] ? "update" : "install"} ${p.name}`)
+    .join(" · ");
   return (
     <div className="optmod-pending setting-hit">
       <Icon name="rotate-cw" size={16} />
       <div className="grow">
         <b>
-          {state.pending.length === 1 ? "1 change" : `${state.pending.length} changes`} will apply when Shellmosaic restarts
+          {state.pending.length === 1 ? "1 change" : `${state.pending.length} changes`} will apply when Shellmosaic
+          restarts
         </b>
         <div className="dim">{describe}</div>
       </div>
@@ -255,7 +276,12 @@ export function OptionalModulesSection() {
                 <Icon name="download" size={13} /> Update all
               </button>
             )}
-            <button className="btn small subtle" disabled={loading} onClick={() => loadCatalog(true)} title="Look for new modules and updates">
+            <button
+              className="btn small subtle"
+              disabled={loading}
+              onClick={() => loadCatalog(true)}
+              title="Look for new modules and updates"
+            >
               <Icon name="refresh" size={13} className={loading ? "spin" : undefined} /> Check for updates
             </button>
           </>
@@ -271,7 +297,9 @@ export function OptionalModulesSection() {
         )}
         {!catalog && !catalogError && <div className="settings-empty small">Loading the module catalog…</div>}
         <div className="plugin-list">
-          {catalog?.modules.map((m) => <ModuleCard key={m.id} m={m} state={state} />)}
+          {catalog?.modules.map((m) => (
+            <ModuleCard key={m.id} m={m} state={state} />
+          ))}
           {state && orphans.map(([id, info]) => <OrphanCard key={id} id={id} version={info.version} state={state} />)}
         </div>
         {catalog && !q && (
@@ -280,7 +308,8 @@ export function OptionalModulesSection() {
             <button className="link-btn" onClick={() => openUrl(`${REPO_URL}/${branch}/modules`).catch(() => {})}>
               {branch} branch
             </button>
-            {/^[0-9a-f]{40}$/.test(catalog.source) && <> at {catalog.source.slice(0, 7)}</>}. Installs and removals apply after a restart: queue as many as you like, then restart once.
+            {/^[0-9a-f]{40}$/.test(catalog.source) && <> at {catalog.source.slice(0, 7)}</>}. Installs and removals
+            apply after a restart: queue as many as you like, then restart once.
           </p>
         )}
       </Group>

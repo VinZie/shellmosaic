@@ -1,7 +1,18 @@
 // The selected event: General (message and properties), Data (EventData/UserData), XML.
 import { forwardRef, useMemo } from "react";
 import { Ban, Braces, Copy, Cpu, FileCode, Funnel, PanelBottom, PanelRight, ScrollText, Tag, X } from "lucide-react";
-import { Button, copy, formatDateTime, IconButton, KeyValues, Message, openMenu, Tabs, type KV, type MenuItem } from "../../shared";
+import {
+  Button,
+  copy,
+  formatDateTime,
+  IconButton,
+  KeyValues,
+  Message,
+  openMenu,
+  Tabs,
+  type KV,
+  type MenuItem,
+} from "../../shared";
 import { copyJson, copyMessages, copyXml, inspectProcess, type FilterActions } from "./actions";
 import { SysmonEvent } from "./columns";
 import { LevelIcon, levelLabel } from "./levels";
@@ -31,7 +42,13 @@ function General({ e }: { e: Ev }) {
     { label: "Source", value: e.provider },
     { label: "Event ID", value: String(e.eventId), copyText: String(e.eventId) },
     { label: "Level", value: levelLabel(e) },
-    { label: "User", value: e.user || "N/A", copyText: e.userSid || null, title: e.userSid || undefined, muted: !e.user },
+    {
+      label: "User",
+      value: e.user || "N/A",
+      copyText: e.userSid || null,
+      title: e.userSid || undefined,
+      muted: !e.user,
+    },
     { label: "OpCode", value: e.opcodeName },
     { label: "Logged", value: formatDateTime(e.time, true), copyText: e.timeRaw, title: e.timeRaw },
     { label: "Task category", value: e.taskName },
@@ -41,13 +58,20 @@ function General({ e }: { e: Ev }) {
     { label: "Thread ID", value: e.tid === null ? "" : String(e.tid), mono: true },
     { label: "Record ID", value: String(e.recordId), mono: true },
     e.activityId || e.relatedActivityId
-      ? { label: "Correlation", value: [e.activityId, e.relatedActivityId && `related ${e.relatedActivityId}`].filter(Boolean).join(" · "), mono: true, copyText: e.activityId || e.relatedActivityId }
+      ? {
+          label: "Correlation",
+          value: [e.activityId, e.relatedActivityId && `related ${e.relatedActivityId}`].filter(Boolean).join(" · "),
+          mono: true,
+          copyText: e.activityId || e.relatedActivityId,
+        }
       : { label: "Correlation", value: "None", muted: true },
   ];
   return (
     <div className="ev-gen">
       <div className="ev-gen-body">
-        <pre className={e.rendered ? "ev-message sm-selectable" : "ev-message sm-selectable unrendered"}>{e.message}</pre>
+        <pre className={e.rendered ? "ev-message sm-selectable" : "ev-message sm-selectable unrendered"}>
+          {e.message}
+        </pre>
         <div className="ev-gen-props">
           <KeyValues rows={rows} labelWidth={104} />
         </div>
@@ -98,17 +122,41 @@ export const Details = forwardRef<HTMLDivElement, DetailsProps>(function Details
   const filterMenu = (el: HTMLElement) =>
     e &&
     openMenu(el, [
-      { label: `Filter: this event ID (${e.eventId})`, icon: <Funnel size={14} />, onSelect: () => p.actions.filterId(e.eventId) },
+      {
+        label: `Filter: this event ID (${e.eventId})`,
+        icon: <Funnel size={14} />,
+        onSelect: () => p.actions.filterId(e.eventId),
+      },
       { label: `Exclude this event ID`, icon: <Ban size={14} />, onSelect: () => p.actions.excludeId(e.eventId) },
-      { label: `Filter: this source`, hint: e.source, icon: <Tag size={14} />, onSelect: () => p.actions.filterSource(e.provider) },
-      { label: `Filter: this level`, hint: e.level === 0 ? "Information" : e.levelName, icon: <LevelIcon kind={e.kind === "auditFailure" || e.kind === "auditSuccess" ? "info" : e.kind} />, onSelect: () => p.actions.filterLevel(e.level === 0 ? 4 : e.level) },
+      {
+        label: `Filter: this source`,
+        hint: e.source,
+        icon: <Tag size={14} />,
+        onSelect: () => p.actions.filterSource(e.provider),
+      },
+      {
+        label: `Filter: this level`,
+        hint: e.level === 0 ? "Information" : e.levelName,
+        icon: <LevelIcon kind={e.kind === "auditFailure" || e.kind === "auditSuccess" ? "info" : e.kind} />,
+        onSelect: () => p.actions.filterLevel(e.level === 0 ? 4 : e.level),
+      },
     ]);
   const layoutMenu = (el: HTMLElement) => {
     const items: MenuItem[] = [
       { header: "Details" },
       { label: "Automatic", checked: p.mode === "auto", onSelect: () => p.onMode("auto") },
-      { label: "Below the list", checked: p.mode === "bottom", icon: <PanelBottom size={14} />, onSelect: () => p.onMode("bottom") },
-      { label: "Right of the list", checked: p.mode === "right", icon: <PanelRight size={14} />, onSelect: () => p.onMode("right") },
+      {
+        label: "Below the list",
+        checked: p.mode === "bottom",
+        icon: <PanelBottom size={14} />,
+        onSelect: () => p.onMode("bottom"),
+      },
+      {
+        label: "Right of the list",
+        checked: p.mode === "right",
+        icon: <PanelRight size={14} />,
+        onSelect: () => p.onMode("right"),
+      },
       { separator: true },
       { label: "Hide details", icon: <X size={14} />, onSelect: p.onClose },
     ];

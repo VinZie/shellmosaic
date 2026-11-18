@@ -14,7 +14,8 @@ export const PRIORITIES: { id: PriorityClass; label: string }[] = [
 export const priorityLabel = (p: PriorityClass | null | undefined) => PRIORITIES.find((x) => x.id === p)?.label ?? "";
 
 /** The process is gone: the backend's answer for a PID that no longer runs. */
-export const isExited = (msg: string | null | undefined): boolean => !!msg && /\bexited\b|no longer running|has terminated|no such process/i.test(msg);
+export const isExited = (msg: string | null | undefined): boolean =>
+  !!msg && /\bexited\b|no longer running|has terminated|no such process/i.test(msg);
 
 /** Bits set in a decimal (or hex) mask string. */
 export function maskBits(mask: string | null | undefined): number[] {
@@ -27,7 +28,7 @@ export function maskBits(mask: string | null | undefined): number[] {
 /** [0,1,2,3,6,8,9] → "0–3, 6, 8–9" */
 export function cpuRanges(bits: number[]): string {
   const parts: string[] = [];
-  for (let i = 0; i < bits.length; ) {
+  for (let i = 0; i < bits.length;) {
     let j = i;
     while (j + 1 < bits.length && bits[j + 1] === bits[j] + 1) j++;
     parts.push(j === i ? String(bits[i]) : j === i + 1 ? `${bits[i]}, ${bits[j]}` : `${bits[i]}–${bits[j]}`);
@@ -40,7 +41,8 @@ export function affinityText(affinity: string | null, system: string | null): st
   const bits = maskBits(affinity);
   if (!bits.length) return "";
   const all = maskBits(system);
-  if (all.length && bits.length === all.length && toBig(affinity) === toBig(system)) return `All ${all.length} CPUs (${cpuRanges(bits)})`;
+  if (all.length && bits.length === all.length && toBig(affinity) === toBig(system))
+    return `All ${all.length} CPUs (${cpuRanges(bits)})`;
   return `CPU ${cpuRanges(bits)}${all.length ? ` of ${all.length}` : ""}`;
 }
 

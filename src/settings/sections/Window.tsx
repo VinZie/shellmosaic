@@ -23,13 +23,20 @@ function EffectRow() {
       label="Window effect"
       desc={
         <>
-          {info.desc} Effects show through wherever surfaces are transparent, so lower the surface opacity below to see more of it.
-          {(effect === "mica" || effect === "tabbed") && <span className="note-inline"> On Windows 10 this falls back to a solid window.</span>}
+          {info.desc} Effects show through wherever surfaces are transparent, so lower the surface opacity below to see
+          more of it.
+          {(effect === "mica" || effect === "tabbed") && (
+            <span className="note-inline"> On Windows 10 this falls back to a solid window.</span>
+          )}
         </>
       }
       keywords="mica acrylic tabbed blur transparency glass material translucent windows 11"
     >
-      <Segmented<Effect> value={effect} options={EFFECTS.map(({ value, label }) => ({ value, label }))} onChange={(v) => setSetting("window.effect", v)} />
+      <Segmented<Effect>
+        value={effect}
+        options={EFFECTS.map(({ value, label }) => ({ value, label }))}
+        onChange={(v) => setSetting("window.effect", v)}
+      />
     </Row>
   );
 }
@@ -62,7 +69,14 @@ function BackgroundRow() {
 
 export function WindowSection() {
   return (
-    <Section id="window" title="Window" icon="app-window" desc="Window material, transparency and background." onReset={() => resetSettings("window")} resetHint="The window effect, opacity and background go back to their defaults.">
+    <Section
+      id="window"
+      title="Window"
+      icon="app-window"
+      desc="Window material, transparency and background."
+      onReset={() => resetSettings("window")}
+      resetHint="The window effect, opacity and background go back to their defaults."
+    >
       <Group title="Material">
         <EffectRow />
         <SliderSetting
@@ -80,7 +94,12 @@ export function WindowSection() {
         <BackgroundRow />
       </Group>
       <Group title="Behavior">
-        <ToggleSetting path="window.confirmQuit" label="Confirm before quitting" desc="Ask before the main window closes. Sessions are restored either way." keywords="close exit quit prompt" />
+        <ToggleSetting
+          path="window.confirmQuit"
+          label="Confirm before quitting"
+          desc="Ask before the main window closes. Sessions are restored either way."
+          keywords="close exit quit prompt"
+        />
       </Group>
     </Section>
   );

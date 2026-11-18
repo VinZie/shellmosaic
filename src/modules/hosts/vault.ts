@@ -97,7 +97,11 @@ export function syncPaneNames(host: HostView) {
       (p.module === "sftp" && p.meta.hostId === host.id && p.meta.hostName !== host.name),
   );
   if (!stale.length) return;
-  commit((m) => stale.forEach((p) => setPaneMeta(m, p.id, p.module === "terminal" ? { sshName: host.name } : { hostName: host.name })));
+  commit((m) =>
+    stale.forEach((p) =>
+      setPaneMeta(m, p.id, p.module === "terminal" ? { sshName: host.name } : { hostName: host.name }),
+    ),
+  );
 }
 
 // ── auto-lock ───────────────────────────────────────────────────────────

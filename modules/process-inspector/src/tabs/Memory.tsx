@@ -91,14 +91,35 @@ function MemoryTable({ regions }: { regions: MemRegion[] }) {
         (!hideFree || r.state !== "free") &&
         (type === "all" || r.type === type) &&
         (!execOnly || r.unbacked) &&
-        (!s || r.usage?.toLowerCase().includes(s) || r.base.toLowerCase().includes(s) || r.allocationBase.toLowerCase().includes(s) || r.protect.toLowerCase() === s),
+        (!s ||
+          r.usage?.toLowerCase().includes(s) ||
+          r.base.toLowerCase().includes(s) ||
+          r.allocationBase.toLowerCase().includes(s) ||
+          r.protect.toLowerCase() === s),
     );
   }, [all, hideFree, type, execOnly, q]);
 
   const columns = useMemo<Column<RegionRow>[]>(
     () => [
-      { id: "base", label: "Base", width: 146, mono: true, sort: (r) => toBig(r.base), text: (r) => r.base, render: (r) => <Addr value={r.base} /> },
-      { id: "allocationBase", label: "Allocation base", width: 150, mono: true, hidden: true, sort: (r) => toBig(r.allocationBase), text: (r) => r.allocationBase, render: (r) => <Addr value={r.allocationBase} /> },
+      {
+        id: "base",
+        label: "Base",
+        width: 146,
+        mono: true,
+        sort: (r) => toBig(r.base),
+        text: (r) => r.base,
+        render: (r) => <Addr value={r.base} />,
+      },
+      {
+        id: "allocationBase",
+        label: "Allocation base",
+        width: 150,
+        mono: true,
+        hidden: true,
+        sort: (r) => toBig(r.allocationBase),
+        text: (r) => r.allocationBase,
+        render: (r) => <Addr value={r.allocationBase} />,
+      },
       { id: "size", label: "Size", width: 78, align: "right", sort: (r) => r.size, text: (r) => formatBytes(r.size) },
       {
         id: "protect",
@@ -112,7 +133,11 @@ function MemoryTable({ regions }: { regions: MemRegion[] }) {
           r.risk ? (
             <span
               className={cx("pi-cell-flag pi-strong", r.risk === 2 ? "sm-danger-text" : "sm-warning-text")}
-              title={r.rwx ? "Writable and executable: a classic sign of injected or unpacked code" : "Executable memory not backed by an image file"}
+              title={
+                r.rwx
+                  ? "Writable and executable: a classic sign of injected or unpacked code"
+                  : "Executable memory not backed by an image file"
+              }
             >
               <TriangleAlert size={12} />
               {r.protect}
@@ -121,11 +146,33 @@ function MemoryTable({ regions }: { regions: MemRegion[] }) {
             r.protect || <span className="sm-dim">—</span>
           ),
       },
-      { id: "type", label: "Type", width: 70, sort: (r) => r.type, text: (r) => (r.type ? (TYPE_LABEL[r.type] ?? r.type) : "") },
+      {
+        id: "type",
+        label: "Type",
+        width: 70,
+        sort: (r) => r.type,
+        text: (r) => (r.type ? (TYPE_LABEL[r.type] ?? r.type) : ""),
+      },
       { id: "state", label: "State", width: 70, sort: (r) => r.state, text: (r) => STATE_LABEL[r.state] ?? r.state },
-      { id: "allocationProtect", label: "Alloc. protection", width: 118, title: "Protection the allocation was created with", mono: true, sort: (r) => r.allocationProtect, text: (r) => r.allocationProtect },
+      {
+        id: "allocationProtect",
+        label: "Alloc. protection",
+        width: 118,
+        title: "Protection the allocation was created with",
+        mono: true,
+        sort: (r) => r.allocationProtect,
+        text: (r) => r.allocationProtect,
+      },
       { id: "usage", label: "Usage", width: 380, sort: (r) => r.usage, text: (r) => r.usage ?? "" },
-      { id: "protectRaw", label: "Protection (raw)", width: 110, mono: true, hidden: true, sort: (r) => r.protectRaw, text: (r) => hex(r.protectRaw) },
+      {
+        id: "protectRaw",
+        label: "Protection (raw)",
+        width: 110,
+        mono: true,
+        hidden: true,
+        sort: (r) => r.protectRaw,
+        text: (r) => hex(r.protectRaw),
+      },
     ],
     [],
   );
@@ -134,18 +181,37 @@ function MemoryTable({ regions }: { regions: MemRegion[] }) {
     const r = sel[0];
     if (!r) return;
     const items: MenuItem[] = [
-      { label: "Copy base address", icon: <Hash size={14} />, onSelect: () => copy(sel.map((x) => x.base).join("\n"), "base address") },
-      { label: "Copy size", icon: <Copy size={14} />, onSelect: () => copy(sel.map((x) => `0x${x.size.toString(16)}`).join("\n"), "size") },
-      { label: "Copy usage", icon: <Copy size={14} />, disabled: !sel.some((x) => x.usage), onSelect: () => copy(sel.map((x) => x.usage ?? "").join("\n"), "usage") },
+      {
+        label: "Copy base address",
+        icon: <Hash size={14} />,
+        onSelect: () => copy(sel.map((x) => x.base).join("\n"), "base address"),
+      },
+      {
+        label: "Copy size",
+        icon: <Copy size={14} />,
+        onSelect: () => copy(sel.map((x) => `0x${x.size.toString(16)}`).join("\n"), "size"),
+      },
+      {
+        label: "Copy usage",
+        icon: <Copy size={14} />,
+        disabled: !sel.some((x) => x.usage),
+        onSelect: () => copy(sel.map((x) => x.usage ?? "").join("\n"), "usage"),
+      },
     ];
     if (sel.length === 1 && (r.type === "image" || r.type === "mapped") && isLocalPath(r.usage)) {
       const path = r.usage;
-      items.push({ separator: true }, { label: "Open file location", icon: <FolderOpen size={14} />, onSelect: () => reveal(path) });
+      items.push(
+        { separator: true },
+        { label: "Open file location", icon: <FolderOpen size={14} />, onSelect: () => reveal(path) },
+      );
     }
     openMenu(at, items);
   };
 
-  const shownNote = rows.length === all.length ? `${formatNumber(all.length)} regions` : `${formatNumber(rows.length)} of ${formatNumber(all.length)} regions`;
+  const shownNote =
+    rows.length === all.length
+      ? `${formatNumber(all.length)} regions`
+      : `${formatNumber(rows.length)} of ${formatNumber(all.length)} regions`;
 
   return (
     <>
@@ -181,17 +247,26 @@ function MemoryTable({ regions }: { regions: MemRegion[] }) {
         onSort={setSort}
         multi
         onContextMenu={menu}
-        rowClass={(r) => (r.risk === 2 ? "pi-danger" : r.risk === 1 ? "pi-warn" : r.state === "free" ? "pi-muted" : null)}
-        empty={execOnly ? "No executable memory outside images. Nothing injected here, as far as the memory map can tell." : "No regions match the filter"}
+        rowClass={(r) =>
+          r.risk === 2 ? "pi-danger" : r.risk === 1 ? "pi-warn" : r.state === "free" ? "pi-muted" : null
+        }
+        empty={
+          execOnly
+            ? "No executable memory outside images. Nothing injected here, as far as the memory map can tell."
+            : "No regions match the filter"
+        }
       />
       <Footer>
         <span>{shownNote}</span>
         <span>·</span>
         <span title="Committed memory by type">
-          Committed: image {formatBytes(totals.image)} · mapped {formatBytes(totals.mapped)} · private {formatBytes(totals.private)}
+          Committed: image {formatBytes(totals.image)} · mapped {formatBytes(totals.mapped)} · private{" "}
+          {formatBytes(totals.private)}
         </span>
         <span>·</span>
-        <span className={totals.rwx ? "sm-danger-text" : undefined}>{totals.rwx === 1 ? "1 RWX region" : `${formatNumber(totals.rwx)} RWX regions`}</span>
+        <span className={totals.rwx ? "sm-danger-text" : undefined}>
+          {totals.rwx === 1 ? "1 RWX region" : `${formatNumber(totals.rwx)} RWX regions`}
+        </span>
         {totals.unbacked > totals.rwx && (
           <>
             <span>·</span>

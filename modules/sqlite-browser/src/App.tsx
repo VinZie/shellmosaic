@@ -1,6 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Copy, FolderOpen } from "lucide-react";
-import { Loading, errorText, openMenu, openModal, sm, useStored, usePane, usePaneState, type DbInfo, type MenuItem, type SchemaObject } from "../../shared";
+import {
+  Loading,
+  errorText,
+  openMenu,
+  openModal,
+  sm,
+  useStored,
+  usePane,
+  usePaneState,
+  type DbInfo,
+  type MenuItem,
+  type SchemaObject,
+} from "../../shared";
 import { DbView } from "./DbView";
 import { StartScreen, type OpenFailure } from "./StartScreen";
 import { fileOf, useWidth, type PaneState, type Recent } from "./state";
@@ -53,7 +65,12 @@ export function App() {
         if (prev && prev.db.id !== info.id) sm.sqlite.close(prev.db.id).catch(() => {});
         setOpened({ db: info, schema });
         setPane({ path, copy: !!opts.copy, table: opts.restore?.table ?? null, tab: opts.restore?.tab ?? "data" });
-        setRecent((list) => [{ path, file: fileOf(path), at: Date.now() }, ...list.filter((r) => r.path.toLowerCase() !== path.toLowerCase())].slice(0, MAX_RECENT));
+        setRecent((list) =>
+          [
+            { path, file: fileOf(path), at: Date.now() },
+            ...list.filter((r) => r.path.toLowerCase() !== path.toLowerCase()),
+          ].slice(0, MAX_RECENT),
+        );
         sm.ui.setTitle(`SQLite: ${info.file}`).catch(() => {});
       } catch (e) {
         if (info) sm.sqlite.close(info.id).catch(() => {});
@@ -79,14 +96,18 @@ export function App() {
     started.current = true;
     const saved = ctx.state as Partial<PaneState> | null;
     const argPath = typeof ctx.args?.path === "string" ? ctx.args.path : null;
-    if (saved?.path) open(saved.path, { copy: !!saved.copy, restore: { table: saved.table ?? null, tab: saved.tab ?? "data" } });
+    if (saved?.path)
+      open(saved.path, { copy: !!saved.copy, restore: { table: saved.table ?? null, tab: saved.tab ?? "data" } });
     else if (argPath) open(argPath, { copy: ctx.args?.copy === true });
   }, [ctx, open]);
 
   const pick = useCallback(
     async (copy: boolean) => {
       try {
-        const p = await sm.ui.pickFile({ title: copy ? "Open a copy of a SQLite database" : "Open a SQLite database", filters: FILE_FILTERS });
+        const p = await sm.ui.pickFile({
+          title: copy ? "Open a copy of a SQLite database" : "Open a SQLite database",
+          filters: FILE_FILTERS,
+        });
         if (p) open(p, { copy });
       } catch (e) {
         sm.ui.notify(errorText(e), "error");

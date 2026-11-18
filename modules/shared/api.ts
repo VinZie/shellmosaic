@@ -582,7 +582,11 @@ export interface ShellmosaicSdk {
   on(event: "theme" | "cwd" | "visible" | "agents", fn: (data: any) => void): () => void;
   claude: {
     /** plan limits of the signed-in Claude Code account (claude.usage) */
-    usage(): Promise<{ fetchedAt: number; plan: { subscription: string | null; tier: string | null }; usage: Record<string, unknown> }>;
+    usage(): Promise<{
+      fetchedAt: number;
+      plan: { subscription: string | null; tier: string | null };
+      usage: Record<string, unknown>;
+    }>;
   };
   /** agents.read: snapshot, activity, reveal; agents.manage: everything else */
   agents: {
@@ -607,8 +611,14 @@ export interface ShellmosaicSdk {
     interrupt(agentId: string, opts?: { pause?: boolean }): Promise<boolean>;
     /** type a message into the agent's session (the lead: what the user wants done) */
     send(agentId: string, text: string): Promise<boolean>;
-    answer(requestId: string, answer: { allow: boolean; always?: boolean; text?: string } | { text: string }): Promise<boolean>;
-    createTask(runId: string, task: { title: string; description: string; difficulty: number; followUpOf?: string }): Promise<AgentTask>;
+    answer(
+      requestId: string,
+      answer: { allow: boolean; always?: boolean; text?: string } | { text: string },
+    ): Promise<boolean>;
+    createTask(
+      runId: string,
+      task: { title: string; description: string; difficulty: number; followUpOf?: string },
+    ): Promise<AgentTask>;
     /** a queued or failed task; `agentId` may also be a slot ("w2"): a free slot starts a new worker there.
      *  Without it an idle worker is picked or a new one starts. Returns the worker's agent id. */
     assign(taskId: string, agentId?: string): Promise<string>;

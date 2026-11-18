@@ -67,7 +67,8 @@ export function cellJson(c: Cell): string {
 }
 
 /** Some values in these cells were cut short (long text or blobs over 256 bytes). */
-export const hasPartial = (cells: Cell[]) => cells.some((c) => isLongText(c) || (isBlob(c) && c.length > c.$blob.length / 2));
+export const hasPartial = (cells: Cell[]) =>
+  cells.some((c) => isLongText(c) || (isBlob(c) && c.length > c.$blob.length / 2));
 
 /** Value for a table row key. */
 export function cellKey(c: Cell): string | number {
@@ -257,7 +258,8 @@ export const isInterrupted = (msg: string) => /interrupt|cancell?ed/i.test(msg);
 export const isSystem = (name: string) => /^sqlite_/i.test(name);
 
 /** How rows of this object are identified for edits. */
-export type RowIdentity = { kind: "rowid"; expr: string } | { kind: "pk"; cols: DbColumn[] } | { kind: "none"; why: string };
+export type RowIdentity =
+  { kind: "rowid"; expr: string } | { kind: "pk"; cols: DbColumn[] } | { kind: "none"; why: string };
 
 export function rowIdentity(obj: SchemaObject): RowIdentity {
   if (obj.type === "view") return { kind: "none", why: "Views are read-only" };

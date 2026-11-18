@@ -94,12 +94,12 @@ next start, so queue as many as you like and restart once.
   </tr>
 </table>
 
-| Module | What it does |
-|---|---|
+| Module                | What it does                                                                                                                                                                                                                                                                                                                                                                                        |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Process Inspector** | Overview with signature, integrity, protection (PPL), mitigations and command line; loaded modules; threads with start addresses and wait reasons; handles with decoded access rights; token groups and privileges; the memory map with executable private memory highlighted. Suspend and resume, priority, affinity and thread control. Open it from **Inspect** in the Processes and Ports panes |
-| **Event Viewer** | Every Windows event log with level, event ID, source, time and text filters (or raw XPath), live tail, and a Sysmon view with columns per event type |
-| **SQLite Browser** | Tables, structure and SQL. Databases open read-only and changes need an explicit switch; locked databases, such as a running browser's history, open from a copy |
-| **Claude Usage** | Your Claude plan's session and weekly limits with reset countdowns |
+| **Event Viewer**      | Every Windows event log with level, event ID, source, time and text filters (or raw XPath), live tail, and a Sysmon view with columns per event type                                                                                                                                                                                                                                                |
+| **SQLite Browser**    | Tables, structure and SQL. Databases open read-only and changes need an explicit switch; locked databases, such as a running browser's history, open from a copy                                                                                                                                                                                                                                    |
+| **Claude Usage**      | Your Claude plan's session and weekly limits with reset countdowns                                                                                                                                                                                                                                                                                                                                  |
 
 Modules that need administrator rights to read protected processes or the Security log explain
 why and offer **Restart as administrator**. The screenshots above use sample data.
@@ -137,43 +137,43 @@ Release builds are signed for the updater; see [CONTRIBUTING.md](CONTRIBUTING.md
 
 ## Modules
 
-| Module | What it does |
-|---|---|
-| **Terminal** | ConPTY shells: PowerShell 7, Windows PowerShell, cmd, Git Bash, WSL and custom profiles. Find, broadcast input to a tab, per-pane theme and font size, shell integration for the working folder, saved scrollback |
-| **Hosts** | Saved SSH hosts with groups, tags and search, in a vault encrypted with your master password. Connect in a terminal pane; host keys are pinned on first use |
-| **SFTP** | Browse a host's files, upload and download files and folders (drag from Explorer), rename, delete, with progress and cancel |
-| **Files** | Browser with previews (text, markdown, images, hex), follows the terminal's folder |
-| **Git** | Status, staging, diffs and history for the terminal's repository; anything that needs credentials runs in the terminal |
-| **Processes** | Searchable process tree with CPU and memory, end process or tree |
-| **Network & ports** | Listening ports and connections with their owning process |
-| **Tasks** | npm/pnpm/yarn scripts, cargo, go, make, just, docker compose and loose scripts, one click to run |
-| **Logs** | `tail -f` with highlighting rules, filters and pause |
-| **Notes** | Markdown notes with live preview, task lists and runnable code blocks |
-| **System** | CPU, memory, network and disks at a glance |
-| **Web** | A browser pane for docs and dashboards |
-| **Optional modules** | Process Inspector, Event Viewer, SQLite Browser and Claude Usage, installed from Settings → Optional modules ([see below](#optional-modules)) |
-| **Plugins** | Your own modules: sandboxed web pages with a small SDK ([PLUGINS.md](PLUGINS.md)). Ships with the **Command Board** example |
+| Module               | What it does                                                                                                                                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Terminal**         | ConPTY shells: PowerShell 7, Windows PowerShell, cmd, Git Bash, WSL and custom profiles. Find, broadcast input to a tab, per-pane theme and font size, shell integration for the working folder, saved scrollback |
+| **Hosts**            | Saved SSH hosts with groups, tags and search, in a vault encrypted with your master password. Connect in a terminal pane; host keys are pinned on first use                                                       |
+| **SFTP**             | Browse a host's files, upload and download files and folders (drag from Explorer), rename, delete, with progress and cancel                                                                                       |
+| **Files**            | Browser with previews (text, markdown, images, hex), follows the terminal's folder                                                                                                                                |
+| **Git**              | Status, staging, diffs and history for the terminal's repository; anything that needs credentials runs in the terminal                                                                                            |
+| **Processes**        | Searchable process tree with CPU and memory, end process or tree                                                                                                                                                  |
+| **Network & ports**  | Listening ports and connections with their owning process                                                                                                                                                         |
+| **Tasks**            | npm/pnpm/yarn scripts, cargo, go, make, just, docker compose and loose scripts, one click to run                                                                                                                  |
+| **Logs**             | `tail -f` with highlighting rules, filters and pause                                                                                                                                                              |
+| **Notes**            | Markdown notes with live preview, task lists and runnable code blocks                                                                                                                                             |
+| **System**           | CPU, memory, network and disks at a glance                                                                                                                                                                        |
+| **Web**              | A browser pane for docs and dashboards                                                                                                                                                                            |
+| **Optional modules** | Process Inspector, Event Viewer, SQLite Browser and Claude Usage, installed from Settings → Optional modules ([see below](#optional-modules))                                                                     |
+| **Plugins**          | Your own modules: sandboxed web pages with a small SDK ([PLUGINS.md](PLUGINS.md)). Ships with the **Command Board** example                                                                                       |
 
 ## Shortcuts
 
 All of them are rebindable in Settings → Keybindings.
 
-| Action | Keys |
-|---|---|
-| Command palette | `Ctrl+Shift+P` |
-| Add module | `Ctrl+Shift+X` |
-| New tab / close pane | `Ctrl+Shift+T` / `Ctrl+Shift+W` |
-| Split right / down | `Ctrl+Shift+D` / `Ctrl+Shift+E` |
-| Magnify pane | `Ctrl+Shift+M` |
-| Move focus between panes | `Alt+Arrows` |
-| Tab 1–9 / workspace 1–9 | `Alt+1..9` / `Ctrl+Alt+1..9` |
-| Next / previous tab | `Ctrl+Tab` / `Ctrl+Shift+Tab` |
-| New workspace | `Ctrl+Shift+N` |
-| Find in terminal | `Ctrl+Shift+F` |
-| Type into all terminals in the tab | `Ctrl+Shift+I` |
-| Terminal font size | `Ctrl+=` / `Ctrl+-` / `Ctrl+0` |
-| Rename tab | `F2` |
-| Settings | `Ctrl+,` |
+| Action                             | Keys                            |
+| ---------------------------------- | ------------------------------- |
+| Command palette                    | `Ctrl+Shift+P`                  |
+| Add module                         | `Ctrl+Shift+X`                  |
+| New tab / close pane               | `Ctrl+Shift+T` / `Ctrl+Shift+W` |
+| Split right / down                 | `Ctrl+Shift+D` / `Ctrl+Shift+E` |
+| Magnify pane                       | `Ctrl+Shift+M`                  |
+| Move focus between panes           | `Alt+Arrows`                    |
+| Tab 1–9 / workspace 1–9            | `Alt+1..9` / `Ctrl+Alt+1..9`    |
+| Next / previous tab                | `Ctrl+Tab` / `Ctrl+Shift+Tab`   |
+| New workspace                      | `Ctrl+Shift+N`                  |
+| Find in terminal                   | `Ctrl+Shift+F`                  |
+| Type into all terminals in the tab | `Ctrl+Shift+I`                  |
+| Terminal font size                 | `Ctrl+=` / `Ctrl+-` / `Ctrl+0`  |
+| Rename tab                         | `F2`                            |
+| Settings                           | `Ctrl+,`                        |
 
 ## Security and privacy
 
@@ -213,17 +213,17 @@ in [SECURITY.md](SECURITY.md).
 
 Everything is stored in `%APPDATA%\com.shellmosaic.app\`:
 
-| Path | What |
-|---|---|
-| `settings.json` | Only the settings you changed (edit by hand; changes apply live) |
-| `vault.json` | Saved SSH hosts and secrets, encrypted with your master password |
-| `themes\*.json` | Your themes |
-| `plugins\<id>\` | Installed plugins and optional modules |
-| `store\` | Optional modules: what's installed, downloads waiting for a restart |
-| `state.json` | Workspaces, tabs and layouts |
-| `sessions\` | Saved scrollback and folder per terminal |
-| `trusted-repos.json` | Repositories you trusted in the Git pane |
-| `notes\`, `backgrounds\`, `plugin-data\` | Notes, imported background images, plugin storage |
+| Path                                     | What                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------- |
+| `settings.json`                          | Only the settings you changed (edit by hand; changes apply live)    |
+| `vault.json`                             | Saved SSH hosts and secrets, encrypted with your master password    |
+| `themes\*.json`                          | Your themes                                                         |
+| `plugins\<id>\`                          | Installed plugins and optional modules                              |
+| `store\`                                 | Optional modules: what's installed, downloads waiting for a restart |
+| `state.json`                             | Workspaces, tabs and layouts                                        |
+| `sessions\`                              | Saved scrollback and folder per terminal                            |
+| `trusted-repos.json`                     | Repositories you trusted in the Git pane                            |
+| `notes\`, `backgrounds\`, `plugin-data\` | Notes, imported background images, plugin storage                   |
 
 ## Roadmap
 

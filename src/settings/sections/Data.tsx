@@ -4,7 +4,15 @@ import { openPath } from "@tauri-apps/plugin-opener";
 import { Icon } from "../../lib/icons";
 import { ipc } from "../../lib/ipc";
 import { basename, deepDiff, isPlainObject } from "../../lib/util";
-import { cleanMaps, DEFAULT_SETTINGS, mergeChecked, resetSettings, settings, updateSettings, type Settings } from "../../state/settings";
+import {
+  cleanMaps,
+  DEFAULT_SETTINGS,
+  mergeChecked,
+  resetSettings,
+  settings,
+  updateSettings,
+  type Settings,
+} from "../../state/settings";
 import { ui } from "../../state/ui";
 import { Group, Row, Section, SliderSetting, ToggleSetting, useSetting } from "./controls";
 import { attempt, dataPath, openInDataDir, useDataDir } from "./helpers";
@@ -36,7 +44,11 @@ async function exportSettings() {
 }
 
 async function importSettings() {
-  const file = await open({ multiple: false, title: "Import settings", filters: [{ name: "JSON", extensions: ["json"] }] });
+  const file = await open({
+    multiple: false,
+    title: "Import settings",
+    filters: [{ name: "JSON", extensions: ["json"] }],
+  });
   if (typeof file !== "string") return;
   const text = await attempt(() => ipc.fsReadText(file));
   if (text === undefined) return;
@@ -67,11 +79,15 @@ async function importSettings() {
   ]
     .filter(isPlainObject)
     .filter((p) => typeof p.command === "string" || Array.isArray(p.args))
-    .map((p) => `• ${String(p.name ?? p.id ?? "profile")}: ${String(p.command ?? "")} ${Array.isArray(p.args) ? p.args.join(" ") : ""}`.trim());
+    .map((p) =>
+      `• ${String(p.name ?? p.id ?? "profile")}: ${String(p.command ?? "")} ${Array.isArray(p.args) ? p.args.join(" ") : ""}`.trim(),
+    );
   const ok = await ui.confirm(
     "Import settings?",
     `Settings from ${basename(file)} (${known.join(", ")}) are applied on top of your current ones. Anything the file doesn't mention stays as it is.` +
-      (commands.length ? `\n\nIt also sets these shell commands, which new terminals will run:\n${commands.slice(0, 12).join("\n")}${commands.length > 12 ? "\n…" : ""}` : ""),
+      (commands.length
+        ? `\n\nIt also sets these shell commands, which new terminals will run:\n${commands.slice(0, 12).join("\n")}${commands.length > 12 ? "\n…" : ""}`
+        : ""),
     { okLabel: "Import", danger: commands.length > 0 },
   );
   if (!ok) return;
@@ -96,7 +112,11 @@ async function resetEverything() {
 function DataFolderRow() {
   const dir = useDataDir();
   return (
-    <Row label="Data folder" desc={dir ? <code className="path-code">{dir}</code> : "Where settings, themes, plugins and sessions live."} keywords="appdata location path files folder">
+    <Row
+      label="Data folder"
+      desc={dir ? <code className="path-code">{dir}</code> : "Where settings, themes, plugins and sessions live."}
+      keywords="appdata location path files folder"
+    >
       {dir && (
         <button
           className="icon-btn"
@@ -120,14 +140,35 @@ function DataFolderRow() {
 export function DataSection() {
   const persist = useSetting<boolean>("restore.scrollback");
   return (
-    <Section id="data" title="Data & restore" icon="database" desc="What's remembered between sessions, and your settings files." onReset={() => resetSettings("restore")} resetHint="Session and scrollback restore options go back to their defaults.">
+    <Section
+      id="data"
+      title="Data & restore"
+      icon="database"
+      desc="What's remembered between sessions, and your settings files."
+      onReset={() => resetSettings("restore")}
+      resetHint="Session and scrollback restore options go back to their defaults."
+    >
       <Group title="Restore">
-        <ToggleSetting path="restore.session" label="Restore workspaces on start" desc="Reopen your workspaces, tabs and panes where you left them." keywords="session startup remember reopen" />
-        <ToggleSetting path="restore.scrollback" label="Restore terminal output" desc="Save each terminal's recent output and show it again after a restart." keywords="scrollback history persist" />
+        <ToggleSetting
+          path="restore.session"
+          label="Restore workspaces on start"
+          desc="Reopen your workspaces, tabs and panes where you left them."
+          keywords="session startup remember reopen"
+        />
+        <ToggleSetting
+          path="restore.scrollback"
+          label="Restore terminal output"
+          desc="Save each terminal's recent output and show it again after a restart."
+          keywords="scrollback history persist"
+        />
         <SliderSetting
           path="restore.scrollbackMB"
           label="Output buffer per terminal"
-          desc={persist ? "How much recent output each terminal keeps in memory and saves for restoring." : "How much recent output each terminal keeps in memory (used when re-attaching panes)."}
+          desc={
+            persist
+              ? "How much recent output each terminal keeps in memory and saves for restoring."
+              : "How much recent output each terminal keeps in memory (used when re-attaching panes)."
+          }
           min={0.5}
           max={16}
           step={0.5}
@@ -138,7 +179,11 @@ export function DataSection() {
 
       <Group title="Files">
         <DataFolderRow />
-        <Row label="settings.json" desc="Holds only the settings you changed. Edits made in an editor are picked up automatically." keywords="json config file edit">
+        <Row
+          label="settings.json"
+          desc="Holds only the settings you changed. Edits made in an editor are picked up automatically."
+          keywords="json config file edit"
+        >
           <button className="btn small" onClick={openSettingsFile}>
             <Icon name="file-code" size={13} /> Open settings.json
           </button>
@@ -146,17 +191,29 @@ export function DataSection() {
       </Group>
 
       <Group title="Backup">
-        <Row label="Export settings" desc="Save the settings you changed to a JSON file, e.g. to move them to another PC." keywords="backup save copy transfer">
+        <Row
+          label="Export settings"
+          desc="Save the settings you changed to a JSON file, e.g. to move them to another PC."
+          keywords="backup save copy transfer"
+        >
           <button className="btn small" onClick={exportSettings}>
             <Icon name="upload" size={13} /> Export…
           </button>
         </Row>
-        <Row label="Import settings" desc="Apply settings from an exported file on top of your current ones." keywords="restore load backup transfer">
+        <Row
+          label="Import settings"
+          desc="Apply settings from an exported file on top of your current ones."
+          keywords="restore load backup transfer"
+        >
           <button className="btn small" onClick={importSettings}>
             <Icon name="download" size={13} /> Import…
           </button>
         </Row>
-        <Row label="Reset all settings" desc="Start over with the defaults. Themes, plugins and sessions are kept." keywords="factory defaults clear wipe">
+        <Row
+          label="Reset all settings"
+          desc="Start over with the defaults. Themes, plugins and sessions are kept."
+          keywords="factory defaults clear wipe"
+        >
           <button className="btn small danger" onClick={resetEverything}>
             <Icon name="undo" size={13} /> Reset everything…
           </button>

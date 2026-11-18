@@ -103,7 +103,21 @@ export interface TableProps<T> {
 }
 
 export function Table<T>(props: TableProps<T>) {
-  const { columns, rows, rowKey, rowHeight = 24, multi, onOpen, onContextMenu, rowClass, empty, onEndReached, scrollTo, headerMenu, className } = props;
+  const {
+    columns,
+    rows,
+    rowKey,
+    rowHeight = 24,
+    multi,
+    onOpen,
+    onContextMenu,
+    rowClass,
+    empty,
+    onEndReached,
+    scrollTo,
+    headerMenu,
+    className,
+  } = props;
 
   // ── column layout ──
   const [ownLayout, setOwnLayout] = useState<ColumnState>(EMPTY_STATE);
@@ -112,7 +126,10 @@ export function Table<T>(props: TableProps<T>) {
   const [dragWidth, setDragWidth] = useState<{ id: string; w: number } | null>(null);
   const shown = useMemo(() => {
     const byId = new Map(columns.map((c) => [c.id, c]));
-    const ordered = [...layout.order.filter((id) => byId.has(id)).map((id) => byId.get(id)!), ...columns.filter((c) => !layout.order.includes(c.id))];
+    const ordered = [
+      ...layout.order.filter((id) => byId.has(id)).map((id) => byId.get(id)!),
+      ...columns.filter((c) => !layout.order.includes(c.id)),
+    ];
     const vis = ordered.filter((c) => layout.visible[c.id] ?? !c.hidden);
     return (vis.length ? vis : ordered.slice(0, 1)).map((c) => ({
       col: c,
@@ -334,18 +351,16 @@ export function Table<T>(props: TableProps<T>) {
     { header: "Columns" },
     ...allIds()
       .map((id) => columns.find((c) => c.id === id)!)
-      .map(
-        (c): MenuItem => ({
-          label: c.label || c.id,
-          checked: layout.visible[c.id] ?? !c.hidden,
-          keepOpen: false,
-          onSelect: () => {
-            const on = layout.visible[c.id] ?? !c.hidden;
-            if (on && shown.length <= 1) return;
-            setLayout({ ...layout, visible: { ...layout.visible, [c.id]: !on } });
-          },
-        }),
-      ),
+      .map((c): MenuItem => ({
+        label: c.label || c.id,
+        checked: layout.visible[c.id] ?? !c.hidden,
+        keepOpen: false,
+        onSelect: () => {
+          const on = layout.visible[c.id] ?? !c.hidden;
+          if (on && shown.length <= 1) return;
+          setLayout({ ...layout, visible: { ...layout.visible, [c.id]: !on } });
+        },
+      })),
     { separator: true },
     { label: "Reset columns", onSelect: () => setLayout(EMPTY_STATE) },
     ...(headerMenu?.length ? [{ separator: true } as MenuItem, ...headerMenu] : []),
@@ -358,7 +373,8 @@ export function Table<T>(props: TableProps<T>) {
     else setSort(null);
   };
 
-  const cellStyle = (i: number, width: number) => (i === shown.length - 1 ? { flex: "1 0 auto", width, minWidth: width } : { width, flex: "none" as const });
+  const cellStyle = (i: number, width: number) =>
+    i === shown.length - 1 ? { flex: "1 0 auto", width, minWidth: width } : { width, flex: "none" as const };
 
   const body: ReactNode[] = [];
   for (let i = first; i < last; i++) {
@@ -367,7 +383,13 @@ export function Table<T>(props: TableProps<T>) {
     body.push(
       <div
         key={k}
-        className={cx("sm-tr", selSet.has(k) && "selected", focus === k && "focused", i % 2 === 1 && "odd", rowClass?.(row))}
+        className={cx(
+          "sm-tr",
+          selSet.has(k) && "selected",
+          focus === k && "focused",
+          i % 2 === 1 && "odd",
+          rowClass?.(row),
+        )}
         style={{ top: i * rowHeight, height: rowHeight }}
         onMouseDown={(e) => e.button === 0 && clickRow(e, row)}
         onDoubleClick={() => onOpen?.(row)}
@@ -378,7 +400,12 @@ export function Table<T>(props: TableProps<T>) {
         }}
       >
         {shown.map(({ col, width }, ci) => (
-          <div key={col.id} className={cx("sm-td", col.align === "right" && "num", col.mono && "mono")} style={cellStyle(ci, width)} title={col.text?.(row)}>
+          <div
+            key={col.id}
+            className={cx("sm-td", col.align === "right" && "num", col.mono && "mono")}
+            style={cellStyle(ci, width)}
+            title={col.text?.(row)}
+          >
             {col.render ? col.render(row) : col.text?.(row)}
           </div>
         ))}
@@ -433,7 +460,13 @@ export function Table<T>(props: TableProps<T>) {
               >
                 <span className="sm-th-label">{col.label}</span>
                 {sort?.id === col.id && (sort.desc ? <ChevronDown size={12} /> : <ChevronUp size={12} />)}
-                <span className="sm-th-resize" onPointerDown={(e) => startResize(e, col.id, width, col.minWidth ?? 40)} onClick={(e) => e.stopPropagation()} draggable={false} onDragStart={(e) => e.preventDefault()} />
+                <span
+                  className="sm-th-resize"
+                  onPointerDown={(e) => startResize(e, col.id, width, col.minWidth ?? 40)}
+                  onClick={(e) => e.stopPropagation()}
+                  draggable={false}
+                  onDragStart={(e) => e.preventDefault()}
+                />
               </div>
             ))}
           </div>

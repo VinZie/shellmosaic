@@ -145,7 +145,16 @@ function PluginHost({
     const l = live.current;
     const s = attachFrame(
       () => frameRef.current,
-      { pluginId, name: l.name, paneId: pane.id, tabId: l.tabId, permissions: l.permissions, cwd: l.cwd, visible: l.visible, token },
+      {
+        pluginId,
+        name: l.name,
+        paneId: pane.id,
+        tabId: l.tabId,
+        permissions: l.permissions,
+        cwd: l.cwd,
+        visible: l.visible,
+        token,
+      },
       { onConnect: () => setStatus("connected") },
     );
     sessionRef.current = s;
@@ -199,7 +208,9 @@ function PluginHost({
                 className="btn primary"
                 onClick={() => {
                   setGate("asking");
-                  requestPermissions(pluginId, name, permissions, { force: true }).then((ok) => !ok && setGate("denied"));
+                  requestPermissions(pluginId, name, permissions, { force: true }).then(
+                    (ok) => !ok && setGate("denied"),
+                  );
                 }}
               >
                 <Icon name="shield" size={14} /> Review permissions…

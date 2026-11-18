@@ -60,7 +60,11 @@ export function DiffView({ taskId, branch, auto }: { taskId: string; branch: str
   if (!diff) {
     return (
       <div className="orc-diff-empty">
-        {error ? <span className="sm-danger-text">{error}</span> : <span className="sm-dim">Changes on {branch} compared with orch/integration.</span>}
+        {error ? (
+          <span className="sm-danger-text">{error}</span>
+        ) : (
+          <span className="sm-dim">Changes on {branch} compared with orch/integration.</span>
+        )}
         <Button small onClick={load} disabled={loading}>
           {loading ? <LoaderCircle size={13} className="sm-spin" /> : <FileDiff size={13} />} Show changes
         </Button>
@@ -69,7 +73,8 @@ export function DiffView({ taskId, branch, auto }: { taskId: string; branch: str
   }
 
   const shown = all ? lines : lines.slice(0, LIMIT);
-  const jump = (line: number) => document.getElementById(`orc-diff-${taskId}-${line}`)?.scrollIntoView({ block: "start" });
+  const jump = (line: number) =>
+    document.getElementById(`orc-diff-${taskId}-${line}`)?.scrollIntoView({ block: "start" });
   return (
     <div className="orc-diff">
       <div className="orc-diff-summary">
@@ -86,7 +91,13 @@ export function DiffView({ taskId, branch, auto }: { taskId: string; branch: str
       {files.length > 0 && (
         <div className="orc-diff-files">
           {files.map((f) => (
-            <button key={f.path + f.line} type="button" className="orc-diff-file" onClick={() => jump(f.line)} title={`Go to ${f.path}`}>
+            <button
+              key={f.path + f.line}
+              type="button"
+              className="orc-diff-file"
+              onClick={() => jump(f.line)}
+              title={`Go to ${f.path}`}
+            >
               <span className="sm-ellipsis mono">{f.path}</span>
               <span className="orc-plus">+{f.added}</span>
               <span className="orc-minus">−{f.removed}</span>
@@ -104,7 +115,19 @@ export function DiffView({ taskId, branch, auto }: { taskId: string; branch: str
               id={l.startsWith("diff --git ") ? `orc-diff-${taskId}-${i}` : undefined}
               className={cx(
                 "orc-dl",
-                l.startsWith("diff --git ") ? "file" : l.startsWith("@@") ? "hunk" : l.startsWith("+++") || l.startsWith("---") || /^(index|new file|deleted file|similarity|rename) /.test(l) ? "meta" : l.startsWith("+") ? "add" : l.startsWith("-") ? "del" : "",
+                l.startsWith("diff --git ")
+                  ? "file"
+                  : l.startsWith("@@")
+                    ? "hunk"
+                    : l.startsWith("+++") ||
+                        l.startsWith("---") ||
+                        /^(index|new file|deleted file|similarity|rename) /.test(l)
+                      ? "meta"
+                      : l.startsWith("+")
+                        ? "add"
+                        : l.startsWith("-")
+                          ? "del"
+                          : "",
               )}
             >
               {l || " "}
@@ -119,7 +142,11 @@ export function DiffView({ taskId, branch, auto }: { taskId: string; branch: str
               Show all {lines.length.toLocaleString()} lines
             </Button>
           )}
-          {diff.truncated && <span className="sm-dim">The diff is longer than 400 KB; the rest isn't shown. Look at {branch} in git for all of it.</span>}
+          {diff.truncated && (
+            <span className="sm-dim">
+              The diff is longer than 400 KB; the rest isn't shown. Look at {branch} in git for all of it.
+            </span>
+          )}
         </div>
       ) : null}
     </div>

@@ -29,7 +29,9 @@ export function isListed(ch: EventChannel, showAll: boolean): boolean {
   return showAll || (ch.enabled && ch.kind !== "analytic" && ch.kind !== "debug");
 }
 
-type Node = { type: "folder"; id: string; label: string; title: string; children: Node[] } | { type: "log"; ch: EventChannel; label: string };
+type Node =
+  | { type: "folder"; id: string; label: string; title: string; children: Node[] }
+  | { type: "log"; ch: EventChannel; label: string };
 
 function sortNodes(nodes: Node[]) {
   nodes.sort((a, b) => natural(a.label, b.label));
@@ -38,7 +40,13 @@ function sortNodes(nodes: Node[]) {
 
 function buildApps(chs: EventChannel[]): Node[] {
   const top: Node[] = [];
-  const msw: Node & { type: "folder" } = { type: "folder", id: "p:Microsoft-Windows", label: "Microsoft-Windows", title: "Microsoft-Windows-*", children: [] };
+  const msw: Node & { type: "folder" } = {
+    type: "folder",
+    id: "p:Microsoft-Windows",
+    label: "Microsoft-Windows",
+    title: "Microsoft-Windows-*",
+    children: [],
+  };
   const groups = new Map<string, Node & { type: "folder" }>();
   for (const ch of chs) {
     const slash = ch.name.indexOf("/");
@@ -50,7 +58,13 @@ function buildApps(chs: EventChannel[]): Node[] {
     const provider = ch.name.slice(0, slash);
     let g = groups.get(provider);
     if (!g) {
-      g = { type: "folder", id: `p:${provider}`, label: isMsw ? provider.slice(18) : provider, title: provider, children: [] };
+      g = {
+        type: "folder",
+        id: `p:${provider}`,
+        label: isMsw ? provider.slice(18) : provider,
+        title: provider,
+        children: [],
+      };
       groups.set(provider, g);
       (isMsw ? msw.children : top).push(g);
     }
@@ -99,7 +113,8 @@ export function LogList(p: LogListProps) {
   const { rows, logs, hidden } = useMemo(() => {
     const all = p.channels ?? [];
     const byName = new Map(all.map((c) => [c.name, c]));
-    const match = (c: EventChannel) => !q || c.name.toLowerCase().includes(q) || shortLogName(c.name).toLowerCase().includes(q);
+    const match = (c: EventChannel) =>
+      !q || c.name.toLowerCase().includes(q) || shortLogName(c.name).toLowerCase().includes(q);
     const open = new Set(p.expanded);
     const isOpen = (id: string) => searching || open.has(id);
     const out: Row[] = [];
@@ -107,7 +122,8 @@ export function LogList(p: LogListProps) {
     const favs = p.favorites.map((n) => byName.get(n)).filter((c): c is EventChannel => !!c && match(c));
     if (favs.length || !searching) {
       out.push({ type: "section", id: "§fav", label: "Favorites", count: favs.length, open: isOpen("§fav") });
-      if (isOpen("§fav")) for (const ch of favs) out.push({ type: "log", ch, label: shortLogName(ch.name), depth: 0, fav: true });
+      if (isOpen("§fav"))
+        for (const ch of favs) out.push({ type: "log", ch, label: shortLogName(ch.name), depth: 0, fav: true });
     }
 
     const win = WINDOWS_LOGS.map((n) => byName.get(n)).filter((c): c is EventChannel => !!c && match(c));
@@ -120,7 +136,13 @@ export function LogList(p: LogListProps) {
     const apps = buildApps(listed.filter(match));
     const appCount = apps.reduce((a, n) => a + countLogs(n), 0);
     if (appCount || !searching) {
-      out.push({ type: "section", id: "§apps", label: "Applications and Services Logs", count: appCount, open: isOpen("§apps") });
+      out.push({
+        type: "section",
+        id: "§apps",
+        label: "Applications and Services Logs",
+        count: appCount,
+        open: isOpen("§apps"),
+      });
       const walk = (nodes: Node[], depth: number) => {
         for (const n of nodes) {
           if (n.type === "log") out.push({ type: "log", ch: n.ch, label: n.label, depth });
@@ -134,7 +156,11 @@ export function LogList(p: LogListProps) {
       if (isOpen("§apps")) walk(apps, 0);
     }
     const shownCount = WINDOWS_LOGS.filter((n) => byName.has(n)).length + listed.length;
-    return { rows: out, logs: out.filter((r): r is Row & { type: "log" } => r.type === "log"), hidden: all.length - shownCount };
+    return {
+      rows: out,
+      logs: out.filter((r): r is Row & { type: "log" } => r.type === "log"),
+      hidden: all.length - shownCount,
+    };
   }, [p.channels, p.favorites, p.expanded, p.showAll, q, searching]);
 
   const toggle = (id: string) => {
@@ -146,7 +172,11 @@ export function LogList(p: LogListProps) {
     e.preventDefault();
     const pinned = p.favorites.includes(ch.name);
     openMenu(e, [
-      { label: pinned ? "Unpin from Favorites" : "Pin to Favorites", icon: pinned ? <PinOff size={14} /> : <Pin size={14} />, onSelect: () => p.onTogglePin(ch.name) },
+      {
+        label: pinned ? "Unpin from Favorites" : "Pin to Favorites",
+        icon: pinned ? <PinOff size={14} /> : <Pin size={14} />,
+        onSelect: () => p.onTogglePin(ch.name),
+      },
       { label: "Copy name", icon: <Copy size={14} />, onSelect: () => copy(ch.name, "log name") },
       { label: "Open in a new pane", icon: <ExternalLink size={14} />, onSelect: () => p.onOpenInPane(ch.name) },
     ]);
@@ -169,14 +199,17 @@ export function LogList(p: LogListProps) {
     if (logs[next]) {
       setAt(next);
       p.onSelect(logs[next].ch.name);
-      requestAnimationFrame(() => listRef.current?.querySelector(".ev-log.selected")?.scrollIntoView({ block: "nearest" }));
+      requestAnimationFrame(() =>
+        listRef.current?.querySelector(".ev-log.selected")?.scrollIntoView({ block: "nearest" }),
+      );
     }
   };
 
   let body: ReactNode;
   if (p.error) body = <div className="ev-side-note sm-danger-text">{p.error}</div>;
   else if (!p.channels) body = <div className="ev-side-note">Loading logs…</div>;
-  else if (!rows.length || (searching && !logs.length)) body = <div className="ev-side-note">No log matches “{search}”.</div>;
+  else if (!rows.length || (searching && !logs.length))
+    body = <div className="ev-side-note">No log matches “{search}”.</div>;
   else
     body = rows.map((r) => {
       if (r.type === "section")
@@ -189,8 +222,18 @@ export function LogList(p: LogListProps) {
         );
       if (r.type === "folder")
         return (
-          <div key={r.id} className="ev-side-row ev-folder" style={{ paddingLeft: 8 + r.depth * 14 }} title={r.title} onClick={() => toggle(r.id)}>
-            {r.open ? <ChevronDown size={13} className="ev-side-chev" /> : <ChevronRight size={13} className="ev-side-chev" />}
+          <div
+            key={r.id}
+            className="ev-side-row ev-folder"
+            style={{ paddingLeft: 8 + r.depth * 14 }}
+            title={r.title}
+            onClick={() => toggle(r.id)}
+          >
+            {r.open ? (
+              <ChevronDown size={13} className="ev-side-chev" />
+            ) : (
+              <ChevronRight size={13} className="ev-side-chev" />
+            )}
             <span className="sm-grow sm-ellipsis">{r.label}</span>
             <span className="ev-side-count">{r.count}</span>
           </div>
@@ -229,7 +272,11 @@ export function LogList(p: LogListProps) {
       <label className="ev-side-foot">
         <Switch value={p.showAll} onChange={p.onShowAll} title="Also list analytic, debug and disabled logs" />
         <span className="sm-grow">Show all logs</span>
-        {!p.showAll && hidden > 0 && <span className="ev-side-count" title="Analytic, debug and disabled logs">{formatNumber(hidden)} hidden</span>}
+        {!p.showAll && hidden > 0 && (
+          <span className="ev-side-count" title="Analytic, debug and disabled logs">
+            {formatNumber(hidden)} hidden
+          </span>
+        )}
       </label>
     </div>
   );

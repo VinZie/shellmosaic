@@ -107,13 +107,76 @@ const GAME_DIR = "C:\\Games\\Shadowfall\\bin\\";
 const DEFS: Def[] = [
   { pid: 4, ppid: 0, name: "System", exe: null, kind: "system", mem: 144e3, cpu: 0.4, up: 26.2 * HOUR },
   { pid: 140, ppid: 4, name: "Registry", exe: null, kind: "system", mem: 61e6, up: 26.2 * HOUR },
-  { pid: 512, ppid: 4, name: "smss.exe", exe: SYS32 + "smss.exe", kind: "system", mem: 1.2e6, protection: "PP (WinTcb)", up: 26.2 * HOUR },
-  { pid: 704, ppid: 692, name: "csrss.exe", exe: SYS32 + "csrss.exe", kind: "system", mem: 5.8e6, protection: "PPL (WinTcb)", up: 26.1 * HOUR },
-  { pid: 788, ppid: 692, name: "wininit.exe", exe: SYS32 + "wininit.exe", kind: "system", mem: 6.9e6, protection: "PPL (WinTcb)", up: 26.1 * HOUR },
-  { pid: 796, ppid: 780, name: "csrss.exe", exe: SYS32 + "csrss.exe", kind: "system", mem: 6.2e6, protection: "PPL (WinTcb)", cpu: 0.2, up: 26.1 * HOUR },
-  { pid: 880, ppid: 788, name: "services.exe", exe: SYS32 + "services.exe", kind: "system", mem: 11e6, protection: "PPL (WinTcb)", up: 26.1 * HOUR },
-  { pid: 900, ppid: 788, name: "lsass.exe", exe: SYS32 + "lsass.exe", kind: "system", mem: 24e6, protection: "PPL (Lsa)", up: 26.1 * HOUR },
-  { pid: 1012, ppid: 780, name: "winlogon.exe", exe: SYS32 + "winlogon.exe", kind: "system", mem: 9.6e6, up: 26.1 * HOUR },
+  {
+    pid: 512,
+    ppid: 4,
+    name: "smss.exe",
+    exe: SYS32 + "smss.exe",
+    kind: "system",
+    mem: 1.2e6,
+    protection: "PP (WinTcb)",
+    up: 26.2 * HOUR,
+  },
+  {
+    pid: 704,
+    ppid: 692,
+    name: "csrss.exe",
+    exe: SYS32 + "csrss.exe",
+    kind: "system",
+    mem: 5.8e6,
+    protection: "PPL (WinTcb)",
+    up: 26.1 * HOUR,
+  },
+  {
+    pid: 788,
+    ppid: 692,
+    name: "wininit.exe",
+    exe: SYS32 + "wininit.exe",
+    kind: "system",
+    mem: 6.9e6,
+    protection: "PPL (WinTcb)",
+    up: 26.1 * HOUR,
+  },
+  {
+    pid: 796,
+    ppid: 780,
+    name: "csrss.exe",
+    exe: SYS32 + "csrss.exe",
+    kind: "system",
+    mem: 6.2e6,
+    protection: "PPL (WinTcb)",
+    cpu: 0.2,
+    up: 26.1 * HOUR,
+  },
+  {
+    pid: 880,
+    ppid: 788,
+    name: "services.exe",
+    exe: SYS32 + "services.exe",
+    kind: "system",
+    mem: 11e6,
+    protection: "PPL (WinTcb)",
+    up: 26.1 * HOUR,
+  },
+  {
+    pid: 900,
+    ppid: 788,
+    name: "lsass.exe",
+    exe: SYS32 + "lsass.exe",
+    kind: "system",
+    mem: 24e6,
+    protection: "PPL (Lsa)",
+    up: 26.1 * HOUR,
+  },
+  {
+    pid: 1012,
+    ppid: 780,
+    name: "winlogon.exe",
+    exe: SYS32 + "winlogon.exe",
+    kind: "system",
+    mem: 9.6e6,
+    up: 26.1 * HOUR,
+  },
   svchost(1080, "DcomLaunch"),
   svchost(1136, "RPCSS", "service"),
   svchost(1240, "LocalServiceNetworkRestricted", "service"),
@@ -126,16 +189,81 @@ const DEFS: Def[] = [
   svchost(2216, "utcsvc"),
   svchost(2380, "UnistackSvcGroup", "user"),
   svchost(2604, "wsappx"),
-  { pid: 1168, ppid: 1012, name: "fontdrvhost.exe", exe: SYS32 + "fontdrvhost.exe", kind: "service", mem: 4.1e6, up: 26 * HOUR },
-  { pid: 1380, ppid: 1012, name: "dwm.exe", exe: SYS32 + "dwm.exe", kind: "service", mem: 92e6, cpu: 1.6, up: 26 * HOUR },
+  {
+    pid: 1168,
+    ppid: 1012,
+    name: "fontdrvhost.exe",
+    exe: SYS32 + "fontdrvhost.exe",
+    kind: "service",
+    mem: 4.1e6,
+    up: 26 * HOUR,
+  },
+  {
+    pid: 1380,
+    ppid: 1012,
+    name: "dwm.exe",
+    exe: SYS32 + "dwm.exe",
+    kind: "service",
+    mem: 92e6,
+    cpu: 1.6,
+    up: 26 * HOUR,
+  },
   { pid: 2788, ppid: 880, name: "spoolsv.exe", exe: SYS32 + "spoolsv.exe", kind: "system", mem: 8.4e6, up: 26 * HOUR },
-  { pid: 3120, ppid: 880, name: "MsMpEng.exe", exe: DEFENDER + "MsMpEng.exe", kind: "system", mem: 212e6, cpu: 0.8, protection: "PPL (Antimalware)", special: "msmpeng", up: 26 * HOUR },
+  {
+    pid: 3120,
+    ppid: 880,
+    name: "MsMpEng.exe",
+    exe: DEFENDER + "MsMpEng.exe",
+    kind: "system",
+    mem: 212e6,
+    cpu: 0.8,
+    protection: "PPL (Antimalware)",
+    special: "msmpeng",
+    up: 26 * HOUR,
+  },
   { pid: 3388, ppid: 880, name: "NisSrv.exe", exe: DEFENDER + "NisSrv.exe", kind: "service", mem: 9e6, up: 26 * HOUR },
-  { pid: 3504, ppid: 880, name: "SecurityHealthService.exe", exe: SYS32 + "SecurityHealthService.exe", kind: "system", mem: 7.2e6, up: 26 * HOUR },
-  { pid: 3660, ppid: 880, name: "SgrmBroker.exe", exe: SYS32 + "SgrmBroker.exe", kind: "system", mem: 5e6, protection: "PPL (WinTcb)", up: 26 * HOUR },
-  { pid: 4812, ppid: 4790, name: "explorer.exe", exe: "C:\\Windows\\explorer.exe", kind: "user", mem: 168e6, cpu: 0.6, special: "explorer", cmd: "C:\\Windows\\Explorer.EXE", up: 25.9 * HOUR },
+  {
+    pid: 3504,
+    ppid: 880,
+    name: "SecurityHealthService.exe",
+    exe: SYS32 + "SecurityHealthService.exe",
+    kind: "system",
+    mem: 7.2e6,
+    up: 26 * HOUR,
+  },
+  {
+    pid: 3660,
+    ppid: 880,
+    name: "SgrmBroker.exe",
+    exe: SYS32 + "SgrmBroker.exe",
+    kind: "system",
+    mem: 5e6,
+    protection: "PPL (WinTcb)",
+    up: 26 * HOUR,
+  },
+  {
+    pid: 4812,
+    ppid: 4790,
+    name: "explorer.exe",
+    exe: "C:\\Windows\\explorer.exe",
+    kind: "user",
+    mem: 168e6,
+    cpu: 0.6,
+    special: "explorer",
+    cmd: "C:\\Windows\\Explorer.EXE",
+    up: 25.9 * HOUR,
+  },
   { pid: 5020, ppid: 1312, name: "sihost.exe", exe: SYS32 + "sihost.exe", kind: "user", mem: 28e6, up: 25.9 * HOUR },
-  { pid: 5068, ppid: 1312, name: "taskhostw.exe", exe: SYS32 + "taskhostw.exe", kind: "user", mem: 14e6, cmd: "taskhostw.exe {222A245B-E637-4AE9-A93F-A59CA119A75E}", up: 25.9 * HOUR },
+  {
+    pid: 5068,
+    ppid: 1312,
+    name: "taskhostw.exe",
+    exe: SYS32 + "taskhostw.exe",
+    kind: "user",
+    mem: 14e6,
+    cmd: "taskhostw.exe {222A245B-E637-4AE9-A93F-A59CA119A75E}",
+    up: 25.9 * HOUR,
+  },
   { pid: 5240, ppid: 1240, name: "ctfmon.exe", exe: SYS32 + "ctfmon.exe", kind: "user", mem: 18e6, up: 25.9 * HOUR },
   {
     pid: 5432,
@@ -148,9 +276,36 @@ const DEFS: Def[] = [
     appContainer: true,
     up: 25.9 * HOUR,
   },
-  { pid: 5560, ppid: 1080, name: "RuntimeBroker.exe", exe: SYS32 + "RuntimeBroker.exe", kind: "user", mem: 21e6, cmd: "C:\\Windows\\System32\\RuntimeBroker.exe -Embedding", up: 25.9 * HOUR },
-  { pid: 5580, ppid: 1080, name: "RuntimeBroker.exe", exe: SYS32 + "RuntimeBroker.exe", kind: "user", mem: 9e6, cmd: "C:\\Windows\\System32\\RuntimeBroker.exe -Embedding", up: 25.8 * HOUR },
-  { pid: 5600, ppid: 1080, name: "RuntimeBroker.exe", exe: SYS32 + "RuntimeBroker.exe", kind: "user", mem: 7e6, cmd: "C:\\Windows\\System32\\RuntimeBroker.exe -Embedding", up: 3 * HOUR },
+  {
+    pid: 5560,
+    ppid: 1080,
+    name: "RuntimeBroker.exe",
+    exe: SYS32 + "RuntimeBroker.exe",
+    kind: "user",
+    mem: 21e6,
+    cmd: "C:\\Windows\\System32\\RuntimeBroker.exe -Embedding",
+    up: 25.9 * HOUR,
+  },
+  {
+    pid: 5580,
+    ppid: 1080,
+    name: "RuntimeBroker.exe",
+    exe: SYS32 + "RuntimeBroker.exe",
+    kind: "user",
+    mem: 9e6,
+    cmd: "C:\\Windows\\System32\\RuntimeBroker.exe -Embedding",
+    up: 25.8 * HOUR,
+  },
+  {
+    pid: 5600,
+    ppid: 1080,
+    name: "RuntimeBroker.exe",
+    exe: SYS32 + "RuntimeBroker.exe",
+    kind: "user",
+    mem: 7e6,
+    cmd: "C:\\Windows\\System32\\RuntimeBroker.exe -Embedding",
+    up: 3 * HOUR,
+  },
   {
     pid: 5712,
     ppid: 1080,
@@ -163,16 +318,81 @@ const DEFS: Def[] = [
     cmd: '"C:\\Windows\\SystemApps\\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\\SearchHost.exe" -ServerName:CortanaUI.AppX8z9r6jm96hw4bsbneegw0kyxx296wr9t.mca',
     up: 25.9 * HOUR,
   },
-  { pid: 5904, ppid: 1080, name: "ShellExperienceHost.exe", exe: "C:\\Windows\\SystemApps\\ShellExperienceHost_cw5n1h2txyewy\\ShellExperienceHost.exe", kind: "user", mem: 48e6, appContainer: true, up: 25.9 * HOUR },
-  { pid: 6120, ppid: 4812, name: "SecurityHealthSystray.exe", exe: SYS32 + "SecurityHealthSystray.exe", kind: "user", mem: 6e6, up: 25.9 * HOUR },
-  { pid: 6244, ppid: 4812, name: "OneDrive.exe", exe: "C:\\Users\\alex\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe", kind: "user", mem: 64e6, cmd: '"C:\\Users\\alex\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe" /background', up: 25.9 * HOUR },
-  { pid: 6388, ppid: 4812, name: "msedge.exe", exe: EDGE, kind: "user", mem: 188e6, cpu: 1.1, cmd: `"${EDGE}" --no-startup-window --win-session-start`, up: 25.8 * HOUR },
-  ...[6420, 6512, 6604, 6720, 6888].map(
-    (pid, i): Def => ({ pid, ppid: 6388, name: "msedge.exe", exe: EDGE, kind: "user", mem: (40 + i * 23) * 1e6, cpu: i === 2 ? 2.4 : 0.1, cmd: `"${EDGE}" --type=${i === 0 ? "gpu-process" : i === 1 ? "utility --utility-sub-type=network.mojom.NetworkService" : "renderer"} --lang=en-US`, up: 25.8 * HOUR - i * HOUR }),
-  ),
+  {
+    pid: 5904,
+    ppid: 1080,
+    name: "ShellExperienceHost.exe",
+    exe: "C:\\Windows\\SystemApps\\ShellExperienceHost_cw5n1h2txyewy\\ShellExperienceHost.exe",
+    kind: "user",
+    mem: 48e6,
+    appContainer: true,
+    up: 25.9 * HOUR,
+  },
+  {
+    pid: 6120,
+    ppid: 4812,
+    name: "SecurityHealthSystray.exe",
+    exe: SYS32 + "SecurityHealthSystray.exe",
+    kind: "user",
+    mem: 6e6,
+    up: 25.9 * HOUR,
+  },
+  {
+    pid: 6244,
+    ppid: 4812,
+    name: "OneDrive.exe",
+    exe: "C:\\Users\\alex\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe",
+    kind: "user",
+    mem: 64e6,
+    cmd: '"C:\\Users\\alex\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe" /background',
+    up: 25.9 * HOUR,
+  },
+  {
+    pid: 6388,
+    ppid: 4812,
+    name: "msedge.exe",
+    exe: EDGE,
+    kind: "user",
+    mem: 188e6,
+    cpu: 1.1,
+    cmd: `"${EDGE}" --no-startup-window --win-session-start`,
+    up: 25.8 * HOUR,
+  },
+  ...[6420, 6512, 6604, 6720, 6888].map((pid, i): Def => ({
+    pid,
+    ppid: 6388,
+    name: "msedge.exe",
+    exe: EDGE,
+    kind: "user",
+    mem: (40 + i * 23) * 1e6,
+    cpu: i === 2 ? 2.4 : 0.1,
+    cmd: `"${EDGE}" --type=${i === 0 ? "gpu-process" : i === 1 ? "utility --utility-sub-type=network.mojom.NetworkService" : "renderer"} --lang=en-US`,
+    up: 25.8 * HOUR - i * HOUR,
+  })),
   { pid: 7012, ppid: 4812, name: "Code.exe", exe: CODE, kind: "user", mem: 156e6, cpu: 0.9, up: 6 * HOUR },
-  ...[7056, 7120, 7188].map((pid, i): Def => ({ pid, ppid: 7012, name: "Code.exe", exe: CODE, kind: "user", mem: (90 + i * 60) * 1e6, cpu: 0.3, cmd: `"${CODE}" --type=${["gpu-process", "renderer", "utility"][i]}`, up: 6 * HOUR })),
-  { pid: 7240, ppid: 4812, name: "steam.exe", exe: "C:\\Program Files (x86)\\Steam\\steam.exe", kind: "user", mem: 96e6, cpu: 0.4, arch: "x86 (WOW64)", cmd: '"C:\\Program Files (x86)\\Steam\\steam.exe" -silent', up: 25.8 * HOUR },
+  ...[7056, 7120, 7188].map((pid, i): Def => ({
+    pid,
+    ppid: 7012,
+    name: "Code.exe",
+    exe: CODE,
+    kind: "user",
+    mem: (90 + i * 60) * 1e6,
+    cpu: 0.3,
+    cmd: `"${CODE}" --type=${["gpu-process", "renderer", "utility"][i]}`,
+    up: 6 * HOUR,
+  })),
+  {
+    pid: 7240,
+    ppid: 4812,
+    name: "steam.exe",
+    exe: "C:\\Program Files (x86)\\Steam\\steam.exe",
+    kind: "user",
+    mem: 96e6,
+    cpu: 0.4,
+    arch: "x86 (WOW64)",
+    cmd: '"C:\\Program Files (x86)\\Steam\\steam.exe" -silent',
+    up: 25.8 * HOUR,
+  },
   {
     pid: 7340,
     ppid: 7240,
@@ -186,11 +406,55 @@ const DEFS: Def[] = [
     cmd: `"${GAME_DIR}game.exe" -steam -novid -dx9 +connect 185.25.182.77:27015`,
     up: 47 * MIN,
   },
-  { pid: 7488, ppid: 7240, name: "steamwebhelper.exe", exe: "C:\\Program Files (x86)\\Steam\\bin\\cef\\cef.win64\\steamwebhelper.exe", kind: "user", mem: 82e6, up: 25.8 * HOUR },
-  ...[7612, 7660, 7704].map((pid, i): Def => ({ pid, ppid: i ? 7612 : 4812, name: "Discord.exe", exe: DISCORD, kind: "user", mem: (70 + i * 45) * 1e6, cpu: 0.2, up: 25.7 * HOUR })),
-  { pid: 8020, ppid: 4812, name: "shellmosaic.exe", exe: "C:\\Program Files\\Shellmosaic\\shellmosaic.exe", kind: "user", mem: 118e6, cpu: 1.4, up: 2 * HOUR },
-  { pid: 8104, ppid: 8020, name: "pwsh.exe", exe: "C:\\Program Files\\PowerShell\\7\\pwsh.exe", kind: "user", mem: 86e6, cmd: '"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -NoLogo', up: 2 * HOUR },
-  { pid: 8150, ppid: 8104, name: "conhost.exe", exe: SYS32 + "conhost.exe", kind: "user", mem: 7e6, cmd: "\\??\\C:\\Windows\\system32\\conhost.exe 0x4", up: 2 * HOUR },
+  {
+    pid: 7488,
+    ppid: 7240,
+    name: "steamwebhelper.exe",
+    exe: "C:\\Program Files (x86)\\Steam\\bin\\cef\\cef.win64\\steamwebhelper.exe",
+    kind: "user",
+    mem: 82e6,
+    up: 25.8 * HOUR,
+  },
+  ...[7612, 7660, 7704].map((pid, i): Def => ({
+    pid,
+    ppid: i ? 7612 : 4812,
+    name: "Discord.exe",
+    exe: DISCORD,
+    kind: "user",
+    mem: (70 + i * 45) * 1e6,
+    cpu: 0.2,
+    up: 25.7 * HOUR,
+  })),
+  {
+    pid: 8020,
+    ppid: 4812,
+    name: "shellmosaic.exe",
+    exe: "C:\\Program Files\\Shellmosaic\\shellmosaic.exe",
+    kind: "user",
+    mem: 118e6,
+    cpu: 1.4,
+    up: 2 * HOUR,
+  },
+  {
+    pid: 8104,
+    ppid: 8020,
+    name: "pwsh.exe",
+    exe: "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    kind: "user",
+    mem: 86e6,
+    cmd: '"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -NoLogo',
+    up: 2 * HOUR,
+  },
+  {
+    pid: 8150,
+    ppid: 8104,
+    name: "conhost.exe",
+    exe: SYS32 + "conhost.exe",
+    kind: "user",
+    mem: 7e6,
+    cmd: "\\??\\C:\\Windows\\system32\\conhost.exe 0x4",
+    up: 2 * HOUR,
+  },
   {
     pid: 8812,
     ppid: 4812,
@@ -201,10 +465,45 @@ const DEFS: Def[] = [
     cpu: 3.1,
     up: 31 * MIN,
   },
-  { pid: 9120, ppid: 1080, name: "WmiPrvSE.exe", exe: SYS32 + "wbem\\WmiPrvSE.exe", kind: "service", mem: 12e6, up: 5 * MIN },
-  { pid: 9244, ppid: 1080, name: "dllhost.exe", exe: SYS32 + "dllhost.exe", kind: "user", mem: 9e6, cmd: "C:\\Windows\\system32\\DllHost.exe /Processid:{AB8902B4-09CA-4BB6-B78D-A8F59079A8D5}", up: 12 * MIN },
-  { pid: 9388, ppid: 2040, name: "audiodg.exe", exe: SYS32 + "audiodg.exe", kind: "service", mem: 15e6, cpu: 0.3, up: 47 * MIN },
-  { pid: 9460, ppid: 4812, name: "updater_helper.exe", exe: "C:\\Users\\alex\\AppData\\Local\\Temp\\updater_helper.exe", kind: "user", mem: 3e6, special: "exited", up: 20_000 },
+  {
+    pid: 9120,
+    ppid: 1080,
+    name: "WmiPrvSE.exe",
+    exe: SYS32 + "wbem\\WmiPrvSE.exe",
+    kind: "service",
+    mem: 12e6,
+    up: 5 * MIN,
+  },
+  {
+    pid: 9244,
+    ppid: 1080,
+    name: "dllhost.exe",
+    exe: SYS32 + "dllhost.exe",
+    kind: "user",
+    mem: 9e6,
+    cmd: "C:\\Windows\\system32\\DllHost.exe /Processid:{AB8902B4-09CA-4BB6-B78D-A8F59079A8D5}",
+    up: 12 * MIN,
+  },
+  {
+    pid: 9388,
+    ppid: 2040,
+    name: "audiodg.exe",
+    exe: SYS32 + "audiodg.exe",
+    kind: "service",
+    mem: 15e6,
+    cpu: 0.3,
+    up: 47 * MIN,
+  },
+  {
+    pid: 9460,
+    ppid: 4812,
+    name: "updater_helper.exe",
+    exe: "C:\\Users\\alex\\AppData\\Local\\Temp\\updater_helper.exe",
+    kind: "user",
+    mem: 3e6,
+    special: "exited",
+    up: 20_000,
+  },
   {
     pid: 9620,
     ppid: 4812,
@@ -215,7 +514,16 @@ const DEFS: Def[] = [
     pkg: "Microsoft.WindowsNotepad_11.2409.9.0_x64__8wekyb3d8bbwe",
     up: 40 * MIN,
   },
-  { pid: 9700, ppid: 4812, name: "Spotify.exe", exe: "C:\\Users\\alex\\AppData\\Roaming\\Spotify\\Spotify.exe", kind: "user", mem: 210e6, cpu: 0.7, up: 25.7 * HOUR },
+  {
+    pid: 9700,
+    ppid: 4812,
+    name: "Spotify.exe",
+    exe: "C:\\Users\\alex\\AppData\\Roaming\\Spotify\\Spotify.exe",
+    kind: "user",
+    mem: 210e6,
+    cpu: 0.7,
+    up: 25.7 * HOUR,
+  },
 ];
 const byPid = new Map(DEFS.map((d) => [d.pid, d]));
 
@@ -223,14 +531,40 @@ const byPid = new Map(DEFS.map((d) => [d.pid, d]));
 
 function signatureOf(path: string): Signature {
   const p = path.toLowerCase();
-  const valid = (signer: string, catalog = false): Signature => ({ status: "valid", detail: "Signed", signer, catalog });
-  if (p.includes("\\temp\\") || p.endsWith("game.exe") || p.includes("binkw32") || p.includes("7-zip") || p.includes("shellmosaic")) return { status: "unsigned", detail: "Not signed", signer: null, catalog: false };
-  if (p.endsWith("fmod.dll")) return { status: "invalid", detail: "The file was changed after it was signed", signer: "Firelight Technologies Pty Ltd", catalog: false };
+  const valid = (signer: string, catalog = false): Signature => ({
+    status: "valid",
+    detail: "Signed",
+    signer,
+    catalog,
+  });
+  if (
+    p.includes("\\temp\\") ||
+    p.endsWith("game.exe") ||
+    p.includes("binkw32") ||
+    p.includes("7-zip") ||
+    p.includes("shellmosaic")
+  )
+    return { status: "unsigned", detail: "Not signed", signer: null, catalog: false };
+  if (p.endsWith("fmod.dll"))
+    return {
+      status: "invalid",
+      detail: "The file was changed after it was signed",
+      signer: "Firelight Technologies Pty Ltd",
+      catalog: false,
+    };
   if (p.includes("steam")) return valid("Valve Corp.");
   if (p.includes("physx")) return valid("NVIDIA Corporation");
   if (p.includes("driverstore") && (p.includes("nv") || p.includes("nvidia"))) return valid("NVIDIA Corporation");
   if (p.includes("windows defender")) return valid("Microsoft Windows Publisher");
-  if (p.includes("onedrive") || p.includes("edge") || p.includes("vs code") || p.includes("windowsapps") || p.includes("d3dx9") || p.includes("powershell")) return valid(MS);
+  if (
+    p.includes("onedrive") ||
+    p.includes("edge") ||
+    p.includes("vs code") ||
+    p.includes("windowsapps") ||
+    p.includes("d3dx9") ||
+    p.includes("powershell")
+  )
+    return valid(MS);
   if (p.includes("discord")) return valid("Discord Inc.");
   if (p.includes("spotify")) return valid("Spotify AB");
   if (p.includes("cheatengine")) return valid("Cheat Engine");
@@ -369,19 +703,36 @@ interface ModSpec {
   version: string | null;
 }
 
-const sysMod = ([name, description]: [string, string], dir = SYS32): ModSpec => ({ name, path: dir + name, description, company: MS, version: WINVER });
+const sysMod = ([name, description]: [string, string], dir = SYS32): ModSpec => ({
+  name,
+  path: dir + name,
+  description,
+  company: MS,
+  version: WINVER,
+});
 
 function layoutModules(specs: ModSpec[], mainBase: bigint, dllBase: bigint, r: Rand): ProcModule[] {
   let next = dllBase;
   return specs.map((s, i) => {
-    const size = page(0x9000 + (hash(s.name) % 0x1f0) * 0x1000 + (s.name.toLowerCase().startsWith("ntdll") ? 0x150000 : 0));
+    const size = page(
+      0x9000 + (hash(s.name) % 0x1f0) * 0x1000 + (s.name.toLowerCase().startsWith("ntdll") ? 0x150000 : 0),
+    );
     let base: bigint;
     if (i === 0) base = mainBase;
     else {
       base = next;
       next += BigInt(Math.ceil(size / 0x10000) * 0x10000 + int(r, 1, 6) * 0x10000);
     }
-    return { name: s.name, path: s.path, base: hx(base), size, isMain: i === 0, description: s.description, company: s.company, version: s.version };
+    return {
+      name: s.name,
+      path: s.path,
+      base: hx(base),
+      size,
+      isMain: i === 0,
+      description: s.description,
+      company: s.company,
+      version: s.version,
+    };
   });
 }
 
@@ -393,7 +744,19 @@ function symbolAt(mods: ProcModule[], name: string, off: number): { addr: string
   return { addr: hx(BigInt(m.base) + BigInt(o)), sym: `${m.name}+0x${o.toString(16)}` };
 }
 
-const WAITS = ["WrQueue", "WrQueue", "WrQueue", "UserRequest", "UserRequest", "UserRequest", "WrUserRequest", "WrUserRequest", "WrAlertByThreadId", "DelayExecution", "Executive"];
+const WAITS = [
+  "WrQueue",
+  "WrQueue",
+  "WrQueue",
+  "UserRequest",
+  "UserRequest",
+  "UserRequest",
+  "WrUserRequest",
+  "WrUserRequest",
+  "WrAlertByThreadId",
+  "DelayExecution",
+  "Executive",
+];
 
 interface ThreadSpec {
   win32?: [string, number];
@@ -402,7 +765,14 @@ interface ThreadSpec {
   priority?: number;
 }
 
-function makeThreads(r: Rand, mods: ProcModule[], start: number, specs: ThreadSpec[], suspendedCount = 0, wow = false): ProcThread[] {
+function makeThreads(
+  r: Rand,
+  mods: ProcModule[],
+  start: number,
+  specs: ThreadSpec[],
+  suspendedCount = 0,
+  wow = false,
+): ProcThread[] {
   const tids = new Set<number>();
   const rtl = symbolAt(mods, "ntdll.dll", wow ? 0x7a2e0 : 0x5af28);
   return specs.map((s, i) => {
@@ -491,41 +861,174 @@ const REG_KEYS = [
 const KEY_ACCESS = [0x20019, 0x20019, 0x20019, 0x1, 0x9, 0xf003f, 0x2001f];
 const FILE_ACCESS = [0x100001, 0x120089, 0x120089, 0x100020, 0x12019f, 0x100080];
 
-function genericHandles(r: Rand, d: Def, threads: ProcThread[], files: string[], counts: Partial<Record<string, number>>, extra: HandleSeed[] = []): ProcHandle[] {
+function genericHandles(
+  r: Rand,
+  d: Def,
+  threads: ProcThread[],
+  files: string[],
+  counts: Partial<Record<string, number>>,
+  extra: HandleSeed[] = [],
+): ProcHandle[] {
   const seeds: HandleSeed[] = [...extra];
   const add = (type: string, n: number, name: (i: number) => string | null, access: (i: number) => number) => {
     for (let i = 0; i < n; i++) seeds.push({ type, name: name(i), access: access(i), targetPid: null });
   };
   const sess = d.kind === "system" || d.kind === "service" ? "\\BaseNamedObjects" : "\\Sessions\\1\\BaseNamedObjects";
   const c = (k: string, def: number) => counts[k] ?? def;
-  add("File", c("File", 30), (i) => (i < files.length ? files[i] : pick(r, ["\\Device\\DeviceApi", "\\Device\\CNG", "\\Device\\KsecDD", "\\Device\\ConDrv", "\\Device\\NamedPipe\\", `\\Device\\HarddiskVolume3\\Windows\\System32\\en-US\\${d.name}.mui`, null])), () => pick(r, FILE_ACCESS));
-  add("Key", c("Key", 40), (i) => REG_KEYS[(i + hash(d.name)) % REG_KEYS.length] + (i >= REG_KEYS.length ? `\\${["Shell", "Defaults", "Cache", "Config"][i % 4]}` : ""), () => pick(r, KEY_ACCESS));
-  add("Event", c("Event", 70), (i) => (i % 5 === 0 ? `${sess}\\${pick(r, ["ShellReadyEvent", "SM0:" + d.pid + ":120:WilStaging_02", "WinSta0_DesktopSwitch", "CTF.TimListCache.FMPDefault.SAMDefault"])}_${i}` : null), () => pick(r, [0x1f0003, 0x100002, 0x100003]));
-  add("Mutant", c("Mutant", 8), (i) => (i % 2 ? `${sess}\\SM0:${d.pid}:${120 + i}:WilError_03` : null), () => 0x1f0001);
-  add("Semaphore", c("Semaphore", 8), (i) => (i % 3 === 0 ? `${sess}\\SM0:${d.pid}:${64 + i}:WilError_03_p0` : null), () => 0x1f0003);
-  add("Section", c("Section", 10), (i) => (i % 2 ? `${sess}\\${pick(r, ["windows_shell_global_counters", "__ComCatalogCache__", "Theme1984203", "C:*ProgramData*Microsoft*Windows*Caches*cversions.3.ro"])}` : null), () => pick(r, [0x4, 0x6, 0xf001f]));
-  add("ALPC Port", c("ALPC Port", 6), () => null, () => 0x1f0001);
-  add("Directory", c("Directory", 3), (i) => ["\\KnownDlls", sess, "\\Sessions\\1\\AppContainerNamedObjects", "\\KnownDlls32"][i % 4], () => pick(r, [0x3, 0xf000f]));
-  add("Token", c("Token", 2), () => null, () => pick(r, [0x8, 0xf01ff, 0x2000e]));
-  add("WindowStation", c("WindowStation", 2), () => "\\Sessions\\1\\Windows\\WindowStations\\WinSta0", () => 0xf037f);
-  add("Desktop", c("Desktop", 1), () => "\\Default", () => 0xf01ff);
-  add("IoCompletion", c("IoCompletion", 8), () => null, () => 0x1f0003);
-  add("TpWorkerFactory", c("TpWorkerFactory", 3), () => null, () => 0xf00ff);
-  add("IRTimer", c("IRTimer", 6), () => null, () => 0x100002);
-  add("WaitCompletionPacket", c("WaitCompletionPacket", 14), () => null, () => 0x1);
-  add("EtwRegistration", c("EtwRegistration", 30), () => null, () => 0x804);
-  add("Timer", c("Timer", 2), () => null, () => 0x1f0003);
+  add(
+    "File",
+    c("File", 30),
+    (i) =>
+      i < files.length
+        ? files[i]
+        : pick(r, [
+            "\\Device\\DeviceApi",
+            "\\Device\\CNG",
+            "\\Device\\KsecDD",
+            "\\Device\\ConDrv",
+            "\\Device\\NamedPipe\\",
+            `\\Device\\HarddiskVolume3\\Windows\\System32\\en-US\\${d.name}.mui`,
+            null,
+          ]),
+    () => pick(r, FILE_ACCESS),
+  );
+  add(
+    "Key",
+    c("Key", 40),
+    (i) =>
+      REG_KEYS[(i + hash(d.name)) % REG_KEYS.length] +
+      (i >= REG_KEYS.length ? `\\${["Shell", "Defaults", "Cache", "Config"][i % 4]}` : ""),
+    () => pick(r, KEY_ACCESS),
+  );
+  add(
+    "Event",
+    c("Event", 70),
+    (i) =>
+      i % 5 === 0
+        ? `${sess}\\${pick(r, ["ShellReadyEvent", "SM0:" + d.pid + ":120:WilStaging_02", "WinSta0_DesktopSwitch", "CTF.TimListCache.FMPDefault.SAMDefault"])}_${i}`
+        : null,
+    () => pick(r, [0x1f0003, 0x100002, 0x100003]),
+  );
+  add(
+    "Mutant",
+    c("Mutant", 8),
+    (i) => (i % 2 ? `${sess}\\SM0:${d.pid}:${120 + i}:WilError_03` : null),
+    () => 0x1f0001,
+  );
+  add(
+    "Semaphore",
+    c("Semaphore", 8),
+    (i) => (i % 3 === 0 ? `${sess}\\SM0:${d.pid}:${64 + i}:WilError_03_p0` : null),
+    () => 0x1f0003,
+  );
+  add(
+    "Section",
+    c("Section", 10),
+    (i) =>
+      i % 2
+        ? `${sess}\\${pick(r, ["windows_shell_global_counters", "__ComCatalogCache__", "Theme1984203", "C:*ProgramData*Microsoft*Windows*Caches*cversions.3.ro"])}`
+        : null,
+    () => pick(r, [0x4, 0x6, 0xf001f]),
+  );
+  add(
+    "ALPC Port",
+    c("ALPC Port", 6),
+    () => null,
+    () => 0x1f0001,
+  );
+  add(
+    "Directory",
+    c("Directory", 3),
+    (i) => ["\\KnownDlls", sess, "\\Sessions\\1\\AppContainerNamedObjects", "\\KnownDlls32"][i % 4],
+    () => pick(r, [0x3, 0xf000f]),
+  );
+  add(
+    "Token",
+    c("Token", 2),
+    () => null,
+    () => pick(r, [0x8, 0xf01ff, 0x2000e]),
+  );
+  add(
+    "WindowStation",
+    c("WindowStation", 2),
+    () => "\\Sessions\\1\\Windows\\WindowStations\\WinSta0",
+    () => 0xf037f,
+  );
+  add(
+    "Desktop",
+    c("Desktop", 1),
+    () => "\\Default",
+    () => 0xf01ff,
+  );
+  add(
+    "IoCompletion",
+    c("IoCompletion", 8),
+    () => null,
+    () => 0x1f0003,
+  );
+  add(
+    "TpWorkerFactory",
+    c("TpWorkerFactory", 3),
+    () => null,
+    () => 0xf00ff,
+  );
+  add(
+    "IRTimer",
+    c("IRTimer", 6),
+    () => null,
+    () => 0x100002,
+  );
+  add(
+    "WaitCompletionPacket",
+    c("WaitCompletionPacket", 14),
+    () => null,
+    () => 0x1,
+  );
+  add(
+    "EtwRegistration",
+    c("EtwRegistration", 30),
+    () => null,
+    () => 0x804,
+  );
+  add(
+    "Timer",
+    c("Timer", 2),
+    () => null,
+    () => 0x1f0003,
+  );
   // its own threads
   const own = Math.min(threads.length, c("Thread", 12));
-  for (let i = 0; i < own; i++) seeds.push({ type: "Thread", name: `${d.name} (${d.pid}): ${threads[i].tid}`, access: pick(r, [0x1fffff, 0x101fff, 0x1fffff]), targetPid: d.pid });
+  for (let i = 0; i < own; i++)
+    seeds.push({
+      type: "Thread",
+      name: `${d.name} (${d.pid}): ${threads[i].tid}`,
+      access: pick(r, [0x1fffff, 0x101fff, 0x1fffff]),
+      targetPid: d.pid,
+    });
   seeds.push({ type: "Process", name: `${d.name} (${d.pid})`, access: 0x1fffff, targetPid: d.pid });
   return finishHandles(r, seeds);
 }
 
 // ── memory ──────────────────────────────────────────────────────────────
 
-const PROTECT: Record<string, number> = { NA: 0x1, R: 0x2, RW: 0x4, WC: 0x8, X: 0x10, RX: 0x20, RWX: 0x40, WCX: 0x80, "": 0 };
-const protectRaw = (p: string) => p.split("+").reduce((acc, part, i) => acc | (i === 0 ? (PROTECT[part] ?? 0) : part === "G" ? 0x100 : part === "NC" ? 0x200 : 0x400), 0);
+const PROTECT: Record<string, number> = {
+  NA: 0x1,
+  R: 0x2,
+  RW: 0x4,
+  WC: 0x8,
+  X: 0x10,
+  RX: 0x20,
+  RWX: 0x40,
+  WCX: 0x80,
+  "": 0,
+};
+const protectRaw = (p: string) =>
+  p
+    .split("+")
+    .reduce(
+      (acc, part, i) => acc | (i === 0 ? (PROTECT[part] ?? 0) : part === "G" ? 0x100 : part === "NC" ? 0x200 : 0x400),
+      0,
+    );
 
 interface Part {
   size: number;
@@ -561,13 +1064,19 @@ class Space {
     const rdata = page(total * 0.24);
     const data = page(total * 0.06);
     const rest = Math.max(0x1000, total - 0x1000 - text - rdata - data);
-    this.alloc(BigInt(m.base), "image", "WCX", [
-      { size: 0x1000, protect: "R" },
-      { size: text, protect: "RX" },
-      { size: rdata, protect: "R" },
-      { size: data, protect: hash(m.name) % 4 ? "RW" : "WC" },
-      { size: rest, protect: "R" },
-    ], m.path);
+    this.alloc(
+      BigInt(m.base),
+      "image",
+      "WCX",
+      [
+        { size: 0x1000, protect: "R" },
+        { size: text, protect: "RX" },
+        { size: rdata, protect: "R" },
+        { size: data, protect: hash(m.name) % 4 ? "RW" : "WC" },
+        { size: rest, protect: "R" },
+      ],
+      m.path,
+    );
   }
   /** sorted, with the free gaps between allocations (up to the end of user space) */
   finish(top: bigint): MemRegion[] {
@@ -576,55 +1085,109 @@ class Space {
     let at = 0n;
     for (const r of list) {
       const b = BigInt(r.base);
-      if (b > at) out.push({ base: hx(at), allocationBase: hx(0), size: Number(b - at), state: "free", type: null, protect: "", protectRaw: 0x1, allocationProtect: "", usage: null });
+      if (b > at)
+        out.push({
+          base: hx(at),
+          allocationBase: hx(0),
+          size: Number(b - at),
+          state: "free",
+          type: null,
+          protect: "",
+          protectRaw: 0x1,
+          allocationProtect: "",
+          usage: null,
+        });
       out.push(r);
       at = b + BigInt(r.size);
     }
-    if (top > at) out.push({ base: hx(at), allocationBase: hx(0), size: Number(top - at), state: "free", type: null, protect: "", protectRaw: 0x1, allocationProtect: "", usage: null });
+    if (top > at)
+      out.push({
+        base: hx(at),
+        allocationBase: hx(0),
+        size: Number(top - at),
+        state: "free",
+        type: null,
+        protect: "",
+        protectRaw: 0x1,
+        allocationProtect: "",
+        usage: null,
+      });
     return out;
   }
 }
 
-function genericMemory(r: Rand, mods: ProcModule[], threads: ProcThread[], mapped: string[], wow: boolean, extra?: (s: Space) => void): MemRegion[] {
+function genericMemory(
+  r: Rand,
+  mods: ProcModule[],
+  threads: ProcThread[],
+  mapped: string[],
+  wow: boolean,
+  extra?: (s: Space) => void,
+): MemRegion[] {
   const s = new Space();
   s.alloc(0x7ffe0000n, "private", "R", [{ size: 0x1000, protect: "R" }], "USER_SHARED_DATA");
   // PEB and TEBs
   let tebAt = wow ? 0x002d0000n : 0x0000006259000000n;
   tebAt = s.alloc(tebAt, "private", "RW", [{ size: 0x1000, protect: "RW" }], "PEB");
-  for (const t of threads) tebAt = s.alloc(tebAt, "private", "RW", [{ size: wow ? 0x3000 : 0x2000, protect: "RW" }], `TEB (TID ${t.tid})`);
+  for (const t of threads)
+    tebAt = s.alloc(tebAt, "private", "RW", [{ size: wow ? 0x3000 : 0x2000, protect: "RW" }], `TEB (TID ${t.tid})`);
   // stacks
   let stackAt = wow ? 0x10000000n : 0x000000625a000000n;
   threads.forEach((t) => {
     const used = page(0x2000 + int(r, 0, 12) * 0x1000);
     const total = wow ? 0x100000 : 0x80000;
-    s.alloc(stackAt, "private", "RW", [
-      { size: total - used - 0x3000, state: "reserve", protect: "" },
-      { size: 0x3000, protect: "RW+G" },
-      { size: used, protect: "RW" },
-    ], `Stack (TID ${t.tid})`);
+    s.alloc(
+      stackAt,
+      "private",
+      "RW",
+      [
+        { size: total - used - 0x3000, state: "reserve", protect: "" },
+        { size: 0x3000, protect: "RW+G" },
+        { size: used, protect: "RW" },
+      ],
+      `Stack (TID ${t.tid})`,
+    );
     stackAt += BigInt(total) * 2n;
   });
   // heaps
   const heapBase = wow ? 0x00a00000n : 0x0000025f7c400000n;
   for (let i = 0; i < 6; i++) {
     const commit = page(int(r, 0x40, i === 0 ? 0x900 : 0x200) * 0x1000);
-    s.alloc(heapBase + BigInt(i) * (wow ? 0x400000n : 0x2000000n), "private", "RW", [
-      { size: commit, protect: "RW" },
-      { size: 0x100000, state: "reserve", protect: "" },
-    ], `Heap ${i}`);
+    s.alloc(
+      heapBase + BigInt(i) * (wow ? 0x400000n : 0x2000000n),
+      "private",
+      "RW",
+      [
+        { size: commit, protect: "RW" },
+        { size: 0x100000, state: "reserve", protect: "" },
+      ],
+      `Heap ${i}`,
+    );
   }
   // other private allocations
   const privBase = wow ? 0x08000000n : 0x0000025f90000000n;
   for (let i = 0; i < 24; i++) {
-    s.alloc(privBase + BigInt(i) * 0x200000n, "private", "RW", [
-      { size: page(int(r, 1, 0x80) * 0x1000), protect: r() < 0.1 ? "R" : "RW" },
-      ...(r() < 0.4 ? [{ size: 0x40000, state: "reserve" as const, protect: "" }] : []),
-    ], null);
+    s.alloc(
+      privBase + BigInt(i) * 0x200000n,
+      "private",
+      "RW",
+      [
+        { size: page(int(r, 1, 0x80) * 0x1000), protect: r() < 0.1 ? "R" : "RW" },
+        ...(r() < 0.4 ? [{ size: 0x40000, state: "reserve" as const, protect: "" }] : []),
+      ],
+      null,
+    );
   }
   // mapped files and sections
   const mapBase = wow ? 0x03000000n : 0x0000025f70000000n;
   [...mapped, null, null, null, null].forEach((path, i) => {
-    s.alloc(mapBase + BigInt(i) * 0x100000n, "mapped", path ? "R" : "RW", [{ size: page(int(r, 1, 0xf0) * 0x1000), protect: path ? "R" : "RW" }], path);
+    s.alloc(
+      mapBase + BigInt(i) * 0x100000n,
+      "mapped",
+      path ? "R" : "RW",
+      [{ size: page(int(r, 1, 0xf0) * 0x1000), protect: path ? "R" : "RW" }],
+      path,
+    );
   });
   for (const m of mods) s.image(m);
   extra?.(s);
@@ -667,10 +1230,31 @@ const SYSTEM_ONLY: [string, string][] = [
   ["SeAuditPrivilege", "Generate security audits"],
   ["SeTrustedCredManAccessPrivilege", "Access Credential Manager as a trusted caller"],
 ];
-const STANDARD_USER = new Set(["SeShutdownPrivilege", "SeChangeNotifyPrivilege", "SeUndockPrivilege", "SeIncreaseWorkingSetPrivilege", "SeTimeZonePrivilege"]);
+const STANDARD_USER = new Set([
+  "SeShutdownPrivilege",
+  "SeChangeNotifyPrivilege",
+  "SeUndockPrivilege",
+  "SeIncreaseWorkingSetPrivilege",
+  "SeTimeZonePrivilege",
+]);
 
-const F: Record<string, number> = { Mandatory: 0x1, EnabledByDefault: 0x2, Enabled: 0x4, Owner: 0x8, DenyOnly: 0x10, Integrity: 0x20, IntegrityEnabled: 0x40, Resource: 0x20000000, LogonId: 0xc0000000 };
-const group = (name: string | null, sid: string, flags: string[]): TokenGroup => ({ name, sid, flags, attributes: flags.reduce((a, f) => (a | F[f]) >>> 0, 0) });
+const F: Record<string, number> = {
+  Mandatory: 0x1,
+  EnabledByDefault: 0x2,
+  Enabled: 0x4,
+  Owner: 0x8,
+  DenyOnly: 0x10,
+  Integrity: 0x20,
+  IntegrityEnabled: 0x40,
+  Resource: 0x20000000,
+  LogonId: 0xc0000000,
+};
+const group = (name: string | null, sid: string, flags: string[]): TokenGroup => ({
+  name,
+  sid,
+  flags,
+  attributes: flags.reduce((a, f) => (a | F[f]) >>> 0, 0),
+});
 const ON = ["Mandatory", "EnabledByDefault", "Enabled"];
 
 function makeToken(d: Def): ProcToken {
@@ -679,8 +1263,21 @@ function makeToken(d: Def): ProcToken {
   const svc = d.kind === "service";
   const high = d.kind === "elevated";
   const logon = `0x${(0x2c0000 + (hash(d.name) % 0xffff)).toString(16)}`;
-  const integrity = sys || svc ? ["System", 0x4000, "S-1-16-16384"] : high ? ["High", 0x3000, "S-1-16-12288"] : d.appContainer ? ["Low", 0x1000, "S-1-16-4096"] : ["Medium", 0x2000, "S-1-16-8192"];
-  const user = sys ? "NT AUTHORITY\\SYSTEM" : svc ? (hash(d.name) % 2 ? "NT AUTHORITY\\LOCAL SERVICE" : "NT AUTHORITY\\NETWORK SERVICE") : USER;
+  const integrity =
+    sys || svc
+      ? ["System", 0x4000, "S-1-16-16384"]
+      : high
+        ? ["High", 0x3000, "S-1-16-12288"]
+        : d.appContainer
+          ? ["Low", 0x1000, "S-1-16-4096"]
+          : ["Medium", 0x2000, "S-1-16-8192"];
+  const user = sys
+    ? "NT AUTHORITY\\SYSTEM"
+    : svc
+      ? hash(d.name) % 2
+        ? "NT AUTHORITY\\LOCAL SERVICE"
+        : "NT AUTHORITY\\NETWORK SERVICE"
+      : USER;
   const userSid = sys ? "S-1-5-18" : svc ? (user.endsWith("LOCAL SERVICE") ? "S-1-5-19" : "S-1-5-20") : USER_SID;
   const groups: TokenGroup[] = sys
     ? [
@@ -700,26 +1297,62 @@ function makeToken(d: Def): ProcToken {
         group("CONSOLE LOGON", "S-1-2-1", ON),
         group("NT AUTHORITY\\Authenticated Users", "S-1-5-11", ON),
         group("NT AUTHORITY\\This Organization", "S-1-5-15", ON),
-        group("MicrosoftAccount\\alex@outlook.com", "S-1-11-96-3623454863-58364-18864-2661722203-1597581903-1225312835-2511459453-1556397606-2735945305-1404291241", ON),
+        group(
+          "MicrosoftAccount\\alex@outlook.com",
+          "S-1-11-96-3623454863-58364-18864-2661722203-1597581903-1225312835-2511459453-1556397606-2735945305-1404291241",
+          ON,
+        ),
         group("NT AUTHORITY\\Local account", "S-1-5-113", ON),
-        group(`NT AUTHORITY\\LogonSessionId_0_${parseInt(logon, 16)}`, `S-1-5-5-0-${parseInt(logon, 16)}`, [...ON, "LogonId"]),
+        group(`NT AUTHORITY\\LogonSessionId_0_${parseInt(logon, 16)}`, `S-1-5-5-0-${parseInt(logon, 16)}`, [
+          ...ON,
+          "LogonId",
+        ]),
         group("LOCAL", "S-1-2-0", ON),
         group("NT AUTHORITY\\Cloud Account Authentication", "S-1-5-64-36", ON),
-        group(`Mandatory Label\\${integrity[0]} Mandatory Level`, integrity[2] as string, ["Integrity", "IntegrityEnabled"]),
+        group(`Mandatory Label\\${integrity[0]} Mandatory Level`, integrity[2] as string, [
+          "Integrity",
+          "IntegrityEnabled",
+        ]),
       ];
   const privileges: TokenPrivilege[] = (sys ? [...SYSTEM_ONLY, ...PRIVS] : PRIVS).map(([name, description]) => {
-    if (sys) return { name, description, enabled: r() < 0.7 || name === "SeDebugPrivilege", enabledByDefault: true, removed: false };
+    if (sys)
+      return {
+        name,
+        description,
+        enabled: r() < 0.7 || name === "SeDebugPrivilege",
+        enabledByDefault: true,
+        removed: false,
+      };
     const std = STANDARD_USER.has(name);
-    if (!high) return { name, description, enabled: name === "SeChangeNotifyPrivilege", enabledByDefault: name === "SeChangeNotifyPrivilege", removed: !std };
+    if (!high)
+      return {
+        name,
+        description,
+        enabled: name === "SeChangeNotifyPrivilege",
+        enabledByDefault: name === "SeChangeNotifyPrivilege",
+        removed: !std,
+      };
     const def = ["SeChangeNotifyPrivilege", "SeCreateGlobalPrivilege", "SeImpersonatePrivilege"].includes(name);
-    return { name, description, enabled: def || (d.name.startsWith("cheatengine") && name === "SeDebugPrivilege"), enabledByDefault: def, removed: false };
+    return {
+      name,
+      description,
+      enabled: def || (d.name.startsWith("cheatengine") && name === "SeDebugPrivilege"),
+      enabledByDefault: def,
+      removed: false,
+    };
   });
   const caps = d.appContainer
     ? [
         { name: "APPLICATION PACKAGE AUTHORITY\\Your Internet connection", sid: "S-1-15-3-1" },
         { name: "APPLICATION PACKAGE AUTHORITY\\Your home or work networks", sid: "S-1-15-3-3" },
-        { name: null, sid: "S-1-15-3-1024-1065365936-1281604716-3511738428-1654721687-432734479-3232135806-4053264122-3456934681" },
-        { name: "NAMED CAPABILITIES\\Packaged Services", sid: "S-1-15-3-1024-2405443489-874036122-4286035555-1823921565-1746547431-2453885448-3625952902-991631256" },
+        {
+          name: null,
+          sid: "S-1-15-3-1024-1065365936-1281604716-3511738428-1654721687-432734479-3232135806-4053264122-3456934681",
+        },
+        {
+          name: "NAMED CAPABILITIES\\Packaged Services",
+          sid: "S-1-15-3-1024-2405443489-874036122-4286035555-1823921565-1746547431-2453885448-3625952902-991631256",
+        },
       ]
     : [];
   return {
@@ -741,9 +1374,21 @@ function makeToken(d: Def): ProcToken {
     virtualizationEnabled: false,
     uiAccess: d.name === "ctfmon.exe",
     appContainer: !!d.appContainer,
-    appContainerSid: d.appContainer ? "S-1-15-2-1861897761-1695161497-2927542615-642690995-327840285-2659745135-2630312742" : null,
-    groups: d.appContainer ? groups.filter((g) => !g.flags.includes("Integrity")).concat(group("Mandatory Label\\Low Mandatory Level", "S-1-16-4096", ["Integrity", "IntegrityEnabled"])) : groups,
-    privileges: privileges.map(({ name, description, enabled, enabledByDefault, removed }) => ({ name, description, enabled, enabledByDefault, removed })),
+    appContainerSid: d.appContainer
+      ? "S-1-15-2-1861897761-1695161497-2927542615-642690995-327840285-2659745135-2630312742"
+      : null,
+    groups: d.appContainer
+      ? groups
+          .filter((g) => !g.flags.includes("Integrity"))
+          .concat(group("Mandatory Label\\Low Mandatory Level", "S-1-16-4096", ["Integrity", "IntegrityEnabled"]))
+      : groups,
+    privileges: privileges.map(({ name, description, enabled, enabledByDefault, removed }) => ({
+      name,
+      description,
+      enabled,
+      enabledByDefault,
+      removed,
+    })),
     capabilities: caps,
   };
 }
@@ -751,12 +1396,22 @@ function makeToken(d: Def): ProcToken {
 // ── mitigations ─────────────────────────────────────────────────────────
 
 function mitigations(kind: "normal" | "legacy" | "hardened"): Mitigation[] {
-  const m = (id: string, name: string, enabled: boolean, details: string[] = []): Mitigation => ({ id, name, enabled, details: enabled ? details : [] });
+  const m = (id: string, name: string, enabled: boolean, details: string[] = []): Mitigation => ({
+    id,
+    name,
+    enabled,
+    details: enabled ? details : [],
+  });
   const hard = kind === "hardened";
   const legacy = kind === "legacy";
   return [
     m("dep", "DEP", true, legacy ? ["ATL thunk emulation"] : ["Permanent"]),
-    m("aslr", "ASLR", true, legacy ? ["Bottom-up"] : ["Bottom-up", "High entropy", ...(hard ? ["Force relocate images"] : [])]),
+    m(
+      "aslr",
+      "ASLR",
+      true,
+      legacy ? ["Bottom-up"] : ["Bottom-up", "High entropy", ...(hard ? ["Force relocate images"] : [])],
+    ),
     m("cfg", "Control Flow Guard", !legacy, hard ? ["Strict mode", "Export suppression"] : []),
     m("dynamicCode", "Dynamic code", hard, ["Prohibit dynamic code"]),
     m("strictHandles", "Strict handle checks", hard || kind === "normal", ["Raise exception on invalid handle"]),
@@ -802,7 +1457,8 @@ function baseOverview(d: Def, threads: number, handles: number): ProcOverview {
     name: d.name,
     path: d.exe,
     commandLine: d.cmd ?? (d.exe ? `"${d.exe}"` : null),
-    currentDirectory: sys || svc ? "C:\\Windows\\system32\\" : d.exe?.startsWith(GAME_DIR) ? GAME_DIR : "C:\\Users\\alex\\",
+    currentDirectory:
+      sys || svc ? "C:\\Windows\\system32\\" : d.exe?.startsWith(GAME_DIR) ? GAME_DIR : "C:\\Users\\alex\\",
     user: sys ? "NT AUTHORITY\\SYSTEM" : svc ? "NT AUTHORITY\\LOCAL SERVICE" : USER,
     userSid: sys ? "S-1-5-18" : svc ? "S-1-5-19" : USER_SID,
     sessionId: sys || svc ? 0 : 1,
@@ -840,23 +1496,47 @@ function deny(ov: ProcOverview, fields: string[]) {
   for (const f of fields) {
     if (f === "commandLine") ov.commandLine = null;
     else if (f === "currentDirectory") ov.currentDirectory = null;
-    else if (f === "user") (ov.user = null), (ov.userSid = null);
+    else if (f === "user") ((ov.user = null), (ov.userSid = null));
     else if (f === "integrity") ov.integrity = null;
-    else if (f === "elevation") (ov.elevated = null), (ov.elevationType = null);
+    else if (f === "elevation") ((ov.elevated = null), (ov.elevationType = null));
     else if (f === "virtualization") ov.virtualization = null;
     else if (f === "mitigations") ov.mitigations = [];
     else if (f === "debugged") ov.debugged = null;
     else if (f === "affinity") ov.affinity = null;
-    else if (f === "io") (ov.ioReadBytes = 0), (ov.ioWriteBytes = 0), (ov.ioOtherBytes = 0);
+    else if (f === "io") ((ov.ioReadBytes = 0), (ov.ioWriteBytes = 0), (ov.ioOtherBytes = 0));
   }
   ov.denied = fields;
 }
 
 const EXPLORER_EXTRA: ModSpec[] = [
-  { name: "COMCTL32.dll", path: "C:\\Windows\\WinSxS\\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.2454_none_3e0ee9e2e88dc4b9\\COMCTL32.dll", description: "User Experience Controls Library", company: MS, version: "6.10.26100.2454" },
-  { name: "nvldumdx.dll", path: "C:\\Windows\\System32\\DriverStore\\FileRepository\\nv_dispui.inf_amd64_8b1a0c3f6d2e9f71\\nvldumdx.dll", description: "NVIDIA Driver Loader", company: "NVIDIA Corporation", version: "32.0.15.6614" },
-  { name: "FileSyncShell64.dll", path: "C:\\Users\\alex\\AppData\\Local\\Microsoft\\OneDrive\\25.170.0831.0002\\FileSyncShell64.dll", description: "Microsoft OneDrive Shell Extension", company: MS, version: "25.170.0831.0002" },
-  { name: "7-zip.dll", path: "C:\\Program Files\\7-Zip\\7-zip.dll", description: "7-Zip Shell Extension", company: "Igor Pavlov", version: "24.08" },
+  {
+    name: "COMCTL32.dll",
+    path: "C:\\Windows\\WinSxS\\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.2454_none_3e0ee9e2e88dc4b9\\COMCTL32.dll",
+    description: "User Experience Controls Library",
+    company: MS,
+    version: "6.10.26100.2454",
+  },
+  {
+    name: "nvldumdx.dll",
+    path: "C:\\Windows\\System32\\DriverStore\\FileRepository\\nv_dispui.inf_amd64_8b1a0c3f6d2e9f71\\nvldumdx.dll",
+    description: "NVIDIA Driver Loader",
+    company: "NVIDIA Corporation",
+    version: "32.0.15.6614",
+  },
+  {
+    name: "FileSyncShell64.dll",
+    path: "C:\\Users\\alex\\AppData\\Local\\Microsoft\\OneDrive\\25.170.0831.0002\\FileSyncShell64.dll",
+    description: "Microsoft OneDrive Shell Extension",
+    company: MS,
+    version: "25.170.0831.0002",
+  },
+  {
+    name: "7-zip.dll",
+    path: "C:\\Program Files\\7-Zip\\7-zip.dll",
+    description: "7-Zip Shell Extension",
+    company: "Igor Pavlov",
+    version: "24.08",
+  },
 ];
 
 const EXPLORER_THREAD_STARTS: [string, number, string | null][] = [
@@ -888,7 +1568,14 @@ function buildExplorer(d: Def): ProcState {
       const [m, off, desc] = EXPLORER_THREAD_STARTS[i];
       return { win32: [m, off], description: desc, priority: i === 0 ? 9 : 8 };
     }
-    return r() < 0.7 ? { win32: ["ntdll.dll", 0x2c4a0] } : { win32: [pick(r, ["combase.dll", "SHCORE.dll", "RPCRT4.dll", "twinui.dll", "windows.storage.dll"]), int(r, 0x1000, 0x90000)] };
+    return r() < 0.7
+      ? { win32: ["ntdll.dll", 0x2c4a0] }
+      : {
+          win32: [
+            pick(r, ["combase.dll", "SHCORE.dll", "RPCRT4.dll", "twinui.dll", "windows.storage.dll"]),
+            int(r, 0x1000, 0x90000),
+          ],
+        };
   });
   const threads = makeThreads(r, modules, ov.startTime!, tspecs, 2);
   const files = [
@@ -917,7 +1604,12 @@ function buildExplorer(d: Def): ProcState {
     "C:\\Windows\\System32\\en-US\\twinui.pcshell.dll.mui",
     "C:\\Windows\\SystemResources\\explorer.exe.mun",
   ];
-  const self = (tid: number) => ({ type: "Thread", name: `explorer.exe (4812): ${tid}`, access: 0x1fffff, targetPid: 4812 });
+  const self = (tid: number) => ({
+    type: "Thread",
+    name: `explorer.exe (4812): ${tid}`,
+    access: 0x1fffff,
+    targetPid: 4812,
+  });
   const extra: HandleSeed[] = [
     { type: "Process", name: "game.exe (7340)", access: 0x1410, targetPid: 7340 },
     { type: "Process", name: "SearchHost.exe (5712)", access: 0x1fffff, targetPid: 5712 },
@@ -938,54 +1630,200 @@ function buildExplorer(d: Def): ProcState {
     { type: "Session", name: "\\Sessions\\1", access: 0x1, targetPid: null, attributes: 0x1 },
     ...threads.slice(12, 40).map((t) => self(t.tid)),
   ];
-  const handles = genericHandles(r, d, threads, files, { File: 96, Key: 118, Event: 150, Mutant: 22, Semaphore: 16, Section: 26, "ALPC Port": 16, Directory: 6, Token: 4, IoCompletion: 20, TpWorkerFactory: 6, IRTimer: 14, WaitCompletionPacket: 38, EtwRegistration: 58, Timer: 6, Thread: 12 }, extra);
-  const memory = genericMemory(r, modules, threads, [
-    "C:\\Windows\\System32\\locale.nls",
-    "C:\\Windows\\Globalization\\Sorting\\SortDefault.nls",
-    "C:\\Windows\\System32\\C_1252.NLS",
-    "C:\\Windows\\Fonts\\StaticCache.dat",
-    "C:\\Windows\\System32\\en-US\\explorer.exe.mui",
-    "C:\\Windows\\System32\\en-US\\shell32.dll.mui",
-    "C:\\Windows\\System32\\en-US\\twinui.pcshell.dll.mui",
-    "C:\\Windows\\SystemResources\\explorer.exe.mun",
-    "C:\\Windows\\Registration\\R00000000000d.clb",
-    "C:\\Users\\alex\\AppData\\Local\\Microsoft\\Windows\\Explorer\\iconcache_32.db",
-    "C:\\Users\\alex\\AppData\\Local\\Microsoft\\Windows\\Explorer\\iconcache_48.db",
-    "C:\\Users\\alex\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_96.db",
-    "C:\\Users\\alex\\AppData\\Local\\Microsoft\\Windows\\Caches\\cversions.3.db",
-    "C:\\Windows\\System32\\imageres.dll.mun",
-  ], false);
+  const handles = genericHandles(
+    r,
+    d,
+    threads,
+    files,
+    {
+      File: 96,
+      Key: 118,
+      Event: 150,
+      Mutant: 22,
+      Semaphore: 16,
+      Section: 26,
+      "ALPC Port": 16,
+      Directory: 6,
+      Token: 4,
+      IoCompletion: 20,
+      TpWorkerFactory: 6,
+      IRTimer: 14,
+      WaitCompletionPacket: 38,
+      EtwRegistration: 58,
+      Timer: 6,
+      Thread: 12,
+    },
+    extra,
+  );
+  const memory = genericMemory(
+    r,
+    modules,
+    threads,
+    [
+      "C:\\Windows\\System32\\locale.nls",
+      "C:\\Windows\\Globalization\\Sorting\\SortDefault.nls",
+      "C:\\Windows\\System32\\C_1252.NLS",
+      "C:\\Windows\\Fonts\\StaticCache.dat",
+      "C:\\Windows\\System32\\en-US\\explorer.exe.mui",
+      "C:\\Windows\\System32\\en-US\\shell32.dll.mui",
+      "C:\\Windows\\System32\\en-US\\twinui.pcshell.dll.mui",
+      "C:\\Windows\\SystemResources\\explorer.exe.mun",
+      "C:\\Windows\\Registration\\R00000000000d.clb",
+      "C:\\Users\\alex\\AppData\\Local\\Microsoft\\Windows\\Explorer\\iconcache_32.db",
+      "C:\\Users\\alex\\AppData\\Local\\Microsoft\\Windows\\Explorer\\iconcache_48.db",
+      "C:\\Users\\alex\\AppData\\Local\\Microsoft\\Windows\\Explorer\\thumbcache_96.db",
+      "C:\\Users\\alex\\AppData\\Local\\Microsoft\\Windows\\Caches\\cversions.3.db",
+      "C:\\Windows\\System32\\imageres.dll.mun",
+    ],
+    false,
+  );
   return { def: d, ov, modules, threads, handles, token: makeToken(d), memory, restricted: false };
 }
 
 function buildGame(d: Def): ProcState {
   const r = rng(7340);
   const wowSys = ["ntdll.dll", "wow64.dll", "wow64base.dll", "wow64con.dll", "wow64cpu.dll", "wow64win.dll"];
-  const wowDlls = ["ntdll.dll", "KERNEL32.DLL", "KERNELBASE.dll", "USER32.dll", "win32u.dll", "GDI32.dll", "gdi32full.dll", "msvcp_win.dll", "ucrtbase.dll", "ADVAPI32.dll", "msvcrt.dll", "sechost.dll", "RPCRT4.dll", "combase.dll", "ole32.dll", "OLEAUT32.dll", "SHELL32.dll", "SHLWAPI.dll", "IMM32.DLL", "WINMM.dll", "VERSION.dll", "dwmapi.dll", "uxtheme.dll", "CRYPTBASE.DLL", "bcryptPrimitives.dll", "MSCTF.dll", "kernel.appcore.dll", "windows.storage.dll", "wintypes.dll", "IPHLPAPI.DLL", "WINHTTP.dll"];
+  const wowDlls = [
+    "ntdll.dll",
+    "KERNEL32.DLL",
+    "KERNELBASE.dll",
+    "USER32.dll",
+    "win32u.dll",
+    "GDI32.dll",
+    "gdi32full.dll",
+    "msvcp_win.dll",
+    "ucrtbase.dll",
+    "ADVAPI32.dll",
+    "msvcrt.dll",
+    "sechost.dll",
+    "RPCRT4.dll",
+    "combase.dll",
+    "ole32.dll",
+    "OLEAUT32.dll",
+    "SHELL32.dll",
+    "SHLWAPI.dll",
+    "IMM32.DLL",
+    "WINMM.dll",
+    "VERSION.dll",
+    "dwmapi.dll",
+    "uxtheme.dll",
+    "CRYPTBASE.DLL",
+    "bcryptPrimitives.dll",
+    "MSCTF.dll",
+    "kernel.appcore.dll",
+    "windows.storage.dll",
+    "wintypes.dll",
+    "IPHLPAPI.DLL",
+    "WINHTTP.dll",
+  ];
   const desc = new Map(SYSTEM_DLLS.map(([n, ds]) => [n.toLowerCase(), ds]));
   const sys64: ProcModule[] = layoutModules(
-    wowSys.map((n) => ({ name: n, path: SYS32 + n, description: desc.get(n.toLowerCase()) ?? "Win32 Emulation on NT64", company: MS, version: WINVER })),
+    wowSys.map((n) => ({
+      name: n,
+      path: SYS32 + n,
+      description: desc.get(n.toLowerCase()) ?? "Win32 Emulation on NT64",
+      company: MS,
+      version: WINVER,
+    })),
     0x00007ffcf0e10000n,
     0x00007ffcee800000n,
     r,
   );
   const specs: ModSpec[] = [
     { name: "game.exe", path: d.exe!, description: "Shadowfall", company: "Ironbark Interactive", version: "1.14.2.0" },
-    ...wowDlls.map((n) => ({ name: n, path: WOW + n, description: desc.get(n.toLowerCase()) ?? null, company: MS, version: WINVER })),
+    ...wowDlls.map((n) => ({
+      name: n,
+      path: WOW + n,
+      description: desc.get(n.toLowerCase()) ?? null,
+      company: MS,
+      version: WINVER,
+    })),
     { name: "d3d9.dll", path: WOW + "d3d9.dll", description: "Direct3D 9 Runtime", company: MS, version: WINVER },
-    { name: "d3dx9_43.dll", path: WOW + "d3dx9_43.dll", description: "Direct3D 9 Extensions", company: MS, version: "9.29.952.3111" },
-    { name: "dinput8.dll", path: WOW + "dinput8.dll", description: "Microsoft DirectInput", company: MS, version: WINVER },
-    { name: "XInput1_4.dll", path: WOW + "XInput1_4.dll", description: "Microsoft Common Controller API", company: MS, version: WINVER },
+    {
+      name: "d3dx9_43.dll",
+      path: WOW + "d3dx9_43.dll",
+      description: "Direct3D 9 Extensions",
+      company: MS,
+      version: "9.29.952.3111",
+    },
+    {
+      name: "dinput8.dll",
+      path: WOW + "dinput8.dll",
+      description: "Microsoft DirectInput",
+      company: MS,
+      version: WINVER,
+    },
+    {
+      name: "XInput1_4.dll",
+      path: WOW + "XInput1_4.dll",
+      description: "Microsoft Common Controller API",
+      company: MS,
+      version: WINVER,
+    },
     { name: "dsound.dll", path: WOW + "dsound.dll", description: "DirectSound", company: MS, version: WINVER },
-    { name: "WS2_32.dll", path: WOW + "WS2_32.dll", description: "Windows Socket 2.0 32-Bit DLL", company: MS, version: WINVER },
-    { name: "nvd3dum.dll", path: "C:\\Windows\\System32\\DriverStore\\FileRepository\\nv_dispui.inf_amd64_8b1a0c3f6d2e9f71\\nvd3dum.dll", description: "NVIDIA Compatible D3D Driver", company: "NVIDIA Corporation", version: "32.0.15.6614" },
-    { name: "steam_api.dll", path: GAME_DIR + "steam_api.dll", description: "Steam Client API", company: "Valve Corporation", version: "8.43.51.79" },
-    { name: "GameOverlayRenderer.dll", path: "C:\\Program Files (x86)\\Steam\\GameOverlayRenderer.dll", description: "Steam Game Overlay Renderer", company: "Valve Corporation", version: "9.48.71.13" },
-    { name: "fmod.dll", path: GAME_DIR + "fmod.dll", description: "FMOD Studio API", company: "Firelight Technologies Pty Ltd", version: "2.02.21" },
-    { name: "PhysX3_x86.dll", path: GAME_DIR + "PhysX3_x86.dll", description: "PhysX 3.4 x86 runtime", company: "NVIDIA Corporation", version: "3.4.2.25354" },
-    { name: "PhysX3Common_x86.dll", path: GAME_DIR + "PhysX3Common_x86.dll", description: "PhysX 3.4 x86 common runtime", company: "NVIDIA Corporation", version: "3.4.2.25354" },
-    { name: "binkw32.dll", path: GAME_DIR + "binkw32.dll", description: "Bink Video", company: "RAD Game Tools, Inc.", version: "1.99.1.0" },
-    { name: "hk_8f3a.dll", path: "C:\\Users\\alex\\AppData\\Local\\Temp\\hk_8f3a.dll", description: null, company: null, version: null },
+    {
+      name: "WS2_32.dll",
+      path: WOW + "WS2_32.dll",
+      description: "Windows Socket 2.0 32-Bit DLL",
+      company: MS,
+      version: WINVER,
+    },
+    {
+      name: "nvd3dum.dll",
+      path: "C:\\Windows\\System32\\DriverStore\\FileRepository\\nv_dispui.inf_amd64_8b1a0c3f6d2e9f71\\nvd3dum.dll",
+      description: "NVIDIA Compatible D3D Driver",
+      company: "NVIDIA Corporation",
+      version: "32.0.15.6614",
+    },
+    {
+      name: "steam_api.dll",
+      path: GAME_DIR + "steam_api.dll",
+      description: "Steam Client API",
+      company: "Valve Corporation",
+      version: "8.43.51.79",
+    },
+    {
+      name: "GameOverlayRenderer.dll",
+      path: "C:\\Program Files (x86)\\Steam\\GameOverlayRenderer.dll",
+      description: "Steam Game Overlay Renderer",
+      company: "Valve Corporation",
+      version: "9.48.71.13",
+    },
+    {
+      name: "fmod.dll",
+      path: GAME_DIR + "fmod.dll",
+      description: "FMOD Studio API",
+      company: "Firelight Technologies Pty Ltd",
+      version: "2.02.21",
+    },
+    {
+      name: "PhysX3_x86.dll",
+      path: GAME_DIR + "PhysX3_x86.dll",
+      description: "PhysX 3.4 x86 runtime",
+      company: "NVIDIA Corporation",
+      version: "3.4.2.25354",
+    },
+    {
+      name: "PhysX3Common_x86.dll",
+      path: GAME_DIR + "PhysX3Common_x86.dll",
+      description: "PhysX 3.4 x86 common runtime",
+      company: "NVIDIA Corporation",
+      version: "3.4.2.25354",
+    },
+    {
+      name: "binkw32.dll",
+      path: GAME_DIR + "binkw32.dll",
+      description: "Bink Video",
+      company: "RAD Game Tools, Inc.",
+      version: "1.99.1.0",
+    },
+    {
+      name: "hk_8f3a.dll",
+      path: "C:\\Users\\alex\\AppData\\Local\\Temp\\hk_8f3a.dll",
+      description: null,
+      company: null,
+      version: null,
+    },
   ];
   const mods32 = layoutModules(specs, 0x00400000n, 0x6a2c0000n, r);
   // the system DLLs live high in the 32-bit space
@@ -1034,19 +1872,42 @@ function buildGame(d: Def): ProcState {
   ];
   const handles = genericHandles(r, d, threads, files, { File: 34, Key: 40, Event: 60, EtwRegistration: 20 }, [
     { type: "Process", name: "steam.exe (7240)", access: 0x101000, targetPid: 7240 },
-    { type: "Section", name: "\\Sessions\\1\\BaseNamedObjects\\SteamOverlayFrameBuffer_7340", access: 0xf001f, targetPid: null },
+    {
+      type: "Section",
+      name: "\\Sessions\\1\\BaseNamedObjects\\SteamOverlayFrameBuffer_7340",
+      access: 0xf001f,
+      targetPid: null,
+    },
     { type: "Mutant", name: "\\Sessions\\1\\BaseNamedObjects\\hk_8f3a_ready", access: 0x1f0001, targetPid: null },
   ]);
-  const memory = genericMemory(r, modules, threads, ["C:\\Windows\\SysWOW64\\locale.nls", "C:\\Windows\\Globalization\\Sorting\\SortDefault.nls", "C:\\Games\\Shadowfall\\data\\pak01_dir.vpk", "C:\\Windows\\Fonts\\StaticCache.dat"], true, (s) => {
-    // manually mapped payload and its scratch buffer: private, read-write-execute
-    s.alloc(0x02a10000n, "private", "RWX", [{ size: 0x5000, protect: "RWX" }], null);
-    s.alloc(0x1f3c0000n, "private", "RWX", [
-      { size: 0x20000, protect: "RWX" },
-      { size: 0x10000, state: "reserve", protect: "" },
-    ], null);
-    // a JIT-style executable page: private but not writable
-    s.alloc(0x05e00000n, "private", "RW", [{ size: 0x1000, protect: "RX" }], null);
-  });
+  const memory = genericMemory(
+    r,
+    modules,
+    threads,
+    [
+      "C:\\Windows\\SysWOW64\\locale.nls",
+      "C:\\Windows\\Globalization\\Sorting\\SortDefault.nls",
+      "C:\\Games\\Shadowfall\\data\\pak01_dir.vpk",
+      "C:\\Windows\\Fonts\\StaticCache.dat",
+    ],
+    true,
+    (s) => {
+      // manually mapped payload and its scratch buffer: private, read-write-execute
+      s.alloc(0x02a10000n, "private", "RWX", [{ size: 0x5000, protect: "RWX" }], null);
+      s.alloc(
+        0x1f3c0000n,
+        "private",
+        "RWX",
+        [
+          { size: 0x20000, protect: "RWX" },
+          { size: 0x10000, state: "reserve", protect: "" },
+        ],
+        null,
+      );
+      // a JIT-style executable page: private but not writable
+      s.alloc(0x05e00000n, "private", "RW", [{ size: 0x1000, protect: "RX" }], null);
+    },
+  );
   return { def: d, ov, modules, threads, handles, token: makeToken(d), memory, restricted: false };
 }
 
@@ -1058,20 +1919,68 @@ function buildGeneric(d: Def): ProcState {
   const extraMods: ModSpec[] =
     d.special === "msmpeng"
       ? [
-          { name: "MpSvc.dll", path: DEFENDER + "MpSvc.dll", description: "Microsoft Defender Antivirus Service", company: MS, version: "4.18.24090.11" },
-          { name: "MpClient.dll", path: DEFENDER + "MpClient.dll", description: "Client Interface", company: MS, version: "4.18.24090.11" },
-          { name: "MpRtp.dll", path: DEFENDER + "MpRtp.dll", description: "Real-time Protection component", company: MS, version: "4.18.24090.11" },
-          { name: "mpengine.dll", path: "C:\\ProgramData\\Microsoft\\Windows Defender\\Definition Updates\\{9B1D5E2A-6C3F-4E8B-A1D7-0F2C3B4A5E6D}\\mpengine.dll", description: "Microsoft Malware Protection Engine", company: MS, version: "1.1.24090.11" },
+          {
+            name: "MpSvc.dll",
+            path: DEFENDER + "MpSvc.dll",
+            description: "Microsoft Defender Antivirus Service",
+            company: MS,
+            version: "4.18.24090.11",
+          },
+          {
+            name: "MpClient.dll",
+            path: DEFENDER + "MpClient.dll",
+            description: "Client Interface",
+            company: MS,
+            version: "4.18.24090.11",
+          },
+          {
+            name: "MpRtp.dll",
+            path: DEFENDER + "MpRtp.dll",
+            description: "Real-time Protection component",
+            company: MS,
+            version: "4.18.24090.11",
+          },
+          {
+            name: "mpengine.dll",
+            path: "C:\\ProgramData\\Microsoft\\Windows Defender\\Definition Updates\\{9B1D5E2A-6C3F-4E8B-A1D7-0F2C3B4A5E6D}\\mpengine.dll",
+            description: "Microsoft Malware Protection Engine",
+            company: MS,
+            version: "1.1.24090.11",
+          },
         ]
       : [];
-  const main: ModSpec | null = d.exe ? { name: d.exe.slice(d.exe.lastIndexOf("\\") + 1), path: d.exe, description: d.name.replace(/\.exe$/i, ""), company: d.exe.startsWith("C:\\Windows") ? MS : null, version: d.exe.startsWith("C:\\Windows") ? WINVER : "1.0.0.0" } : null;
-  const modules = main ? layoutModules([main, ...chosen.map((x) => sysMod(x, wow ? WOW : SYS32)), ...extraMods], wow ? 0x00400000n : 0x00007ff6b0000000n + BigInt(hash(d.name) % 0x400) * 0x10000n, wow ? 0x74a10000n : 0x00007ffc6a210000n, r) : [];
+  const main: ModSpec | null = d.exe
+    ? {
+        name: d.exe.slice(d.exe.lastIndexOf("\\") + 1),
+        path: d.exe,
+        description: d.name.replace(/\.exe$/i, ""),
+        company: d.exe.startsWith("C:\\Windows") ? MS : null,
+        version: d.exe.startsWith("C:\\Windows") ? WINVER : "1.0.0.0",
+      }
+    : null;
+  const modules = main
+    ? layoutModules(
+        [main, ...chosen.map((x) => sysMod(x, wow ? WOW : SYS32)), ...extraMods],
+        wow ? 0x00400000n : 0x00007ff6b0000000n + BigInt(hash(d.name) % 0x400) * 0x10000n,
+        wow ? 0x74a10000n : 0x00007ffc6a210000n,
+        r,
+      )
+    : [];
   const ov = baseOverview(d, 0, 0);
   // Spotify is the big one: thousands of handles and memory regions, to keep the tables honest
   const big = d.name === "Spotify.exe";
   const n = d.exe ? (big ? 150 : int(r, 4, d.mem > 1e8 ? 64 : 24)) : 180;
   const tspecs: ThreadSpec[] = Array.from({ length: n }, (_, i) =>
-    !d.exe ? { win32: undefined } : i === 0 ? { win32: [modules[0].name, 0x1a2b0] } : { win32: [pick(r, ["ntdll.dll", "ntdll.dll", "combase.dll", "RPCRT4.dll", "ucrtbase.dll"]), r() < 0.6 ? 0x2c4a0 : int(r, 0x1000, 0x80000)] },
+    !d.exe
+      ? { win32: undefined }
+      : i === 0
+        ? { win32: [modules[0].name, 0x1a2b0] }
+        : {
+            win32: [
+              pick(r, ["ntdll.dll", "ntdll.dll", "combase.dll", "RPCRT4.dll", "ucrtbase.dll"]),
+              r() < 0.6 ? 0x2c4a0 : int(r, 0x1000, 0x80000),
+            ],
+          },
   );
   const threads = d.exe
     ? makeThreads(r, modules, ov.startTime!, tspecs, 0, wow)
@@ -1098,15 +2007,45 @@ function buildGeneric(d: Def): ProcState {
     const game = states.get(7340)?.threads ?? [];
     extra = [
       { type: "Process", name: "game.exe (7340)", access: 0x1fffff, targetPid: 7340 },
-      ...game.slice(0, 3).map((t): HandleSeed => ({ type: "Thread", name: `game.exe (7340): ${t.tid}`, access: 0x1fffff, targetPid: 7340 })),
+      ...game.slice(0, 3).map((t): HandleSeed => ({
+        type: "Thread",
+        name: `game.exe (7340): ${t.tid}`,
+        access: 0x1fffff,
+        targetPid: 7340,
+      })),
       { type: "File", name: "\\Device\\CEDRIVER73", access: 0x12019f, targetPid: null },
     ];
   } else if (d.special === "msmpeng") {
-    extra = DEFS.filter((x) => x.exe && x.pid !== d.pid && x.pid % 3 === 0).map((x): HandleSeed => ({ type: "Process", name: `${x.name} (${x.pid})`, access: 0x1410, targetPid: x.pid }));
+    extra = DEFS.filter((x) => x.exe && x.pid !== d.pid && x.pid % 3 === 0).map((x): HandleSeed => ({
+      type: "Process",
+      name: `${x.name} (${x.pid})`,
+      access: 0x1410,
+      targetPid: x.pid,
+    }));
   }
-  const counts = big ? { Event: 1700, Key: 340, File: 420, Section: 150, Mutant: 90, EtwRegistration: 240, WaitCompletionPacket: 160, IRTimer: 60, Thread: 80 } : { Event: int(r, 20, 90), Key: int(r, 10, 50) };
+  const counts = big
+    ? {
+        Event: 1700,
+        Key: 340,
+        File: 420,
+        Section: 150,
+        Mutant: 90,
+        EtwRegistration: 240,
+        WaitCompletionPacket: 160,
+        IRTimer: 60,
+        Thread: 80,
+      }
+    : { Event: int(r, 20, 90), Key: int(r, 10, 50) };
   const handles = genericHandles(r, d, threads, d.exe ? [d.exe.slice(0, d.exe.lastIndexOf("\\"))] : [], counts, extra);
-  const memory = d.exe ? genericMemory(r, modules, threads.slice(0, big ? 150 : 40), ["C:\\Windows\\System32\\locale.nls", "C:\\Windows\\Globalization\\Sorting\\SortDefault.nls"], wow) : [];
+  const memory = d.exe
+    ? genericMemory(
+        r,
+        modules,
+        threads.slice(0, big ? 150 : 40),
+        ["C:\\Windows\\System32\\locale.nls", "C:\\Windows\\Globalization\\Sorting\\SortDefault.nls"],
+        wow,
+      )
+    : [];
   return { def: d, ov, modules, threads, handles, token: makeToken(d), memory, restricted: d.kind !== "user" };
 }
 
@@ -1163,15 +2102,37 @@ function overviewFor(s: ProcState): ProcOverview {
   const ov = structuredClone(s.ov);
   ov.threadCount = s.threads.length;
   ov.suspended = s.threads.length > 0 && s.threads.every((t) => t.suspended);
-  if (s.def.special === "msmpeng") deny(ov, ADMIN ? ["commandLine", "currentDirectory"] : ["commandLine", "currentDirectory", "user", "integrity", "elevation", "virtualization", "mitigations", "debugged", "affinity", "io"]);
-  else if (s.restricted && !ADMIN) deny(ov, ["commandLine", "currentDirectory", "user", "integrity", "elevation", "mitigations", "debugged"]);
+  if (s.def.special === "msmpeng")
+    deny(
+      ov,
+      ADMIN
+        ? ["commandLine", "currentDirectory"]
+        : [
+            "commandLine",
+            "currentDirectory",
+            "user",
+            "integrity",
+            "elevation",
+            "virtualization",
+            "mitigations",
+            "debugged",
+            "affinity",
+            "io",
+          ],
+    );
+  else if (s.restricted && !ADMIN)
+    deny(ov, ["commandLine", "currentDirectory", "user", "integrity", "elevation", "mitigations", "debugged"]);
   else if (s.def.protection && s.def.protection !== "None") deny(ov, ["commandLine", "currentDirectory"]);
   return ov;
 }
 
 const restricted = (s: ProcState) => !ADMIN && (s.restricted || s.def.special === "msmpeng");
 
-async function withState<T>(pid: number, fn: (s: ProcState) => T, opts: { needsAccess?: boolean; ms?: number } = {}): Promise<T> {
+async function withState<T>(
+  pid: number,
+  fn: (s: ProcState) => T,
+  opts: { needsAccess?: boolean; ms?: number } = {},
+): Promise<T> {
   const s = stateOf(pid);
   if (typeof s === "string") return fail(s);
   if (opts.needsAccess && restricted(s)) return fail(DENIED);
@@ -1205,7 +2166,14 @@ function setSuspended(t: ProcThread, delta: 1 | -1, original: Map<number, [strin
 }
 const originalStates = new Map<number, [string, string | null]>();
 
-const PRIORITY_BASE: Record<PriorityClass, number> = { idle: 4, belowNormal: 6, normal: 8, aboveNormal: 10, high: 13, realtime: 24 };
+const PRIORITY_BASE: Record<PriorityClass, number> = {
+  idle: 4,
+  belowNormal: 6,
+  normal: 8,
+  aboveNormal: 10,
+  high: 13,
+  realtime: 24,
+};
 
 function processList(): ProcListItem[] {
   return DEFS.map((d) => {
@@ -1235,7 +2203,9 @@ export function install() {
           withState(pid, (s) => {
             tickThreads(s);
             const hide = restricted(s);
-            return s.threads.map((t) => (hide ? { ...t, win32StartAddress: null, win32StartSymbol: null, description: null } : t));
+            return s.threads.map((t) =>
+              hide ? { ...t, win32StartAddress: null, win32StartSymbol: null, description: null } : t,
+            );
           }),
         handles: (pid) => withState(pid, (s) => s.handles, { needsAccess: true, ms: 180 }),
         token: (pid) => withState(pid, (s) => s.token, { needsAccess: true }),
@@ -1254,8 +2224,14 @@ export function install() {
           }),
       },
       thread: {
-        suspend: (pid, tid) => control(pid, (s) => s.threads.filter((t) => t.tid === tid).forEach((t) => setSuspended(t, 1, originalStates))),
-        resume: (pid, tid) => control(pid, (s) => s.threads.filter((t) => t.tid === tid).forEach((t) => setSuspended(t, -1, originalStates))),
+        suspend: (pid, tid) =>
+          control(pid, (s) =>
+            s.threads.filter((t) => t.tid === tid).forEach((t) => setSuspended(t, 1, originalStates)),
+          ),
+        resume: (pid, tid) =>
+          control(pid, (s) =>
+            s.threads.filter((t) => t.tid === tid).forEach((t) => setSuspended(t, -1, originalStates)),
+          ),
         terminate: (pid, tid) =>
           control(pid, (s) => {
             s.threads = s.threads.filter((t) => t.tid !== tid);

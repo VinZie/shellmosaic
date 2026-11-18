@@ -115,7 +115,10 @@ mark.hl {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, opacity 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    opacity 0.12s;
   flex: none;
 }
 .settings-nav-item:hover {
@@ -474,7 +477,10 @@ button.chip {
   background: var(--surface);
   cursor: pointer;
   outline: none;
-  transition: border-color 0.12s, box-shadow 0.12s, transform 0.12s var(--ease);
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s,
+    transform 0.12s var(--ease);
 }
 .theme-card:hover {
   border-color: color-mix(in srgb, var(--accent) 50%, var(--border));

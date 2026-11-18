@@ -35,7 +35,19 @@ const PAGE = 400;
 /** keep scanning on our own until this many matches are loaded */
 const AUTO_FILL = 80;
 
-const IDLE: FeedState = { status: "idle", error: null, events: [], done: true, loadingMore: false, scanned: 0, pages: 0, lastAdded: 0, stopped: false, refreshedAt: null, loaded: null };
+const IDLE: FeedState = {
+  status: "idle",
+  error: null,
+  events: [],
+  done: true,
+  loadingMore: false,
+  scanned: 0,
+  pages: 0,
+  lastAdded: 0,
+  stopped: false,
+  refreshedAt: null,
+  loaded: null,
+};
 
 export function useEventFeed(q: FeedQuery | null, visible: boolean) {
   const [st, setSt] = useState<FeedState>(IDLE);
@@ -75,9 +87,19 @@ export function useEventFeed(q: FeedQuery | null, visible: boolean) {
     const filter = JSON.stringify([q.channel, q.xpath, q.text]);
     const refresh = lastFilter.current === filter;
     lastFilter.current = filter;
-    setSt((s) => (refresh ? { ...s, status: "loading", loadingMore: false, done: true } : { ...IDLE, status: "loading", done: false }));
+    setSt((s) =>
+      refresh
+        ? { ...s, status: "loading", loadingMore: false, done: true }
+        : { ...IDLE, status: "loading", done: false },
+    );
     sm.eventlog
-      .query({ channel: q.channel, xpath: q.xpath ?? undefined, text: q.text || undefined, reverse: true, max: FIRST_PAGE })
+      .query({
+        channel: q.channel,
+        xpath: q.xpath ?? undefined,
+        text: q.text || undefined,
+        reverse: true,
+        max: FIRST_PAGE,
+      })
       .then((page) => {
         if (g !== gen.current) {
           if (page.cursor !== null && !page.done) sm.eventlog.close(page.cursor).catch(() => {});
@@ -131,7 +153,15 @@ export function useEventFeed(q: FeedQuery | null, visible: boolean) {
       const done = page.done || page.cursor === null;
       cursor.current = done ? null : page.cursor;
       const add = accept(page.events, channel);
-      setSt((s) => ({ ...s, events: add.length ? s.events.concat(add) : s.events, done, loadingMore: false, scanned: s.scanned + page.scanned, pages: s.pages + 1, lastAdded: add.length }));
+      setSt((s) => ({
+        ...s,
+        events: add.length ? s.events.concat(add) : s.events,
+        done,
+        loadingMore: false,
+        scanned: s.scanned + page.scanned,
+        pages: s.pages + 1,
+        lastAdded: add.length,
+      }));
     } catch (e) {
       if (g !== gen.current) return;
       busy.current = false;
@@ -147,7 +177,11 @@ export function useEventFeed(q: FeedQuery | null, visible: boolean) {
    * Few matches so far (a text filter scanning a big log), or the last page found none:
    * keep asking while the pane is shown.
    */
-  const autoScan = st.status === "ready" && !st.done && !st.stopped && (st.events.length < AUTO_FILL || (st.pages > 1 && st.lastAdded === 0));
+  const autoScan =
+    st.status === "ready" &&
+    !st.done &&
+    !st.stopped &&
+    (st.events.length < AUTO_FILL || (st.pages > 1 && st.lastAdded === 0));
   useEffect(() => {
     if (autoScan && visible) load();
   }, [autoScan, visible, st.pages, load]);
@@ -183,7 +217,12 @@ export function useEventFeed(q: FeedQuery | null, visible: boolean) {
 export type LiveState = "off" | "starting" | "on" | "error";
 
 /** Subscribe while `on`; poll about once a second while the pane is visible. */
-export function useLiveTail(q: FeedQuery | null, on: boolean, visible: boolean, onEvents: (xmls: string[]) => void): { state: LiveState; error: string | null } {
+export function useLiveTail(
+  q: FeedQuery | null,
+  on: boolean,
+  visible: boolean,
+  onEvents: (xmls: string[]) => void,
+): { state: LiveState; error: string | null } {
   const sub = useRef<number | null>(null);
   const [state, setState] = useState<LiveState>("off");
   const [error, setError] = useState<string | null>(null);

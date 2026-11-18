@@ -23,11 +23,29 @@ export const PERMISSIONS: { id: string; icon: string; text: string; risky?: bool
   { id: "clipboard", icon: "clipboard-paste", text: "Read and write the clipboard" },
   { id: "net", icon: "globe", text: "Connect to the internet (HTTPS)" },
   { id: "claude.usage", icon: "gauge", text: "Read your Claude plan usage limits (never your sign-in token)" },
-  { id: "process.inspect", icon: "microscope", text: "Look inside running processes: modules, threads, handles, token, memory map" },
-  { id: "process.control", icon: "cpu", text: "Suspend and resume processes and threads, end threads, change priority and affinity", risky: true },
+  {
+    id: "process.inspect",
+    icon: "microscope",
+    text: "Look inside running processes: modules, threads, handles, token, memory map",
+  },
+  {
+    id: "process.control",
+    icon: "cpu",
+    text: "Suspend and resume processes and threads, end threads, change priority and affinity",
+    risky: true,
+  },
   { id: "eventlog.read", icon: "logs", text: "Read the Windows event logs" },
-  { id: "sqlite", icon: "database", text: "Open SQLite databases on your computer and change them when you allow it", risky: true },
-  { id: "agents.read", icon: "bot", text: "See your Claude Code agents: tasks, activity, pending requests and terminal output" },
+  {
+    id: "sqlite",
+    icon: "database",
+    text: "Open SQLite databases on your computer and change them when you allow it",
+    risky: true,
+  },
+  {
+    id: "agents.read",
+    icon: "bot",
+    text: "See your Claude Code agents: tasks, activity, pending requests and terminal output",
+  },
   {
     id: "agents.manage",
     icon: "bot",
@@ -53,7 +71,9 @@ function PluginCard({ p, onChanged }: { p: PluginInfo; onChanged: () => void }) 
 
   const setEnabled = async (on: boolean) => {
     updateSettings((s) => {
-      s.plugins.disabled = on ? s.plugins.disabled.filter((x) => x !== p.id) : [...new Set([...s.plugins.disabled, p.id])];
+      s.plugins.disabled = on
+        ? s.plugins.disabled.filter((x) => x !== p.id)
+        : [...new Set([...s.plugins.disabled, p.id])];
     });
     await reload();
   };
@@ -63,10 +83,14 @@ function PluginCard({ p, onChanged }: { p: PluginInfo; onChanged: () => void }) 
     ui.toast(`Permissions revoked. ${m?.name ?? p.id} will ask again next time it opens.`, "info");
   };
   const remove = async () => {
-    const ok = await ui.confirm(`Remove “${m?.name ?? p.id}”?`, "The plugin folder is moved to the Recycle Bin. Open panes of this plugin will close.", {
-      okLabel: "Remove",
-      danger: true,
-    });
+    const ok = await ui.confirm(
+      `Remove “${m?.name ?? p.id}”?`,
+      "The plugin folder is moved to the Recycle Bin. Open panes of this plugin will close.",
+      {
+        okLabel: "Remove",
+        danger: true,
+      },
+    );
     if (!ok) return;
     const done = await attempt(async () => {
       await ipc.pluginRemove(p.id);
@@ -142,7 +166,11 @@ function PluginCard({ p, onChanged }: { p: PluginInfo; onChanged: () => void }) 
             const info = permInfo(perm);
             const ok = granted.has(perm);
             return (
-              <span key={perm} className={cx("chip", ok ? "granted" : info?.risky && "risky")} title={`${info?.text ?? perm} — ${ok ? "allowed" : "not allowed yet (asked when the plugin opens)"}`}>
+              <span
+                key={perm}
+                className={cx("chip", ok ? "granted" : info?.risky && "risky")}
+                title={`${info?.text ?? perm} — ${ok ? "allowed" : "not allowed yet (asked when the plugin opens)"}`}
+              >
                 <Icon name={ok ? "check" : (info?.icon ?? "shield")} size={11} />
                 {perm}
               </span>
@@ -156,7 +184,11 @@ function PluginCard({ p, onChanged }: { p: PluginInfo; onChanged: () => void }) 
             <Icon name="folder-open" size={13} /> Folder
           </button>
           {granted.size > 0 && (
-            <button className="btn small subtle" onClick={revoke} title="Forget the permissions you allowed; the plugin asks again next time">
+            <button
+              className="btn small subtle"
+              onClick={revoke}
+              title="Forget the permissions you allowed; the plugin asks again next time"
+            >
               <Icon name="shield" size={13} /> Revoke permissions
             </button>
           )}
@@ -195,7 +227,11 @@ const HTML_EXAMPLE = `<!doctype html>
 </html>`;
 
 const API: [string, string, string?][] = [
-  ["terminal.write(text)", "Type text into the last focused terminal in this tab (add \\r to press Enter)", "terminal.write"],
+  [
+    "terminal.write(text)",
+    "Type text into the last focused terminal in this tab (add \\r to press Enter)",
+    "terminal.write",
+  ],
   ["terminal.run(command)", "Open a new terminal pane that runs a command", "terminal.run"],
   ["terminal.read()", "Recent output of the focused terminal as plain text", "terminal.read"],
   ["fs.list / fs.readText(path)", "List folders, read text files", "fs.read"],
@@ -204,18 +240,34 @@ const API: [string, string, string?][] = [
   ["system.stats()", "CPU, memory and network numbers", "system.read"],
   ["clipboard.readText / writeText", "Use the clipboard", "clipboard"],
   ["claude.usage()", "Claude plan limits of the signed-in Claude Code account", "claude.usage"],
-  ["process.overview / modules / threads / handles / token / memory(pid)", "Inside a running process", "process.inspect"],
-  ["process.suspend / resume / setPriority / setAffinity, thread.*", "Control processes and threads", "process.control"],
+  [
+    "process.overview / modules / threads / handles / token / memory(pid)",
+    "Inside a running process",
+    "process.inspect",
+  ],
+  [
+    "process.suspend / resume / setPriority / setAffinity, thread.*",
+    "Control processes and threads",
+    "process.control",
+  ],
   ["eventlog.channels / query / more / subscribe / poll", "Windows event logs (events as XML)", "eventlog.read"],
   ["sqlite.open / schema / query / setWritable", "SQLite databases, read-only unless made writable", "sqlite"],
-  ["agents.snapshot / activity / reveal", "The Orchestrator's teams: agents, tasks, requests and activity", "agents.read"],
-  ["agents.start / send / answer / createTask / assign / review …", "Run Orchestrator teams of Claude Code agents", "agents.manage"],
+  [
+    "agents.snapshot / activity / reveal",
+    "The Orchestrator's teams: agents, tasks, requests and activity",
+    "agents.read",
+  ],
+  [
+    "agents.start / send / answer / createTask / assign / review …",
+    "Run Orchestrator teams of Claude Code agents",
+    "agents.manage",
+  ],
   ["ui.confirm / pickFile / openModule / reveal / setState", "Dialogs, file picker, open modules, per-pane state"],
   ["app.info() · app.restartAsAdmin()", "Version, elevation; relaunch as administrator (asks the user)"],
   ["storage.get / set / all", "Save the plugin's own data"],
   ["ui.notify(message, kind)", "Show a toast"],
   ["ui.setTitle(title)", "Set the pane title"],
-  ["context() · on(event, fn)", "Pane/tab info; listen for \"theme\", \"cwd\", \"visible\""],
+  ["context() · on(event, fn)", 'Pane/tab info; listen for "theme", "cwd", "visible"'],
 ];
 
 function CodeBlock({ code }: { code: string }) {
@@ -249,12 +301,14 @@ function BuildYourOwn({ hasExample }: { hasExample: boolean }) {
         </summary>
         <div className="guide-body">
           <p>
-            A plugin is a folder <code>{joinPath(pluginsDir, "<id>")}</code> that holds a <code>manifest.json</code> and an HTML page. It shows up as a module
-            you can add to any tab and runs in a sandbox: it can only do what its permissions allow, after you agree.
+            A plugin is a folder <code>{joinPath(pluginsDir, "<id>")}</code> that holds a <code>manifest.json</code> and
+            an HTML page. It shows up as a module you can add to any tab and runs in a sandbox: it can only do what its
+            permissions allow, after you agree.
           </p>
           {hasExample && (
             <p>
-              The easiest start: copy the bundled <b>Command Board</b> example, rename the folder, change its <code>id</code> to match, then press <b>Reload</b>.{" "}
+              The easiest start: copy the bundled <b>Command Board</b> example, rename the folder, change its{" "}
+              <code>id</code> to match, then press <b>Reload</b>.{" "}
               <button className="btn small" onClick={() => openInDataDir("plugins", "command-board")}>
                 <Icon name="folder-open" size={13} /> Open the example
               </button>
@@ -262,13 +316,15 @@ function BuildYourOwn({ hasExample }: { hasExample: boolean }) {
           )}
           <h4>manifest.json</h4>
           <p>
-            <code>id</code> must match the folder name (letters, digits, <code>-</code>, <code>_</code>). <code>icon</code> is any icon name used in the app.
+            <code>id</code> must match the folder name (letters, digits, <code>-</code>, <code>_</code>).{" "}
+            <code>icon</code> is any icon name used in the app.
           </p>
           <CodeBlock code={MANIFEST_EXAMPLE} />
           <h4>index.html</h4>
           <p>
-            Include the SDK with <code>&lt;script src="/__sdk/shellmosaic.js"&gt;&lt;/script&gt;</code>. Basic styles follow the user's theme automatically;
-            the colors are also available as CSS variables (<code>--sm-accent</code>, <code>--sm-text</code>, …).
+            Include the SDK with <code>&lt;script src="/__sdk/shellmosaic.js"&gt;&lt;/script&gt;</code>. Basic styles
+            follow the user's theme automatically; the colors are also available as CSS variables (
+            <code>--sm-accent</code>, <code>--sm-text</code>, …).
           </p>
           <CodeBlock code={HTML_EXAMPLE} />
           <h4>API — everything returns a Promise</h4>
@@ -296,7 +352,8 @@ function BuildYourOwn({ hasExample }: { hasExample: boolean }) {
             ))}
           </ul>
           <p>
-            Without <code>net</code>, plugins can't reach the internet. After editing files, press <b>Reload</b> here to pick up the changes.
+            Without <code>net</code>, plugins can't reach the internet. After editing files, press <b>Reload</b> here to
+            pick up the changes.
           </p>
         </div>
       </details>
@@ -336,17 +393,28 @@ export function PluginsSection() {
   };
 
   const install = async () => {
-    const dir = await open({ directory: true, multiple: false, title: "Choose a plugin folder (it contains manifest.json)" });
+    const dir = await open({
+      directory: true,
+      multiple: false,
+      title: "Choose a plugin folder (it contains manifest.json)",
+    });
     if (typeof dir !== "string") return;
     // warn before replacing an installed plugin with the same id
     const norm = (p: string) => p.replace(/[\\/]+$/, "").toLowerCase();
     let replacing = false;
     try {
-      const manifest = JSON.parse(await ipc.fsReadText(joinPath(dir, "manifest.json"))) as { id?: string; name?: string };
+      const manifest = JSON.parse(await ipc.fsReadText(joinPath(dir, "manifest.json"))) as {
+        id?: string;
+        name?: string;
+      };
       const existing = list?.find((p) => p.id === manifest.id);
       // (picking the installed folder itself is a no-op in the backend, not a replacement)
       if (existing && norm(existing.dir) !== norm(dir)) {
-        const ok = await ui.confirm(`Replace “${existing.manifest?.name ?? existing.id}”?`, "A plugin with this id is already installed. The old copy goes to the Recycle Bin, and the new one has to ask for its permissions again.", { okLabel: "Replace" });
+        const ok = await ui.confirm(
+          `Replace “${existing.manifest?.name ?? existing.id}”?`,
+          "A plugin with this id is already installed. The old copy goes to the Recycle Bin, and the new one has to ask for its permissions again.",
+          { okLabel: "Replace" },
+        );
         if (!ok) return;
         replacing = true;
       }
@@ -392,7 +460,12 @@ export function PluginsSection() {
             <button className="btn small" onClick={() => openInDataDir("plugins")}>
               <Icon name="folder-open" size={13} /> Plugins folder
             </button>
-            <button className="btn small subtle" onClick={reloadAll} disabled={busy} title="Scan the plugins folder again">
+            <button
+              className="btn small subtle"
+              onClick={reloadAll}
+              disabled={busy}
+              title="Scan the plugins folder again"
+            >
               <Icon name="refresh" size={13} className={busy ? "spin" : undefined} /> Reload
             </button>
           </>
