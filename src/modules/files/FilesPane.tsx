@@ -104,6 +104,8 @@ function crumbs(p: string): { label: string; path: string }[] {
   return out;
 }
 
+// control characters are invalid in Windows file names, so matching them is the point
+// eslint-disable-next-line no-control-regex
 const INVALID_NAME = /[<>:"/\\|?*\u0000-\u001f]/;
 function validName(n: string): string | null {
   if (!n) return "Enter a name";
