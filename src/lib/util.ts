@@ -134,7 +134,10 @@ export function parseColor(c: string): [number, number, number, number] | null {
   if (!m) {
     const rgb = c.match(/rgba?\(([^)]+)\)/i);
     if (!rgb) return null;
-    const p = rgb[1].split(/[ ,/]+/).filter(Boolean).map(Number);
+    const p = rgb[1]
+      .split(/[ ,/]+/)
+      .filter(Boolean)
+      .map(Number);
     return [p[0], p[1], p[2], p[3] ?? 1];
   }
   let h = m[1];
@@ -152,7 +155,13 @@ export function withAlpha(color: string, alpha: number): string {
 export function toHex6(color: string): string {
   const p = parseColor(color);
   if (!p) return "#000000";
-  return "#" + p.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+  return (
+    "#" +
+    p
+      .slice(0, 3)
+      .map((v) => Math.round(v).toString(16).padStart(2, "0"))
+      .join("")
+  );
 }
 
 /** Relative luminance, used to pick readable text on colored chips. */

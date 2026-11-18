@@ -203,7 +203,8 @@ export function mergeChecked(base: unknown, over: unknown): unknown {
     return out;
   }
   // nullable settings (accent color, background) hold text or an object
-  if (base === null || base === undefined) return over === null || typeof over === "string" || isPlainObject(over) ? structuredClone(over) : base;
+  if (base === null || base === undefined)
+    return over === null || typeof over === "string" || isPlainObject(over) ? structuredClone(over) : base;
   if (Array.isArray(base)) return Array.isArray(over) ? structuredClone(over) : base;
   return typeof over === typeof base && (typeof over !== "number" || Number.isFinite(over)) ? over : base;
 }
@@ -214,18 +215,26 @@ export function mergeChecked(base: unknown, over: unknown): unknown {
  * every pane header.
  */
 export function cleanMaps(s: Settings): Settings {
-  const keep = <T,>(rec: unknown, ok: (v: unknown) => v is T): Record<string, T> =>
+  const keep = <T>(rec: unknown, ok: (v: unknown) => v is T): Record<string, T> =>
     isPlainObject(rec) ? (Object.fromEntries(Object.entries(rec).filter(([, v]) => ok(v))) as Record<string, T>) : {};
   s.keybindings = keep(s.keybindings, (v): v is string => typeof v === "string");
-  s.plugins.grants = keep(s.plugins.grants, (v): v is string[] => Array.isArray(v) && v.every((p) => typeof p === "string"));
+  s.plugins.grants = keep(
+    s.plugins.grants,
+    (v): v is string[] => Array.isArray(v) && v.every((p) => typeof p === "string"),
+  );
   s.profiles.overrides = keep(s.profiles.overrides, isPlainObject);
-  s.profiles.custom = s.profiles.custom.filter((p) => isPlainObject(p) && typeof p.id === "string" && typeof p.command === "string");
+  s.profiles.custom = s.profiles.custom.filter(
+    (p) => isPlainObject(p) && typeof p.id === "string" && typeof p.command === "string",
+  );
   return s;
 }
 
 async function reload() {
   const raw = await ipc.settingsRead();
-  useSettings.setState({ settings: cleanMaps(structuredClone(mergeChecked(DEFAULT_SETTINGS, raw)) as Settings), loaded: true });
+  useSettings.setState({
+    settings: cleanMaps(structuredClone(mergeChecked(DEFAULT_SETTINGS, raw)) as Settings),
+    loaded: true,
+  });
 }
 
 export async function loadSettings() {

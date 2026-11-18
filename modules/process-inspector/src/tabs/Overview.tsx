@@ -1,7 +1,18 @@
 // Overview: image, security, performance, memory/I-O and exploit mitigations, as label/value sections.
 import { useMemo, type ReactNode } from "react";
 import { FolderOpen } from "lucide-react";
-import { Chip, formatBytes, formatDateTime, formatDuration, formatNumber, IconButton, KeyValues, Section, type KV, type ProcOverview } from "../../../shared";
+import {
+  Chip,
+  formatBytes,
+  formatDateTime,
+  formatDuration,
+  formatNumber,
+  IconButton,
+  KeyValues,
+  Section,
+  type KV,
+  type ProcOverview,
+} from "../../../shared";
 import { reveal } from "../components/actions";
 import { DeniedBanner, ResourceView } from "../components/common";
 import type { TabProps } from "../lib/prefs";
@@ -10,7 +21,6 @@ import { SigChip, useSignature } from "../lib/signatures";
 import { affinityText, integrityTone, priorityLabel } from "../lib/util";
 
 const NEEDS_ADMIN = "Needs administrator";
-
 
 const VIRTUALIZATION: Record<string, string> = { enabled: "Enabled", disabled: "Disabled", notAllowed: "Not allowed" };
 
@@ -36,8 +46,16 @@ function OverviewBody({ ov }: { ov: ProcOverview }) {
   /** A row that shows "Needs administrator" when any of `keys` was denied and "—" when there's no value. */
   const row = (label: string, keys: string | string[], value: ReactNode, extra?: Partial<KV>): KV => {
     const ks = Array.isArray(keys) ? keys : [keys];
-    if (ks.some((k) => denied.has(k))) return { label, value: NEEDS_ADMIN, muted: true, copyText: null, title: "Shellmosaic couldn't read this without administrator rights" };
-    if (value === null || value === undefined || value === "") return { label, value: "—", muted: true, copyText: null };
+    if (ks.some((k) => denied.has(k)))
+      return {
+        label,
+        value: NEEDS_ADMIN,
+        muted: true,
+        copyText: null,
+        title: "Shellmosaic couldn't read this without administrator rights",
+      };
+    if (value === null || value === undefined || value === "")
+      return { label, value: "—", muted: true, copyText: null };
     return { label, value, ...extra };
   };
 
@@ -79,8 +97,16 @@ function OverviewBody({ ov }: { ov: ProcOverview }) {
   const security: KV[] = [
     row("User", "user", ov.user),
     row("User SID", ["user", "userSid"], ov.userSid, { mono: true }),
-    row("Integrity", "integrity", ov.integrity && <Chip tone={integrityTone(ov.integrity)}>{ov.integrity}</Chip>, { copyText: ov.integrity }),
-    row("Elevation", ["elevation", "elevated"], ov.elevated === null ? null : `${ov.elevated ? "Elevated" : "Not elevated"}${ov.elevationType ? ` (${ov.elevationType} token)` : ""}`),
+    row("Integrity", "integrity", ov.integrity && <Chip tone={integrityTone(ov.integrity)}>{ov.integrity}</Chip>, {
+      copyText: ov.integrity,
+    }),
+    row(
+      "Elevation",
+      ["elevation", "elevated"],
+      ov.elevated === null
+        ? null
+        : `${ov.elevated ? "Elevated" : "Not elevated"}${ov.elevationType ? ` (${ov.elevationType} token)` : ""}`,
+    ),
     row(
       "Protection",
       "protection",
@@ -92,7 +118,11 @@ function OverviewBody({ ov }: { ov: ProcOverview }) {
     row(
       "Being debugged",
       "debugged",
-      ov.debugged === null ? null : ov.debugged ? <span className="sm-danger-text">Yes, a debugger is attached</span> : "No",
+      ov.debugged === null ? null : ov.debugged ? (
+        <span className="sm-danger-text">Yes, a debugger is attached</span>
+      ) : (
+        "No"
+      ),
       { copyText: ov.debugged === null ? null : ov.debugged ? "Yes" : "No" },
     ),
   ];
@@ -100,17 +130,27 @@ function OverviewBody({ ov }: { ov: ProcOverview }) {
   const perf: KV[] = [
     row("Started", "startTime", ov.startTime && formatDateTime(ov.startTime)),
     row("Running for", "startTime", ov.startTime && formatDuration(now - ov.startTime)),
-    row("CPU time", "cpu", cpuTotal ? `${formatDuration(cpuTotal)}  ·  kernel ${formatDuration(ov.cpuKernelMs)}, user ${formatDuration(ov.cpuUserMs)}` : "0 ms"),
+    row(
+      "CPU time",
+      "cpu",
+      cpuTotal
+        ? `${formatDuration(cpuTotal)}  ·  kernel ${formatDuration(ov.cpuKernelMs)}, user ${formatDuration(ov.cpuUserMs)}`
+        : "0 ms",
+    ),
     row("Priority class", "priority", priorityLabel(ov.priorityClass)),
     row("Base priority", "priority", String(ov.basePriority)),
-    row("Affinity", "affinity", affinityText(ov.affinity, ov.systemAffinity), { title: ov.affinity ? `Mask ${ov.affinity}` : undefined }),
+    row("Affinity", "affinity", affinityText(ov.affinity, ov.systemAffinity), {
+      title: ov.affinity ? `Mask ${ov.affinity}` : undefined,
+    }),
     row("Handles", "handles", formatNumber(ov.handleCount)),
     row("Threads", "threads", formatNumber(ov.threadCount)),
   ];
 
   const mem: KV[] = [
     row("Working set", "memory", formatBytes(ov.workingSet), { title: `${formatNumber(ov.workingSet)} bytes` }),
-    row("Peak working set", "memory", formatBytes(ov.peakWorkingSet), { title: `${formatNumber(ov.peakWorkingSet)} bytes` }),
+    row("Peak working set", "memory", formatBytes(ov.peakWorkingSet), {
+      title: `${formatNumber(ov.peakWorkingSet)} bytes`,
+    }),
     row("Private bytes", "memory", formatBytes(ov.privateBytes), { title: `${formatNumber(ov.privateBytes)} bytes` }),
     row("Virtual size", "memory", formatBytes(ov.virtualSize), { title: `${formatNumber(ov.virtualSize)} bytes` }),
     row("I/O read", "io", formatBytes(ov.ioReadBytes)),
@@ -149,7 +189,17 @@ function OverviewBody({ ov }: { ov: ProcOverview }) {
       <Section title="Memory and I/O">
         <KeyValues rows={mem} labelWidth={128} />
       </Section>
-      <Section title="Mitigations" actions={!denied.has("mitigations") && ov.mitigations.length > 0 && <span className="pi-section-note">{enabledCount} of {ov.mitigations.length} on</span>}>
+      <Section
+        title="Mitigations"
+        actions={
+          !denied.has("mitigations") &&
+          ov.mitigations.length > 0 && (
+            <span className="pi-section-note">
+              {enabledCount} of {ov.mitigations.length} on
+            </span>
+          )
+        }
+      >
         <KeyValues rows={mitigations} labelWidth={158} />
       </Section>
     </div>

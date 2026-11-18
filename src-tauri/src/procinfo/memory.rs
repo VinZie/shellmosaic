@@ -51,7 +51,8 @@ pub fn memory(pid: u32) -> Result<Vec<MemRegion>, String> {
         return Ok(Vec::new());
     }
     let (process, rights) =
-        nt::open_process(pid, &[PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, PROCESS_QUERY_INFORMATION]).map_err(nt::open_error)?;
+        nt::open_process(pid, &[PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, PROCESS_QUERY_INFORMATION])
+            .map_err(nt::open_error)?;
     let h = process.0;
     let regions = walk(h);
     if regions.is_empty() {
@@ -135,7 +136,8 @@ fn region_at(regions: &[Region], addr: u64) -> Option<&Region> {
 
 fn mapped_file(h: HANDLE, addr: u64) -> Option<String> {
     let mut buf = vec![0u16; 1024];
-    let n = unsafe { K32GetMappedFileNameW(h, addr as usize as *const c_void, buf.as_mut_ptr(), buf.len() as u32) } as usize;
+    let n = unsafe { K32GetMappedFileNameW(h, addr as usize as *const c_void, buf.as_mut_ptr(), buf.len() as u32) }
+        as usize;
     (n > 0).then(|| String::from_utf16_lossy(&buf[..n.min(buf.len())]))
 }
 
@@ -190,7 +192,10 @@ impl Labels {
         let Ok(snap) = Snapshot::take() else { return };
         let Some(entry) = snap.find(pid) else { return };
         for t in &entry.threads {
-            let Some((th, _)) = nt::open_thread(t.tid, &[THREAD_QUERY_LIMITED_INFORMATION, THREAD_QUERY_INFORMATION]) else { continue };
+            let Some((th, _)) = nt::open_thread(t.tid, &[THREAD_QUERY_LIMITED_INFORMATION, THREAD_QUERY_INFORMATION])
+            else {
+                continue;
+            };
             let Ok(basic) = nt::query_thread::<ThreadBasicInfo>(th.0, class::THREAD_BASIC) else { continue };
             let teb = basic.teb_base_address as u64;
             if teb == 0 {

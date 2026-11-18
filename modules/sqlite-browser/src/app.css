@@ -694,7 +694,9 @@
   border-radius: 6px;
   border: 1px solid var(--accent);
   background: var(--raised);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
   cursor: auto;
 }
 .sqlb-editor.has-error {

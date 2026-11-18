@@ -6,7 +6,18 @@ import { terminalMenu } from "../../state/menus";
 import { settings } from "../../state/settings";
 import { ui, useUi } from "../../state/ui";
 import type { ModuleDef, ModuleProps } from "../registry";
-import { copySelection, disposeTerm, focusTerm, getTerm, mountTerm, pasteInto, restartTerm, setTermVisible, sshHostOf, unmountTerm } from "./termRegistry";
+import {
+  copySelection,
+  disposeTerm,
+  focusTerm,
+  getTerm,
+  mountTerm,
+  pasteInto,
+  restartTerm,
+  setTermVisible,
+  sshHostOf,
+  unmountTerm,
+} from "./termRegistry";
 import { basename } from "../../lib/util";
 import { findProfile } from "../../state/profiles";
 import { openSftp } from "../hosts/open";
@@ -59,13 +70,25 @@ function FindBar({ paneId }: { paneId: string }) {
         }}
       />
       <span className="find-count">{q && count ? (count.total ? `${count.idx}/${count.total}` : "0") : ""}</span>
-      <button className={cx("icon-btn", opts.caseSensitive && "on")} title="Match case" onClick={() => setOpts((o) => ({ ...o, caseSensitive: !o.caseSensitive }))}>
+      <button
+        className={cx("icon-btn", opts.caseSensitive && "on")}
+        title="Match case"
+        onClick={() => setOpts((o) => ({ ...o, caseSensitive: !o.caseSensitive }))}
+      >
         <Icon name="case-sensitive" size={14} />
       </button>
-      <button className={cx("icon-btn", opts.wholeWord && "on")} title="Whole word" onClick={() => setOpts((o) => ({ ...o, wholeWord: !o.wholeWord }))}>
+      <button
+        className={cx("icon-btn", opts.wholeWord && "on")}
+        title="Whole word"
+        onClick={() => setOpts((o) => ({ ...o, wholeWord: !o.wholeWord }))}
+      >
         <Icon name="whole-word" size={14} />
       </button>
-      <button className={cx("icon-btn", opts.regex && "on")} title="Regular expression" onClick={() => setOpts((o) => ({ ...o, regex: !o.regex }))}>
+      <button
+        className={cx("icon-btn", opts.regex && "on")}
+        title="Regular expression"
+        onClick={() => setOpts((o) => ({ ...o, regex: !o.regex }))}
+      >
         <Icon name="regex" size={14} />
       </button>
       <button className="icon-btn" title="Previous (Shift+Enter)" onClick={() => find(-1)}>
@@ -153,7 +176,11 @@ export const terminalModule: ModuleDef = {
     }
     const profile = findProfile(pane.meta.profile);
     const where = rt.cwd ? basename(rt.cwd) || rt.cwd : "";
-    if (rt.title && !/^(Windows PowerShell|PowerShell|Administrator:|C:\\|[A-Z]:\\)/.test(rt.title) && !rt.title.endsWith(".exe")) {
+    if (
+      rt.title &&
+      !/^(Windows PowerShell|PowerShell|Administrator:|C:\\|[A-Z]:\\)/.test(rt.title) &&
+      !rt.title.endsWith(".exe")
+    ) {
       return `${rt.title}${where ? ` — ${where}` : ""}`;
     }
     return `${profile?.name ?? "Terminal"}${where ? ` — ${rt.cwd}` : ""}`;
@@ -163,7 +190,11 @@ export const terminalModule: ModuleDef = {
     if (!host) return [];
     return [
       { label: "Reconnect", icon: "rotate-cw", onSelect: () => restartTerm(pane.id) },
-      { label: "Open SFTP", icon: "folder-sync", onSelect: () => openSftp(host, pane.meta.sshName ?? "", { tabId, near: pane.id }) },
+      {
+        label: "Open SFTP",
+        icon: "folder-sync",
+        onSelect: () => openSftp(host, pane.meta.sshName ?? "", { tabId, near: pane.id }),
+      },
     ];
   },
   onRemove: (paneId) => {

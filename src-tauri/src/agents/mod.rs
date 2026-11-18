@@ -25,9 +25,9 @@ use std::sync::Arc;
 use serde_json::{json, Value};
 use tauri::{AppHandle, Emitter, Listener, Manager};
 
+use self::core::{Answer, Config};
 pub use self::core::{Core, Host};
 pub use self::launch::Launch;
-use self::core::{Answer, Config};
 use self::proto::{Activity, Agent, PaneRequest, Request, Routing, Run, Snapshot, Task};
 use crate::paths::{blocking, Paths};
 use crate::pty::PtyManager;
@@ -84,7 +84,13 @@ pub fn init(app: &AppHandle, paths: &Paths) -> Agents {
         .ok()
         .and_then(|e| e.parent().map(|d| d.join("shellmosaic-agent.exe")))
         .unwrap_or_default();
-    let cfg = Config { dir: paths.root.join("orchestrator"), pipe: pipe.clone(), shim, elevated, home: app.path().home_dir().ok() };
+    let cfg = Config {
+        dir: paths.root.join("orchestrator"),
+        pipe: pipe.clone(),
+        shim,
+        elevated,
+        home: app.path().home_dir().ok(),
+    };
     let rt = tauri::async_runtime::handle().inner().clone();
     let core = Core::new(cfg, Arc::new(TauriHost { app: app.clone() }), rt.clone());
     // (no pipe when elevated: no agent may start then)
@@ -114,13 +120,24 @@ pub fn agents_snapshot(app: AppHandle) -> Snapshot {
 }
 
 #[tauri::command]
-pub fn agents_activity(app: AppHandle, run_id: Option<String>, after: Option<u64>, limit: Option<usize>, latest: Option<bool>) -> Vec<Activity> {
+pub fn agents_activity(
+    app: AppHandle,
+    run_id: Option<String>,
+    after: Option<u64>,
+    limit: Option<usize>,
+    latest: Option<bool>,
+) -> Vec<Activity> {
     core(&app).activity(run_id.as_deref(), after.unwrap_or(0), limit.unwrap_or(500).min(2000), latest.unwrap_or(false))
 }
 
 /// Start a team in a workspace, in the repository `cwd` is in.
 #[tauri::command]
-pub async fn agents_start(app: AppHandle, workspace_id: String, cwd: String, name: Option<String>) -> Result<Run, String> {
+pub async fn agents_start(
+    app: AppHandle,
+    workspace_id: String,
+    cwd: String,
+    name: Option<String>,
+) -> Result<Run, String> {
     let c = core(&app);
     blocking(move || c.start_run(&workspace_id, &cwd, name)).await?
 }
@@ -180,7 +197,13 @@ pub async fn agents_send(app: AppHandle, agent_id: String, text: String) -> Resu
 /// Answer a request: `allow` for permission prompts (`always`: the agent may do the like for
 /// the rest of its session), `text` for questions.
 #[tauri::command]
-pub fn agents_answer(app: AppHandle, request_id: String, allow: Option<bool>, always: Option<bool>, text: Option<String>) -> Result<(), String> {
+pub fn agents_answer(
+    app: AppHandle,
+    request_id: String,
+    allow: Option<bool>,
+    always: Option<bool>,
+    text: Option<String>,
+) -> Result<(), String> {
     let answer = match (allow, text) {
         (Some(true), _) if always == Some(true) => Answer::AllowAlways,
         (Some(true), _) => Answer::Allow,
@@ -192,7 +215,14 @@ pub fn agents_answer(app: AppHandle, request_id: String, allow: Option<bool>, al
 }
 
 #[tauri::command]
-pub fn agents_task_create(app: AppHandle, run_id: String, title: String, description: String, difficulty: u8, follow_up_of: Option<String>) -> Result<Task, String> {
+pub fn agents_task_create(
+    app: AppHandle,
+    run_id: String,
+    title: String,
+    description: String,
+    difficulty: u8,
+    follow_up_of: Option<String>,
+) -> Result<Task, String> {
     core(&app).create_task(&run_id, &title, &description, difficulty, follow_up_of.as_deref())
 }
 
@@ -233,7 +263,12 @@ pub fn agents_set_routing(app: AppHandle, routing: Routing, base: Option<Routing
 }
 
 #[tauri::command]
-pub async fn agents_task_review(app: AppHandle, task_id: String, accept: bool, note: Option<String>) -> Result<String, String> {
+pub async fn agents_task_review(
+    app: AppHandle,
+    task_id: String,
+    accept: bool,
+    note: Option<String>,
+) -> Result<String, String> {
     let c = core(&app);
     blocking(move || c.review(&task_id, accept, note.as_deref().unwrap_or(""))).await?
 }

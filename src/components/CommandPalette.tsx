@@ -39,13 +39,15 @@ export function CommandPalette() {
 
   const items = useMemo<Item[]>(() => {
     if (!open) return [];
-    const moduleItems: Item[] = Object.values(modules).filter((m) => !m.hidden).map((m) => ({
-      id: `mod:${m.id}`,
-      title: m.name,
-      category: m.plugin ? "Plugin module" : "Module",
-      icon: m.icon,
-      run: () => A.addModule(m.id),
-    }));
+    const moduleItems: Item[] = Object.values(modules)
+      .filter((m) => !m.hidden)
+      .map((m) => ({
+        id: `mod:${m.id}`,
+        title: m.name,
+        category: m.plugin ? "Plugin module" : "Module",
+        icon: m.icon,
+        run: () => A.addModule(m.id),
+      }));
     const profileItems: Item[] = profiles
       .filter((p) => !p.hidden)
       .map((p) => ({
@@ -100,7 +102,10 @@ export function CommandPalette() {
   const filtered = useMemo(() => {
     if (!query.trim()) return items;
     return items
-      .map((it) => ({ it, s: Math.max(fuzzyScore(query, it.title), fuzzyScore(query, `${it.category} ${it.title}`) - 5) }))
+      .map((it) => ({
+        it,
+        s: Math.max(fuzzyScore(query, it.title), fuzzyScore(query, `${it.category} ${it.title}`) - 5),
+      }))
       .filter((x) => x.s >= 0)
       .sort((a, b) => b.s - a.s)
       .map((x) => x.it);
@@ -117,7 +122,12 @@ export function CommandPalette() {
     ui.closePalette();
     setTimeout(() => it.run(), 0);
   };
-  const placeholder = mode === "modules" ? "Add a module…" : mode === "profiles" ? "Open a shell…" : "Type a command, workspace, tab, module or theme…";
+  const placeholder =
+    mode === "modules"
+      ? "Add a module…"
+      : mode === "profiles"
+        ? "Open a shell…"
+        : "Type a command, workspace, tab, module or theme…";
 
   return (
     <div className="palette-backdrop" onPointerDown={(e) => e.target === e.currentTarget && ui.closePalette()}>

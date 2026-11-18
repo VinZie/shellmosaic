@@ -59,7 +59,10 @@ function HeaderStatus({ pane }: ModuleProps) {
   const task = agent.taskId ? ` · ${agent.taskId}` : "";
   const ctx = agent.contextPct != null ? ` · ctx ${Math.round(agent.contextPct)}%` : "";
   return (
-    <span className={cx("agent-chip", `agent-${agent.state}`)} title={`${agent.name}: ${STATE_LABEL[agent.state]}${task}\nModel: ${agent.modelId ?? agent.model} (${agent.effort} effort)${ctx}`}>
+    <span
+      className={cx("agent-chip", `agent-${agent.state}`)}
+      title={`${agent.name}: ${STATE_LABEL[agent.state]}${task}\nModel: ${agent.modelId ?? agent.model} (${agent.effort} effort)${ctx}`}
+    >
       <span className="agent-dot" />
       {modelName(agent)}
       {task}
@@ -76,7 +79,8 @@ function agentMenu(paneId: string): MenuItem[] {
   const live = agent.state !== "stopped" && agent.state !== "exited";
   const busy = agent.state === "working" || agent.state === "waiting";
   const items: MenuItem[] = [{ type: "header", label: `${agent.name} · ${runOfAgent(agent)?.name ?? "team"}` }];
-  if (!live || agent.state === "paused") items.push({ label: "Resume", icon: "play", onSelect: () => run(ipc.agentsResume(agent.id)) });
+  if (!live || agent.state === "paused")
+    items.push({ label: "Resume", icon: "play", onSelect: () => run(ipc.agentsResume(agent.id)) });
   if (busy) {
     items.push({ label: "Interrupt (Esc)", icon: "square", onSelect: () => run(ipc.agentsInterrupt(agent.id)) });
     items.push({ label: "Pause", icon: "pause", onSelect: () => run(ipc.agentsInterrupt(agent.id, true)) });
@@ -86,14 +90,20 @@ function agentMenu(paneId: string): MenuItem[] {
     icon: "message-square",
     disabled: !live,
     onSelect: async () => {
-      const text = await ui.prompt(`Message to ${agent.name}`, "", { placeholder: "Typed into its session as if you wrote it there", okLabel: "Send" });
+      const text = await ui.prompt(`Message to ${agent.name}`, "", {
+        placeholder: "Typed into its session as if you wrote it there",
+        okLabel: "Send",
+      });
       if (text?.trim()) run(ipc.agentsSend(agent.id, text.trim()));
     },
   });
   items.push({
     label: "Open the Orchestrator",
     icon: "bot",
-    onSelect: () => (getModule("plugin:orchestrator") ? A.addModule("plugin:orchestrator", { target: paneId, side: "bottom" }) : ui.openSettings("optional-modules")),
+    onSelect: () =>
+      getModule("plugin:orchestrator")
+        ? A.addModule("plugin:orchestrator", { target: paneId, side: "bottom" })
+        : ui.openSettings("optional-modules"),
   });
   items.push({ type: "separator" });
   items.push(

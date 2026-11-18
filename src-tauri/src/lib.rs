@@ -367,7 +367,12 @@ struct ExecResult {
 
 /// Run a program to completion (no shell) — used by plugins with `shell.exec`.
 #[tauri::command]
-async fn run_command(program: String, args: Vec<String>, cwd: Option<String>, timeout_ms: Option<u64>) -> Result<ExecResult, String> {
+async fn run_command(
+    program: String,
+    args: Vec<String>,
+    cwd: Option<String>,
+    timeout_ms: Option<u64>,
+) -> Result<ExecResult, String> {
     use std::io::Read;
     use std::process::Stdio;
     use std::sync::{mpsc, Arc};

@@ -45,7 +45,14 @@ export interface MDb {
   tables: MTable[];
   indexes: MIndex[];
   triggers: { name: string; tbl: string; sql: string }[];
-  info: { pageSize: number; journalMode: string; userVersion: number; applicationId: number; freelistCount: number; sqliteVersion: string };
+  info: {
+    pageSize: number;
+    journalMode: string;
+    userVersion: number;
+    applicationId: number;
+    freelistCount: number;
+    sqliteVersion: string;
+  };
 }
 
 // ── values ──────────────────────────────────────────────────────────────
@@ -74,7 +81,14 @@ function str(v: V): string | null {
   if ("$text" in v) return v.$text;
   return v.$blob;
 }
-const cls = (v: V) => (v === null ? 0 : typeof v === "number" || (isObj(v) && ("$int" in v || "$real" in v)) ? 1 : typeof v === "string" || (isObj(v) && "$text" in v) ? 2 : 3);
+const cls = (v: V) =>
+  v === null
+    ? 0
+    : typeof v === "number" || (isObj(v) && ("$int" in v || "$real" in v))
+      ? 1
+      : typeof v === "string" || (isObj(v) && "$text" in v)
+        ? 2
+        : 3;
 const looksNumeric = (s: string) => /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(s);
 
 function cmp(a: V, b: V): number | null {
@@ -159,7 +173,17 @@ interface ResultCol {
   text: string;
 }
 type Stmt =
-  | { kind: "select"; cols: ResultCol[]; from: string | null; where: Expr | null; group: Expr[]; having: Expr | null; order: { e: Expr; desc: boolean }[]; limit: Expr | null; offset: Expr | null }
+  | {
+      kind: "select";
+      cols: ResultCol[];
+      from: string | null;
+      where: Expr | null;
+      group: Expr[];
+      having: Expr | null;
+      order: { e: Expr; desc: boolean }[];
+      limit: Expr | null;
+      offset: Expr | null;
+    }
   | { kind: "insert"; table: string; cols: string[] | null; rows: Expr[][] | null; or: string | null }
   | { kind: "update"; table: string; sets: [string, Expr][]; where: Expr | null }
   | { kind: "delete"; table: string; where: Expr | null }
@@ -299,8 +323,20 @@ class Parser {
       if (this.isOp("(")) throw new Unsupported("subquery");
       from = this.qname();
       if (this.eatW("AS")) this.ident();
-      else if (this.peek()?.kind === "id" && !["WHERE", "GROUP", "ORDER", "LIMIT"].includes(this.peek()!.text.toUpperCase())) this.ident();
-      if (this.isOp(",") || this.isW("JOIN") || this.isW("LEFT") || this.isW("INNER") || this.isW("CROSS") || this.isW("NATURAL")) throw new Unsupported("join");
+      else if (
+        this.peek()?.kind === "id" &&
+        !["WHERE", "GROUP", "ORDER", "LIMIT"].includes(this.peek()!.text.toUpperCase())
+      )
+        this.ident();
+      if (
+        this.isOp(",") ||
+        this.isW("JOIN") ||
+        this.isW("LEFT") ||
+        this.isW("INNER") ||
+        this.isW("CROSS") ||
+        this.isW("NATURAL")
+      )
+        throw new Unsupported("join");
     }
     const where = this.eatW("WHERE") ? this.expr() : null;
     const group: Expr[] = [];
@@ -435,7 +471,9 @@ class Parser {
         if (this.eatW("NULL")) l = { k: "isnull", not, e: l };
         else l = { k: "bin", op: not ? "IS NOT" : "IS", l, r: this.add() };
       } else {
-        const not = this.isW("NOT") && (this.isW("LIKE", 1) || this.isW("GLOB", 1) || this.isW("IN", 1) || this.isW("BETWEEN", 1));
+        const not =
+          this.isW("NOT") &&
+          (this.isW("LIKE", 1) || this.isW("GLOB", 1) || this.isW("IN", 1) || this.isW("BETWEEN", 1));
         if (not) this.i++;
         if (this.eatW("LIKE") || this.eatW("GLOB")) {
           const glob = this.t[this.i - 1].text.toUpperCase() === "GLOB";
@@ -497,7 +535,10 @@ class Parser {
     switch (t.kind) {
       case "num":
         this.i++;
-        return { k: "lit", v: /^0x/i.test(t.text) ? Number(t.text) : /[.eE]/.test(t.text) ? Number(t.text) : intCell(t.text) };
+        return {
+          k: "lit",
+          v: /^0x/i.test(t.text) ? Number(t.text) : /[.eE]/.test(t.text) ? Number(t.text) : intCell(t.text),
+        };
       case "str":
         this.i++;
         return { k: "lit", v: t.text.slice(1, -1).replaceAll("''", "'") };
@@ -523,7 +564,8 @@ class Parser {
     if (t.kind !== "qid") {
       if (w === "NULL") return (this.i++, { k: "lit", v: null });
       if (w === "TRUE" || w === "FALSE") return (this.i++, { k: "lit", v: w === "TRUE" ? 1 : 0 });
-      if (w === "CURRENT_TIMESTAMP") return (this.i++, { k: "fn", name: "DATETIME", args: [{ k: "lit", v: "now" }], star: false });
+      if (w === "CURRENT_TIMESTAMP")
+        return (this.i++, { k: "fn", name: "DATETIME", args: [{ k: "lit", v: "now" }], star: false });
       if (w === "CAST") {
         this.i++;
         this.needOp("(");
@@ -662,7 +704,19 @@ function evalExpr(e: Expr, c: Ctx): V {
       if (["=", "!=", "<", "<=", ">", ">="].includes(e.op)) {
         const r = cmp(a, b);
         if (r === null) return null;
-        return bool(e.op === "=" ? r === 0 : e.op === "!=" ? r !== 0 : e.op === "<" ? r < 0 : e.op === "<=" ? r <= 0 : e.op === ">" ? r > 0 : r >= 0);
+        return bool(
+          e.op === "="
+            ? r === 0
+            : e.op === "!="
+              ? r !== 0
+              : e.op === "<"
+                ? r < 0
+                : e.op === "<="
+                  ? r <= 0
+                  : e.op === ">"
+                    ? r > 0
+                    : r >= 0,
+        );
       }
       const x = num(a);
       const y = num(b);
@@ -689,7 +743,14 @@ function evalExpr(e: Expr, c: Ctx): V {
       const esc = e.esc ? str(evalExpr(e.esc, c)) : null;
       let ok: boolean;
       if (e.glob) {
-        const re = new RegExp("^" + str(p)!.replace(/[.+^${}()|\\]/g, "\\$&").replace(/\*/g, "[\\s\\S]*").replace(/\?/g, "[\\s\\S]") + "$");
+        const re = new RegExp(
+          "^" +
+            str(p)!
+              .replace(/[.+^${}()|\\]/g, "\\$&")
+              .replace(/\*/g, "[\\s\\S]*")
+              .replace(/\?/g, "[\\s\\S]") +
+            "$",
+        );
         ok = re.test(str(a)!);
       } else ok = likeRe(str(p)!, esc).test(str(a)!);
       return bool(e.not ? !ok : ok);
@@ -763,7 +824,9 @@ function timeArg(args: V[]): number | null {
 function callFn(e: Extract<Expr, { k: "fn" }>, c: Ctx): V {
   const { name } = e;
   if (AGG.has(name) && c.group && (e.star || e.args.length <= 1 || name === "GROUP_CONCAT")) {
-    const vals = e.star ? c.group.map(() => 1 as V) : c.group.map((row) => evalExpr(e.args[0], { ...c, row, group: null })).filter((v) => v !== null);
+    const vals = e.star
+      ? c.group.map(() => 1 as V)
+      : c.group.map((row) => evalExpr(e.args[0], { ...c, row, group: null })).filter((v) => v !== null);
     switch (name) {
       case "COUNT":
         return vals.length;
@@ -775,9 +838,12 @@ function callFn(e: Extract<Expr, { k: "fn" }>, c: Ctx): V {
         return vals.length ? vals.reduce<number>((a, v) => a + (num(v) ?? 0), 0) / vals.length : null;
       case "MIN":
       case "MAX":
-        return vals.reduce<V>((a, v) => (a === null ? v : (cmp(v, a) ?? 0) * (name === "MIN" ? -1 : 1) > 0 ? v : a), null);
+        return vals.reduce<V>(
+          (a, v) => (a === null ? v : (cmp(v, a) ?? 0) * (name === "MIN" ? -1 : 1) > 0 ? v : a),
+          null,
+        );
       case "GROUP_CONCAT": {
-        const sep = e.args[1] ? str(evalExpr(e.args[1], c)) ?? "," : ",";
+        const sep = e.args[1] ? (str(evalExpr(e.args[1], c)) ?? ",") : ",";
         return vals.length ? vals.map((v) => str(v)).join(sep) : null;
       }
     }
@@ -848,7 +914,9 @@ function callFn(e: Extract<Expr, { k: "fn" }>, c: Ctx): V {
       return a[0] === null ? "NULL" : typeof a[0] === "string" ? `'${a[0].replaceAll("'", "''")}'` : str(a[0]);
     case "MAX":
     case "MIN":
-      return a.some((v) => v === null) ? null : a.reduce<V>((x, v) => ((cmp(v, x) ?? 0) * (name === "MIN" ? -1 : 1) > 0 ? v : x), a[0]);
+      return a.some((v) => v === null)
+        ? null
+        : a.reduce<V>((x, v) => ((cmp(v, x) ?? 0) * (name === "MIN" ? -1 : 1) > 0 ? v : x), a[0]);
     case "SQLITE_VERSION":
       return "3.50.4";
     case "RANDOM":
@@ -880,7 +948,11 @@ function callFn(e: Extract<Expr, { k: "fn" }>, c: Ctx): V {
       if (s0 === null) return null;
       try {
         let v: unknown = JSON.parse(s0);
-        for (const part of (str(a[1]) ?? "$").replace(/^\$\.?/, "").split(".").filter(Boolean)) v = (v as Record<string, unknown>)?.[part];
+        for (const part of (str(a[1]) ?? "$")
+          .replace(/^\$\.?/, "")
+          .split(".")
+          .filter(Boolean))
+          v = (v as Record<string, unknown>)?.[part];
         if (v === undefined || v === null) return null;
         return typeof v === "object" ? JSON.stringify(v) : typeof v === "boolean" ? Number(v) : (v as V);
       } catch {
@@ -928,7 +1000,13 @@ export class Engine {
       if (t.kind === "op" && t.text === ";") parts.push([]);
       else parts[parts.length - 1].push(t);
     }
-    let out: RunResult = { columns: [], rows: [], returnedRows: false, changes: 0, lastInsertRowid: this.lastInsertRowid };
+    let out: RunResult = {
+      columns: [],
+      rows: [],
+      returnedRows: false,
+      changes: 0,
+      lastInsertRowid: this.lastInsertRowid,
+    };
     let changes = 0;
     let statements = 0;
     for (const p of parts) {
@@ -949,7 +1027,13 @@ export class Engine {
   }
 
   private exec(s: Stmt, params: Param[], writable: boolean): RunResult {
-    const none = (changes = 0): RunResult => ({ columns: [], rows: [], returnedRows: false, changes, lastInsertRowid: this.lastInsertRowid });
+    const none = (changes = 0): RunResult => ({
+      columns: [],
+      rows: [],
+      returnedRows: false,
+      changes,
+      lastInsertRowid: this.lastInsertRowid,
+    });
     const write = (t?: MTable) => {
       if (!writable) throw new Error("attempt to write a readonly database");
       if (t?.kind === "view") throw new Error(`cannot modify ${t.name} because it is a view`);
@@ -1002,7 +1086,13 @@ export class Engine {
             if (v === null && col.notNull) throw new Error(`NOT NULL constraint failed: ${t.name}.${col.name}`);
             row.v[ci] = v;
             changed.add(col.name);
-            if (col.pk && !t.withoutRowid && affinity(col.type) === "INTEGER" && t.columns.filter((x) => x.pk).length === 1) row.rowid = num(v) ?? row.rowid;
+            if (
+              col.pk &&
+              !t.withoutRowid &&
+              affinity(col.type) === "INTEGER" &&
+              t.columns.filter((x) => x.pk).length === 1
+            )
+              row.rowid = num(v) ?? row.rowid;
           });
           t.afterUpdate?.(row, changed);
           n++;
@@ -1013,7 +1103,9 @@ export class Engine {
         const t = this.table(s.table);
         write(t);
         const before = t.rows.length;
-        t.rows = t.rows.filter((row) => !(s.where ? truth(evalExpr(s.where, { table: t, row, group: null, params })) : true));
+        t.rows = t.rows.filter(
+          (row) => !(s.where ? truth(evalExpr(s.where, { table: t, row, group: null, params })) : true),
+        );
         return none(before - t.rows.length);
       }
     }
@@ -1021,12 +1113,18 @@ export class Engine {
 
   private insert(t: MTable, s: Extract<Stmt, { kind: "insert" }>, params: Param[]): number {
     const pkCols = t.columns.filter((c) => c.pk);
-    const alias = !t.withoutRowid && pkCols.length === 1 && pkCols[0].type.toUpperCase() === "INTEGER" ? t.columns.indexOf(pkCols[0]) : -1;
-    const targets = s.cols ? s.cols.map((c) => colIndex(t, c)) : t.columns.map((_, i) => i).filter((i) => !t.columns[i].hidden);
+    const alias =
+      !t.withoutRowid && pkCols.length === 1 && pkCols[0].type.toUpperCase() === "INTEGER"
+        ? t.columns.indexOf(pkCols[0])
+        : -1;
+    const targets = s.cols
+      ? s.cols.map((c) => colIndex(t, c))
+      : t.columns.map((_, i) => i).filter((i) => !t.columns[i].hidden);
     const rows = s.rows ?? [[]];
     let n = 0;
     for (const exprs of rows) {
-      if (s.rows && exprs.length !== targets.length) throw new Error(`${targets.length} columns but ${exprs.length} values were supplied`);
+      if (s.rows && exprs.length !== targets.length)
+        throw new Error(`${targets.length} columns but ${exprs.length} values were supplied`);
       const v: Cell[] = t.columns.map((c) => (c.dflt ? c.dflt() : null));
       let rowid: number | null = null;
       exprs.forEach((e, k) => {
@@ -1048,7 +1146,10 @@ export class Engine {
       if (clash >= 0) {
         if (s.or === "REPLACE") t.rows.splice(clash, 1);
         else if (s.or === "IGNORE") continue;
-        else throw new Error(`UNIQUE constraint failed: ${t.withoutRowid || alias >= 0 ? pkCols.map((c) => `${t.name}.${c.name}`).join(", ") : `${t.name}.rowid`}`);
+        else
+          throw new Error(
+            `UNIQUE constraint failed: ${t.withoutRowid || alias >= 0 ? pkCols.map((c) => `${t.name}.${c.name}`).join(", ") : `${t.name}.rowid`}`,
+          );
       }
       t.rows.push({ rowid, v });
       if (!t.withoutRowid) this.lastInsertRowid = rowid;
@@ -1084,9 +1185,17 @@ export class Engine {
         let declType: string | null = null;
         if (e.k === "col" && t) {
           const ci = t.columns.findIndex((x) => x.name.toLowerCase() === e.name.toLowerCase());
-          declType = ci >= 0 ? t.columns[ci].type || null : ["rowid", "_rowid_", "oid"].includes(e.name.toLowerCase()) ? "INTEGER" : null;
+          declType =
+            ci >= 0
+              ? t.columns[ci].type || null
+              : ["rowid", "_rowid_", "oid"].includes(e.name.toLowerCase())
+                ? "INTEGER"
+                : null;
         }
-        columns.push({ name: rc.alias ?? (e.k === "col" ? e.name : rc.text), declType: rc.alias && e.k !== "col" ? null : declType });
+        columns.push({
+          name: rc.alias ?? (e.k === "col" ? e.name : rc.text),
+          declType: rc.alias && e.k !== "col" ? null : declType,
+        });
         getters.push((c) => evalExpr(e, c));
       }
     }
@@ -1138,11 +1247,23 @@ export class Engine {
     const off = s.offset ? (num(evalExpr(s.offset, base)) ?? 0) : 0;
     const lim = s.limit ? (num(evalExpr(s.limit, base)) ?? -1) : -1;
     out = out.slice(off, lim < 0 ? undefined : off + lim);
-    return { columns, rows: out.map((o) => o.vals), returnedRows: true, changes: 0, lastInsertRowid: this.lastInsertRowid };
+    return {
+      columns,
+      rows: out.map((o) => o.vals),
+      returnedRows: true,
+      changes: 0,
+      lastInsertRowid: this.lastInsertRowid,
+    };
   }
 
   private pragma(name: string, arg: string | null, writable: boolean): RunResult {
-    const one = (col: string, v: V): RunResult => ({ columns: [{ name: col, declType: null }], rows: [[v]], returnedRows: true, changes: 0, lastInsertRowid: this.lastInsertRowid });
+    const one = (col: string, v: V): RunResult => ({
+      columns: [{ name: col, declType: null }],
+      rows: [[v]],
+      returnedRows: true,
+      changes: 0,
+      lastInsertRowid: this.lastInsertRowid,
+    });
     const info = this.db.info;
     switch (name) {
       case "quick_check":
@@ -1181,7 +1302,14 @@ export class Engine {
       case "table_list":
         return {
           columns: ["schema", "name", "type", "ncol", "wr", "strict"].map((n) => ({ name: n, declType: null })),
-          rows: this.db.tables.map((t) => ["main", t.name, t.kind === "view" ? "view" : t.kind === "virtual" ? "virtual" : "table", t.columns.length, t.withoutRowid ? 1 : 0, 0]),
+          rows: this.db.tables.map((t) => [
+            "main",
+            t.name,
+            t.kind === "view" ? "view" : t.kind === "virtual" ? "virtual" : "table",
+            t.columns.length,
+            t.withoutRowid ? 1 : 0,
+            0,
+          ]),
           returnedRows: true,
           changes: 0,
           lastInsertRowid: this.lastInsertRowid,
@@ -1195,8 +1323,18 @@ export class Engine {
   schema(): SchemaObject[] {
     const out: SchemaObject[] = [];
     for (const t of this.db.tables) {
-      const cols = t.columns.map((c, cid) => ({ cid, name: c.name, type: c.type, notNull: !!c.notNull, default: c.default ?? null, pk: c.pk ?? 0, hidden: c.hidden ?? 0 }));
-      const ix = this.db.indexes.filter((i) => i.tbl === t.name).map((i) => ({ name: i.name, unique: i.unique, origin: i.origin, partial: i.partial, columns: i.columns }));
+      const cols = t.columns.map((c, cid) => ({
+        cid,
+        name: c.name,
+        type: c.type,
+        notNull: !!c.notNull,
+        default: c.default ?? null,
+        pk: c.pk ?? 0,
+        hidden: c.hidden ?? 0,
+      }));
+      const ix = this.db.indexes
+        .filter((i) => i.tbl === t.name)
+        .map((i) => ({ name: i.name, unique: i.unique, origin: i.origin, partial: i.partial, columns: i.columns }));
       out.push({
         type: t.kind === "view" ? "view" : "table",
         name: t.name,
@@ -1210,9 +1348,29 @@ export class Engine {
       });
     }
     for (const i of this.db.indexes)
-      out.push({ type: "index", name: i.name, tblName: i.tbl, sql: i.sql, withoutRowid: false, virtual: false, columns: [], indexes: [], foreignKeys: [] });
+      out.push({
+        type: "index",
+        name: i.name,
+        tblName: i.tbl,
+        sql: i.sql,
+        withoutRowid: false,
+        virtual: false,
+        columns: [],
+        indexes: [],
+        foreignKeys: [],
+      });
     for (const tr of this.db.triggers)
-      out.push({ type: "trigger", name: tr.name, tblName: tr.tbl, sql: tr.sql, withoutRowid: false, virtual: false, columns: [], indexes: [], foreignKeys: [] });
+      out.push({
+        type: "trigger",
+        name: tr.name,
+        tblName: tr.tbl,
+        sql: tr.sql,
+        withoutRowid: false,
+        virtual: false,
+        columns: [],
+        indexes: [],
+        foreignKeys: [],
+      });
     return out;
   }
 }

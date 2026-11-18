@@ -10,7 +10,19 @@ import { commit, useModel } from "../state/store";
 import { ui, useUi, type Dialog, type UpdateChoice } from "../state/ui";
 import { BackgroundLayer } from "./Workspace";
 
-export function Modal({ title, children, onClose, footer, wide }: { title: ReactNode; children: ReactNode; onClose: () => void; footer?: ReactNode; wide?: boolean }) {
+export function Modal({
+  title,
+  children,
+  onClose,
+  footer,
+  wide,
+}: {
+  title: ReactNode;
+  children: ReactNode;
+  onClose: () => void;
+  footer?: ReactNode;
+  wide?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   // keys must not keep going to the terminal behind it (dialogs that focus a field still do so)
   useEffect(() => {
@@ -56,8 +68,12 @@ function PromptDialog({ d }: { d: Extract<Dialog, { kind: "prompt" }> }) {
       onClose={() => done(null)}
       footer={
         <>
-          <button className="btn" onClick={() => done(null)}>Cancel</button>
-          <button className="btn primary" onClick={() => done(value)}>{d.okLabel ?? "OK"}</button>
+          <button className="btn" onClick={() => done(null)}>
+            Cancel
+          </button>
+          <button className="btn primary" onClick={() => done(value)}>
+            {d.okLabel ?? "OK"}
+          </button>
         </>
       }
     >
@@ -90,7 +106,9 @@ function ConfirmDialog({ d }: { d: Extract<Dialog, { kind: "confirm" }> }) {
       onClose={() => done(false)}
       footer={
         <>
-          <button className="btn" onClick={() => done(false)}>Cancel</button>
+          <button className="btn" onClick={() => done(false)}>
+            Cancel
+          </button>
           <button ref={okRef} className={cx("btn", d.danger ? "danger" : "primary")} onClick={() => done(true)}>
             {d.okLabel ?? "OK"}
           </button>
@@ -123,12 +141,22 @@ function WorkspaceEditor({ workspaceId }: { workspaceId: string | null }) {
       onClose={ui.closeDialog}
       footer={
         <>
-          <button className="btn danger subtle" onClick={() => { ui.closeDialog(); A.deleteWorkspace(ws.id); }}>
+          <button
+            className="btn danger subtle"
+            onClick={() => {
+              ui.closeDialog();
+              A.deleteWorkspace(ws.id);
+            }}
+          >
             <Icon name="trash" size={14} /> Delete
           </button>
           <span className="grow" />
-          <button className="btn" onClick={ui.closeDialog}>Cancel</button>
-          <button className="btn primary" onClick={save}>Save</button>
+          <button className="btn" onClick={ui.closeDialog}>
+            Cancel
+          </button>
+          <button className="btn primary" onClick={save}>
+            Save
+          </button>
         </>
       }
     >
@@ -138,13 +166,24 @@ function WorkspaceEditor({ workspaceId }: { workspaceId: string | null }) {
         </div>
         <div className="grow">
           <label className="field-label">Name</label>
-          <input className="input wide" value={name} autoFocus onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} />
+          <input
+            className="input wide"
+            value={name}
+            autoFocus
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && save()}
+          />
         </div>
       </div>
       <label className="field-label">Color</label>
       <div className="swatch-row">
         {WORKSPACE_COLORS.map((c) => (
-          <button key={c} className={cx("swatch big", c === color && "selected")} style={{ background: c }} onClick={() => setColor(c)} />
+          <button
+            key={c}
+            className={cx("swatch big", c === color && "selected")}
+            style={{ background: c }}
+            onClick={() => setColor(c)}
+          />
         ))}
         <label className="swatch big custom" title="Custom color">
           <input type="color" value={toHex6(color)} onChange={(e) => setColor(e.target.value)} />
@@ -154,20 +193,39 @@ function WorkspaceEditor({ workspaceId }: { workspaceId: string | null }) {
       <label className="field-label">Icon</label>
       <div className="icon-grid">
         {PICKER_ICONS.map((n) => (
-          <button key={n} className={cx("icon-choice", n === icon && !emoji && "selected")} onClick={() => { setIcon(n); setEmoji(""); }} title={n}>
+          <button
+            key={n}
+            className={cx("icon-choice", n === icon && !emoji && "selected")}
+            onClick={() => {
+              setIcon(n);
+              setEmoji("");
+            }}
+            title={n}
+          >
             <Icon name={n} size={18} />
           </button>
         ))}
       </div>
       <label className="field-label">…or an emoji</label>
-      <input className="input" style={{ width: 120 }} value={emoji} maxLength={4} placeholder="🚀" onChange={(e) => setEmoji(e.target.value)} />
+      <input
+        className="input"
+        style={{ width: 120 }}
+        value={emoji}
+        maxLength={4}
+        placeholder="🚀"
+        onChange={(e) => setEmoji(e.target.value)}
+      />
     </Modal>
   );
 }
 
 function BackgroundDialog({ target }: { target: { kind: "workspace" | "tab" | "global"; id?: string } }) {
   const current = useModel((s) =>
-    target.kind === "workspace" ? s.model.workspaces[target.id!]?.background : target.kind === "tab" ? s.model.tabs[target.id!]?.background : undefined,
+    target.kind === "workspace"
+      ? s.model.workspaces[target.id!]?.background
+      : target.kind === "tab"
+        ? s.model.tabs[target.id!]?.background
+        : undefined,
   );
   const globalBg = useSettings((s) => s.settings.window.background);
   const [bg, setBg] = useState<Background | null>((target.kind === "global" ? globalBg : current) ?? null);
@@ -179,10 +237,22 @@ function BackgroundDialog({ target }: { target: { kind: "workspace" | "tab" | "g
       wide
       footer={
         <>
-          <button className="btn subtle" onClick={() => setBg(null)}>Remove</button>
+          <button className="btn subtle" onClick={() => setBg(null)}>
+            Remove
+          </button>
           <span className="grow" />
-          <button className="btn" onClick={ui.closeDialog}>Cancel</button>
-          <button className="btn primary" onClick={() => { A.setBackground(target, bg); ui.closeDialog(); }}>Apply</button>
+          <button className="btn" onClick={ui.closeDialog}>
+            Cancel
+          </button>
+          <button
+            className="btn primary"
+            onClick={() => {
+              A.setBackground(target, bg);
+              ui.closeDialog();
+            }}
+          >
+            Apply
+          </button>
         </>
       }
     >
@@ -222,15 +292,31 @@ function BackgroundDialog({ target }: { target: { kind: "workspace" | "tab" | "g
           {bg && (
             <>
               <label className="field-label">Opacity · {Math.round(bg.opacity * 100)}%</label>
-              <input type="range" min={0.05} max={1} step={0.05} value={bg.opacity} onChange={(e) => update({ opacity: Number(e.target.value) })} />
+              <input
+                type="range"
+                min={0.05}
+                max={1}
+                step={0.05}
+                value={bg.opacity}
+                onChange={(e) => update({ opacity: Number(e.target.value) })}
+              />
               <label className="field-label">Blur · {bg.blur ?? 0}px</label>
-              <input type="range" min={0} max={30} step={1} value={bg.blur ?? 0} onChange={(e) => update({ blur: Number(e.target.value) })} />
+              <input
+                type="range"
+                min={0}
+                max={30}
+                step={1}
+                value={bg.blur ?? 0}
+                onChange={(e) => update({ blur: Number(e.target.value) })}
+              />
               {bg.kind === "image" && (
                 <>
                   <label className="field-label">Fit</label>
                   <div className="segmented">
                     {(["cover", "contain", "tile"] as const).map((f) => (
-                      <button key={f} className={cx(bg.fit === f && "on")} onClick={() => update({ fit: f })}>{f}</button>
+                      <button key={f} className={cx(bg.fit === f && "on")} onClick={() => update({ fit: f })}>
+                        {f}
+                      </button>
                     ))}
                   </div>
                 </>
@@ -259,7 +345,8 @@ const PERMISSION_TEXT: Record<string, string> = {
   "eventlog.read": "Read the Windows event logs",
   sqlite: "Open SQLite databases and change them when you allow it",
   "agents.read": "See your Claude Code agents: tasks, activity, pending requests and terminal output",
-  "agents.manage": "Start, stop and instruct Claude Code agents. Agents run commands and change files on this computer using your Claude account",
+  "agents.manage":
+    "Start, stop and instruct Claude Code agents. Agents run commands and change files on this computer using your Claude account",
 };
 
 function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissions" }> }) {
@@ -267,15 +354,23 @@ function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissio
     ui.closeDialog();
     d.resolve(ok);
   };
-  const risky = d.permissions.some((p) => ["shell.exec", "fs.write", "terminal.write", "terminal.run", "process.control", "sqlite", "agents.manage"].includes(p));
+  const risky = d.permissions.some((p) =>
+    ["shell.exec", "fs.write", "terminal.write", "terminal.run", "process.control", "sqlite", "agents.manage"].includes(
+      p,
+    ),
+  );
   return (
     <Modal
       title={`Allow "${d.name}"?`}
       onClose={() => done(false)}
       footer={
         <>
-          <button className="btn" onClick={() => done(false)}>Don't allow</button>
-          <button className={cx("btn", risky ? "danger" : "primary")} onClick={() => done(true)}>Allow</button>
+          <button className="btn" onClick={() => done(false)}>
+            Don't allow
+          </button>
+          <button className={cx("btn", risky ? "danger" : "primary")} onClick={() => done(true)}>
+            Allow
+          </button>
         </>
       }
     >
@@ -283,13 +378,38 @@ function PluginPermissions({ d }: { d: Extract<Dialog, { kind: "plugin-permissio
       <ul className="perm-list">
         {d.permissions.map((p) => (
           <li key={p}>
-            <Icon name={p.startsWith("fs") ? "folder" : p.startsWith("terminal") ? "terminal" : p === "net" ? "globe" : p === "shell.exec" ? "zap" : p === "claude.usage" ? "gauge" : p.startsWith("process") ? "cpu" : p === "eventlog.read" ? "logs" : p === "sqlite" ? "database" : p.startsWith("agents") ? "bot" : "shield"} size={14} />
+            <Icon
+              name={
+                p.startsWith("fs")
+                  ? "folder"
+                  : p.startsWith("terminal")
+                    ? "terminal"
+                    : p === "net"
+                      ? "globe"
+                      : p === "shell.exec"
+                        ? "zap"
+                        : p === "claude.usage"
+                          ? "gauge"
+                          : p.startsWith("process")
+                            ? "cpu"
+                            : p === "eventlog.read"
+                              ? "logs"
+                              : p === "sqlite"
+                                ? "database"
+                                : p.startsWith("agents")
+                                  ? "bot"
+                                  : "shield"
+              }
+              size={14}
+            />
             <span>{PERMISSION_TEXT[p] ?? p}</span>
             <code>{p}</code>
           </li>
         ))}
       </ul>
-      {risky && <p className="warn-text">Only allow plugins you trust. You can revoke this any time in Settings → Plugins.</p>}
+      {risky && (
+        <p className="warn-text">Only allow plugins you trust. You can revoke this any time in Settings → Plugins.</p>
+      )}
     </Modal>
   );
 }
@@ -309,7 +429,9 @@ function UpdateDialog({ d }: { d: Extract<Dialog, { kind: "update" }> }) {
             Skip this version
           </button>
           <span className="grow" />
-          <button className="btn" onClick={() => done("later")}>Later</button>
+          <button className="btn" onClick={() => done("later")}>
+            Later
+          </button>
           <button className="btn primary" onClick={() => done("update")}>
             <Icon name="download" size={14} /> Update now
           </button>
@@ -321,7 +443,9 @@ function UpdateDialog({ d }: { d: Extract<Dialog, { kind: "update" }> }) {
       </p>
       {/* (plain text: release notes are not rendered as HTML) */}
       {d.notes.trim() && <div className="update-notes selectable">{d.notes.slice(0, 4000)}</div>}
-      <p className="dim">The app closes while the update installs, then starts again. Your workspaces and sessions are restored.</p>
+      <p className="dim">
+        The app closes while the update installs, then starts again. Your workspaces and sessions are restored.
+      </p>
     </Modal>
   );
 }

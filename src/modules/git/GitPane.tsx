@@ -23,7 +23,10 @@ import "./git.css";
 function targetTerminal(tabId: string): { shell: string; cwd: string | undefined } {
   // (local terminals only: git runs on this machine, not in an SSH session)
   const id = terminalTarget(tabId, { local: true });
-  return { shell: findProfile(id ? getState().model.panes[id]?.meta.profile : undefined)?.kind ?? "cmd", cwd: knownCwd(id) };
+  return {
+    shell: findProfile(id ? getState().model.panes[id]?.meta.profile : undefined)?.kind ?? "cmd",
+    cwd: knownCwd(id),
+  };
 }
 
 const PS_SPECIAL = /[`$"“”„]/g;
@@ -135,7 +138,15 @@ const LETTER_NAMES: Record<string, string> = {
 function shortWhen(w: string): string {
   const m = /^(\d+) (second|minute|hour|day|week|month|year)s?/.exec(w);
   if (!m) return w;
-  const unit: Record<string, string> = { second: "s", minute: "m", hour: "h", day: "d", week: "w", month: "mo", year: "y" };
+  const unit: Record<string, string> = {
+    second: "s",
+    minute: "m",
+    hour: "h",
+    day: "d",
+    week: "w",
+    month: "mo",
+    year: "y",
+  };
   return `${m[1]}${unit[m[2]]}`;
 }
 
@@ -215,7 +226,13 @@ function parseDiff(text: string): { lines: DiffLine[]; adds: number; dels: numbe
       cols = 0;
     }
     if (header) {
-      const k: LineKind = s.startsWith("commit ") ? "commit" : s.startsWith("    ") ? "msg" : /^ .+ \| +(\d+|Bin)/.test(s) ? "stat" : "meta";
+      const k: LineKind = s.startsWith("commit ")
+        ? "commit"
+        : s.startsWith("    ")
+          ? "msg"
+          : /^ .+ \| +(\d+|Bin)/.test(s)
+            ? "stat"
+            : "meta";
       lines.push({ k, s });
     } else lines.push({ k: "meta", s });
   }
@@ -309,7 +326,8 @@ function DiffView({
   else if (data.error) body = <div className="git-diff-msg danger-text selectable">{data.error}</div>;
   else if (data.image) body = <img className="git-diff-image" src={data.image} alt="" />;
   else if (data.note) body = <div className="git-diff-msg dim">{data.note}</div>;
-  else if (!parsed?.lines.length) body = <div className="git-diff-msg dim">No textual changes (binary file or mode change).</div>;
+  else if (!parsed?.lines.length)
+    body = <div className="git-diff-msg dim">No textual changes (binary file or mode change).</div>;
   else {
     const rest = parsed.lines.length - limit;
     body = (
@@ -347,7 +365,12 @@ function DiffView({
         <button className={cx("icon-btn", wrap && "on")} title="Wrap long lines" onClick={onToggleWrap}>
           <Icon name="wrap" size={14} />
         </button>
-        <button className="icon-btn" title="Copy diff" disabled={!data?.text} onClick={() => data?.text && copyText(data.text, "Diff copied")}>
+        <button
+          className="icon-btn"
+          title="Copy diff"
+          disabled={!data?.text}
+          onClick={() => data?.text && copyText(data.text, "Diff copied")}
+        >
           <Icon name="copy" size={14} />
         </button>
         <button className="icon-btn" title="Close diff (Esc)" onClick={onClose}>
@@ -494,7 +517,12 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
     }
     if (selKey(selRef.current) !== key) return;
     setDiff((prev) =>
-      prev && prev.key === key && prev.text === data.text && prev.error === data.error && prev.note === data.note && prev.image === data.image
+      prev &&
+      prev.key === key &&
+      prev.text === data.text &&
+      prev.error === data.error &&
+      prev.note === data.note &&
+      prev.image === data.image
         ? prev
         : data,
     );
@@ -635,7 +663,8 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
     const ok = await ui.confirm(
       `Discard changes to ${basename(f.path)}?`,
       <>
-        Unstaged edits to <code>{f.path}</code> are lost. This runs <code>git restore</code> in the terminal and can't be undone.
+        Unstaged edits to <code>{f.path}</code> are lost. This runs <code>git restore</code> in the terminal and can't
+        be undone.
       </>,
       { okLabel: "Discard changes", danger: true },
     );
@@ -647,8 +676,8 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
     const ok = await ui.confirm(
       `Discard all ${n} unstaged change${n === 1 ? "" : "s"}?`,
       <>
-        Every unstaged edit to tracked files is lost (untracked files are kept). This runs <code>git restore -- .</code> in the terminal and
-        can't be undone.
+        Every unstaged edit to tracked files is lost (untracked files are kept). This runs <code>git restore -- .</code>{" "}
+        in the terminal and can't be undone.
       </>,
       { okLabel: "Discard all", danger: true },
     );
@@ -681,9 +710,13 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
     if (!amend && staged === 0) {
       const pending = groups.unstaged.length + groups.untracked.length;
       if (!pending) return ui.toast("Nothing to commit, working tree clean", "info");
-      const ok = await ui.confirm("Nothing is staged", `Stage all ${pending} changed file${pending === 1 ? "" : "s"} and commit them?`, {
-        okLabel: "Stage all & commit",
-      });
+      const ok = await ui.confirm(
+        "Nothing is staged",
+        `Stage all ${pending} changed file${pending === 1 ? "" : "s"} and commit them?`,
+        {
+          okLabel: "Stage all & commit",
+        },
+      );
       if (!ok) return;
       try {
         await ipc.gitOp(root, "stage-all");
@@ -694,12 +727,20 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
       refresh();
     }
     let initial = "";
-    if (amend) initial = await ipc.gitLog(root, 1).then((l) => l[0]?.subject ?? "", () => "");
-    const msg = await ui.prompt(amend ? "Amend last commit" : `Commit ${staged} file${staged === 1 ? "" : "s"}`, initial, {
-      label: "Commit message",
-      placeholder: "Describe your changes",
-      okLabel: amend ? "Amend" : "Commit",
-    });
+    if (amend)
+      initial = await ipc.gitLog(root, 1).then(
+        (l) => l[0]?.subject ?? "",
+        () => "",
+      );
+    const msg = await ui.prompt(
+      amend ? "Amend last commit" : `Commit ${staged} file${staged === 1 ? "" : "s"}`,
+      initial,
+      {
+        label: "Commit message",
+        placeholder: "Describe your changes",
+        okLabel: amend ? "Amend" : "Commit",
+      },
+    );
     if (msg === null) return;
     const text = msg.replace(/\s*\r?\n\s*/g, " ").trim();
     if (!text) return ui.toast("The commit message is empty", "warning");
@@ -718,7 +759,11 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
     if (!dir) return;
     const { shell, cwd: termCwd } = targetTerminal(tabId);
     const here = termCwd && normPath(termCwd) === normPath(dir);
-    sendToTerminal(here ? "git init" : `git init ${quoteArg(shellPath(dir, shell), shell)}`, { tabId, enter: true, local: true });
+    sendToTerminal(here ? "git init" : `git init ${quoteArg(shellPath(dir, shell), shell)}`, {
+      tabId,
+      enter: true,
+      local: true,
+    });
     later();
   };
 
@@ -764,11 +809,19 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
         label: "New branch…",
         icon: "plus",
         onSelect: async () => {
-          const name = await ui.prompt("Create branch", "", { placeholder: "feature/my-change", okLabel: "Create & switch" });
+          const name = await ui.prompt("Create branch", "", {
+            placeholder: "feature/my-change",
+            okLabel: "Create & switch",
+          });
           if (name?.trim()) runGit((q) => `switch -c ${q(name.trim())}`);
         },
       },
-      { label: "Copy branch name", icon: "copy", disabled: !branch, onSelect: () => copyText(branch, "Branch name copied") },
+      {
+        label: "Copy branch name",
+        icon: "copy",
+        disabled: !branch,
+        onSelect: () => copyText(branch, "Branch name copied"),
+      },
     ];
     const first = items(null);
     ui.openMenu(at, first);
@@ -776,7 +829,15 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
       (out) => {
         if (ui.get().menu?.items !== first) return;
         // a detached HEAD / rebase lists as "(HEAD detached at …)", which isn't a branch to switch to
-        ui.openMenu(at, items(out.split(/\r?\n/).map((s) => s.trim()).filter((s) => s && !s.startsWith("("))));
+        ui.openMenu(
+          at,
+          items(
+            out
+              .split(/\r?\n/)
+              .map((s) => s.trim())
+              .filter((s) => s && !s.startsWith("(")),
+          ),
+        );
       },
       (err) => ui.get().menu?.items === first && ui.openMenu(at, items(null, errorText(err))),
     );
@@ -795,9 +856,23 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
       { label: "Fetch all remotes", icon: "arrow-down-up", onSelect: () => runGit(() => "fetch --all --prune") },
       { type: "separator" },
       { label: "Choose folder…", icon: "folder-open", onSelect: chooseFolder },
-      { label: following ? "Stop following terminal" : "Follow terminal folder", icon: "crosshair", onSelect: toggleFollow },
-      { label: "Open repository in Files", icon: "folder", disabled: !root, onSelect: () => openFilesAt(winPath(root), pane.id) },
-      { label: "Copy repository path", icon: "copy", disabled: !root, onSelect: () => copyText(winPath(root), "Path copied") },
+      {
+        label: following ? "Stop following terminal" : "Follow terminal folder",
+        icon: "crosshair",
+        onSelect: toggleFollow,
+      },
+      {
+        label: "Open repository in Files",
+        icon: "folder",
+        disabled: !root,
+        onSelect: () => openFilesAt(winPath(root), pane.id),
+      },
+      {
+        label: "Copy repository path",
+        icon: "copy",
+        disabled: !root,
+        onSelect: () => copyText(winPath(root), "Path copied"),
+      },
     ]);
   };
 
@@ -809,25 +884,48 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
     const gone = letter === "D";
     const items: MenuItem[] = [
       { label: "Open", icon: "file-text", disabled: gone, onSelect: () => openFile(f) },
-      { label: "Reveal in Explorer", icon: "folder-open", disabled: gone, onSelect: () => revealItemInDir(abs).catch((er) => ui.toast(errorText(er), "error")) },
+      {
+        label: "Reveal in Explorer",
+        icon: "folder-open",
+        disabled: gone,
+        onSelect: () => revealItemInDir(abs).catch((er) => ui.toast(errorText(er), "error")),
+      },
       { label: "Copy path", icon: "copy", onSelect: () => copyText(abs, "Path copied") },
       { label: "Copy relative path", icon: "clipboard-copy", onSelect: () => copyText(f.path, "Path copied") },
       { type: "separator" },
       f.area === "staged"
         ? { label: "Unstage", icon: "minus", onSelect: () => toggleStage(f) }
-        : { label: f.area === "conflict" ? "Mark resolved (stage)" : "Stage", icon: "plus", onSelect: () => toggleStage(f) },
+        : {
+            label: f.area === "conflict" ? "Mark resolved (stage)" : "Stage",
+            icon: "plus",
+            onSelect: () => toggleStage(f),
+          },
     ];
     if (f.area === "conflict") {
       items.push(
-        { label: "Resolve using ours", icon: "check", onSelect: () => runGit((q) => `checkout --ours -- ${q(f.path, true)}`, { paths: true }) },
-        { label: "Resolve using theirs", icon: "check", onSelect: () => runGit((q) => `checkout --theirs -- ${q(f.path, true)}`, { paths: true }) },
+        {
+          label: "Resolve using ours",
+          icon: "check",
+          onSelect: () => runGit((q) => `checkout --ours -- ${q(f.path, true)}`, { paths: true }),
+        },
+        {
+          label: "Resolve using theirs",
+          icon: "check",
+          onSelect: () => runGit((q) => `checkout --theirs -- ${q(f.path, true)}`, { paths: true }),
+        },
       );
     }
-    if (f.area === "untracked") items.push({ label: "Add to .gitignore", icon: "eye-off", onSelect: () => ignoreFile(f.path) });
+    if (f.area === "untracked")
+      items.push({ label: "Add to .gitignore", icon: "eye-off", onSelect: () => ignoreFile(f.path) });
     if (f.area === "unstaged" || f.area === "untracked") {
       items.push(
         { type: "separator" },
-        { label: f.area === "untracked" ? "Delete…" : "Discard changes…", icon: f.area === "untracked" ? "trash" : "undo", danger: true, onSelect: () => discard(f) },
+        {
+          label: f.area === "untracked" ? "Delete…" : "Discard changes…",
+          icon: f.area === "untracked" ? "trash" : "undo",
+          danger: true,
+          onSelect: () => discard(f),
+        },
       );
     }
     ui.openMenu(e, items);
@@ -844,32 +942,50 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
       {
         label: "Checkout…",
         icon: "git-commit",
-        onSelect: () => confirmRun(`Check out ${c.short}?`, `checkout ${c.hash}`, "Check out", "You'll be in a detached HEAD state."),
+        onSelect: () =>
+          confirmRun(`Check out ${c.short}?`, `checkout ${c.hash}`, "Check out", "You'll be in a detached HEAD state."),
       },
       {
         label: "Create branch here…",
         icon: "git-branch",
         onSelect: async () => {
-          const name = await ui.prompt(`New branch at ${c.short}`, "", { placeholder: "feature/my-change", okLabel: "Create & switch" });
+          const name = await ui.prompt(`New branch at ${c.short}`, "", {
+            placeholder: "feature/my-change",
+            okLabel: "Create & switch",
+          });
           if (name?.trim()) runGit((q) => `switch -c ${q(name.trim())} ${c.hash}`);
         },
       },
       {
         label: "Cherry-pick…",
         icon: "check",
-        onSelect: () => confirmRun(`Cherry-pick ${c.short}?`, `cherry-pick ${c.hash}`, "Cherry-pick", `Applies "${c.subject}" on top of ${branch || "HEAD"}.`),
+        onSelect: () =>
+          confirmRun(
+            `Cherry-pick ${c.short}?`,
+            `cherry-pick ${c.hash}`,
+            "Cherry-pick",
+            `Applies "${c.subject}" on top of ${branch || "HEAD"}.`,
+          ),
       },
       {
         label: "Revert…",
         icon: "undo",
-        onSelect: () => confirmRun(`Revert ${c.short}?`, `revert --no-edit ${c.hash}`, "Revert", `Creates a new commit undoing "${c.subject}".`),
+        onSelect: () =>
+          confirmRun(
+            `Revert ${c.short}?`,
+            `revert --no-edit ${c.hash}`,
+            "Revert",
+            `Creates a new commit undoing "${c.subject}".`,
+          ),
       },
     ]);
   };
 
   // ── keyboard ──
   const sections = SECTIONS.map((s) => ({ ...s, files: groups[s.id] })).filter((s) => s.files.length);
-  const flat: FileSel[] = sections.flatMap((s) => (collapsed[s.id] ? [] : s.files.map((f) => ({ kind: "file" as const, path: f.path, area: s.id }))));
+  const flat: FileSel[] = sections.flatMap((s) =>
+    collapsed[s.id] ? [] : s.files.map((f) => ({ kind: "file" as const, path: f.path, area: s.id })),
+  );
   const shownLog = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!log || !q) return log ?? [];
@@ -967,11 +1083,16 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
         { okLabel: "Trust", danger: true },
       );
       if (!ok || !dir) return;
-      ipc.gitTrust(dir).then(() => refresh(), (e) => ui.toast(errorText(e), "error"));
+      ipc.gitTrust(dir).then(
+        () => refresh(),
+        (e) => ui.toast(errorText(e), "error"),
+      );
     };
     return shell(
       <ModuleMessage icon="shield" title="This repository's settings can run programs">
-        <p className="dim">Its git configuration sets commands that git would run while reading the repository. Nothing has run.</p>
+        <p className="dim">
+          Its git configuration sets commands that git would run while reading the repository. Nothing has run.
+        </p>
         <pre className="mono selectable git-msg-detail">{st.untrusted.join("\n")}</pre>
         <p className="dim mono git-msg-detail">{winPath(st.root)}</p>
         <div className="row">
@@ -997,7 +1118,7 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
     const trimmed = f.path.replace(/\/$/, "");
     const name = basename(trimmed) + (isDir ? "/" : "");
     const parent = trimmed.includes("/") ? trimmed.slice(0, trimmed.lastIndexOf("/")) : "";
-    const statusTip = area === "conflict" ? `Conflict (${f.index}${f.worktree})` : LETTER_NAMES[letter] ?? letter;
+    const statusTip = area === "conflict" ? `Conflict (${f.index}${f.worktree})` : (LETTER_NAMES[letter] ?? letter);
     return (
       <div
         key={key}
@@ -1011,16 +1132,33 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
         <span className={cx("git-letter", letterClass(letter))}>{letter}</span>
         <span className="git-name">{name}</span>
         <span className="git-dir">{parent}</span>
-        <span className="git-row-actions" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
-          <button className="icon-btn" title={isDir ? "Open folder" : "Open file"} disabled={letter === "D"} onClick={() => openFile(fs)}>
+        <span
+          className="git-row-actions"
+          onClick={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="icon-btn"
+            title={isDir ? "Open folder" : "Open file"}
+            disabled={letter === "D"}
+            onClick={() => openFile(fs)}
+          >
             <Icon name="file-text" size={13} />
           </button>
           {(area === "unstaged" || area === "untracked") && (
-            <button className="icon-btn" title={area === "untracked" ? "Delete…" : "Discard changes…"} onClick={() => discard(fs)}>
+            <button
+              className="icon-btn"
+              title={area === "untracked" ? "Delete…" : "Discard changes…"}
+              onClick={() => discard(fs)}
+            >
               <Icon name={area === "untracked" ? "trash" : "undo"} size={13} />
             </button>
           )}
-          <button className="icon-btn" title={area === "staged" ? "Unstage" : area === "conflict" ? "Mark resolved (stage)" : "Stage"} onClick={() => toggleStage(fs)}>
+          <button
+            className="icon-btn"
+            title={area === "staged" ? "Unstage" : area === "conflict" ? "Mark resolved (stage)" : "Stage"}
+            onClick={() => toggleStage(fs)}
+          >
             <Icon name={area === "staged" ? "minus" : "plus"} size={14} />
           </button>
         </span>
@@ -1060,7 +1198,11 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
                     <Icon name="minus" size={14} />
                   </button>
                 ) : (
-                  <button className="icon-btn" title={s.id === "conflict" ? "Mark all resolved" : "Stage all in this section"} onClick={() => op("stage", paths)}>
+                  <button
+                    className="icon-btn"
+                    title={s.id === "conflict" ? "Mark all resolved" : "Stage all in this section"}
+                    onClick={() => op("stage", paths)}
+                  >
                     <Icon name="plus" size={14} />
                   </button>
                 )}
@@ -1102,7 +1244,11 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
               <span className="git-hash mono">{c.short}</span>
               <span className="git-subject">
                 {parseRefs(c.refs).map((r) => (
-                  <span key={r.kind + r.label} className={cx("chip git-ref", `git-ref-${r.kind}`, r.kind === "head" && "accent")} title={r.kind === "head" ? "HEAD" : r.label}>
+                  <span
+                    key={r.kind + r.label}
+                    className={cx("chip git-ref", `git-ref-${r.kind}`, r.kind === "head" && "accent")}
+                    title={r.kind === "head" ? "HEAD" : r.label}
+                  >
                     {r.kind === "tag" && <Icon name="flag" size={9} />}
                     {r.kind === "remote" && <Icon name="cloud" size={10} />}
                     {r.label}
@@ -1130,18 +1276,26 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
   let diffActions: ReactNode = null;
   if (sel?.kind === "file") {
     const trimmed = sel.path.replace(/\/$/, "");
-    const areaLabel = { staged: "Staged", unstaged: "Working tree", untracked: "Untracked", conflict: "Conflict" }[sel.area];
+    const areaLabel = { staged: "Staged", unstaged: "Working tree", untracked: "Untracked", conflict: "Conflict" }[
+      sel.area
+    ];
     diffHead = (
       <>
         <Icon name="file" size={13} className="dim" />
         <span className="git-diff-name">{basename(trimmed)}</span>
         <span className="git-diff-path">{trimmed.includes("/") ? trimmed.slice(0, trimmed.lastIndexOf("/")) : ""}</span>
-        <span className={cx("chip", sel.area === "staged" && "accent", sel.area === "conflict" && "git-chip-danger")}>{areaLabel}</span>
+        <span className={cx("chip", sel.area === "staged" && "accent", sel.area === "conflict" && "git-chip-danger")}>
+          {areaLabel}
+        </span>
       </>
     );
     diffActions = (
       <>
-        <button className="icon-btn" title={sel.area === "staged" ? "Unstage" : "Stage"} onClick={() => toggleStage(sel)}>
+        <button
+          className="icon-btn"
+          title={sel.area === "staged" ? "Unstage" : "Stage"}
+          onClick={() => toggleStage(sel)}
+        >
           <Icon name={sel.area === "staged" ? "minus" : "plus"} size={14} />
         </button>
         <button className="icon-btn" title="Open file" onClick={() => openFile(sel)}>
@@ -1166,7 +1320,11 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
   return shell(
     <>
       <div className="toolbar git-bar">
-        <button className="git-branch" title={detached ? "Detached HEAD — click to switch branch" : `On ${branch} — click to switch branch`} onClick={openBranchMenu}>
+        <button
+          className="git-branch"
+          title={detached ? "Detached HEAD — click to switch branch" : `On ${branch} — click to switch branch`}
+          onClick={openBranchMenu}
+        >
           <Icon name="git-branch" size={13} />
           <span>{detached ? "detached HEAD" : branch || "…"}</span>
           <Icon name="chevron-down" size={11} />
@@ -1191,7 +1349,11 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
           <Icon name="arrow-down-up" size={13} />
           <span className="git-label">Fetch</span>
         </button>
-        <button className={cx("btn small subtle", st.behind > 0 && "git-hot")} title="git pull" onClick={() => runGit(() => "pull")}>
+        <button
+          className={cx("btn small subtle", st.behind > 0 && "git-hot")}
+          title="git pull"
+          onClick={() => runGit(() => "pull")}
+        >
           <Icon name="scroll-bottom" size={13} />
           <span className="git-label">Pull</span>
         </button>
@@ -1209,7 +1371,11 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
         </button>
         <button
           className={cx("icon-btn", following && "on")}
-          title={following ? "Following the terminal's folder (click to pin this repository)" : "Pinned to this folder (click to follow the terminal)"}
+          title={
+            following
+              ? "Following the terminal's folder (click to pin this repository)"
+              : "Pinned to this folder (click to follow the terminal)"
+          }
           onClick={toggleFollow}
         >
           <Icon name="crosshair" size={14} />
@@ -1230,15 +1396,30 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
         <span className="grow" />
         {view === "changes" ? (
           <>
-            <button className="btn small subtle" title="Stage all changes" disabled={!total} onClick={() => op("stage-all")}>
+            <button
+              className="btn small subtle"
+              title="Stage all changes"
+              disabled={!total}
+              onClick={() => op("stage-all")}
+            >
               <Icon name="plus" size={13} />
               <span className="git-label">Stage all</span>
             </button>
-            <button className="btn small subtle" title="Unstage all" disabled={!groups.staged.length} onClick={() => op("unstage-all")}>
+            <button
+              className="btn small subtle"
+              title="Unstage all"
+              disabled={!groups.staged.length}
+              onClick={() => op("unstage-all")}
+            >
               <Icon name="minus" size={13} />
               <span className="git-label">Unstage all</span>
             </button>
-            <button className="btn small primary" title="Commit staged changes" disabled={!total} onClick={() => commit()}>
+            <button
+              className="btn small primary"
+              title="Commit staged changes"
+              disabled={!total}
+              onClick={() => commit()}
+            >
               <Icon name="check" size={13} />
               Commit…
             </button>
@@ -1248,12 +1429,22 @@ function GitPane({ pane, tabId, visible }: ModuleProps) {
         )}
       </div>
       <div className={cx("git-main", wide ? "row" : "col")}>
-        <div ref={listRef} className="git-list" tabIndex={0} style={sel ? { flex: `${ratio} 1 0` } : undefined} onKeyDown={onListKey}>
+        <div
+          ref={listRef}
+          className="git-list"
+          tabIndex={0}
+          style={sel ? { flex: `${ratio} 1 0` } : undefined}
+          onKeyDown={onListKey}
+        >
           {view === "changes" ? changesList : historyList}
         </div>
         {sel && <Splitter row={wide} onRatio={setRatio} />}
         {sel && (
-          <div className="git-diff" style={{ flex: `${1 - ratio} 1 0` }} onKeyDown={(e) => e.key === "Escape" && (view === "changes" ? setSelFile(null) : setSelCommit(null))}>
+          <div
+            className="git-diff"
+            style={{ flex: `${1 - ratio} 1 0` }}
+            onKeyDown={(e) => e.key === "Escape" && (view === "changes" ? setSelFile(null) : setSelCommit(null))}
+          >
             <DiffView
               data={diff && diff.key === sk ? diff : null}
               wrap={wrap}

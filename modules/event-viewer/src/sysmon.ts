@@ -100,7 +100,12 @@ export function dirName(path: string): string {
 function dnsResults(v: string): string {
   return v
     .split(";")
-    .map((s) => s.trim().replace(/^type:\s*\d+\s*/, "").replace(/^::ffff:/, ""))
+    .map((s) =>
+      s
+        .trim()
+        .replace(/^type:\s*\d+\s*/, "")
+        .replace(/^::ffff:/, ""),
+    )
     .filter(Boolean)
     .join(", ");
 }
@@ -127,12 +132,16 @@ function details(id: number, get: (n: string) => string): string {
       return `${get("Protocol")} ${get("SourceIp")}:${get("SourcePort")} → ${get("DestinationIp")}:${get("DestinationPort")}${host ? ` (${host})` : ""}`;
     }
     case 4:
-      return [get("State"), get("Version"), get("SchemaVersion") && `schema ${get("SchemaVersion")}`].filter(Boolean).join(" · ");
+      return [get("State"), get("Version"), get("SchemaVersion") && `schema ${get("SchemaVersion")}`]
+        .filter(Boolean)
+        .join(" · ");
     case 6:
     case 7:
       return signed(get);
     case 8: {
-      const fn = [dash(get("StartModule")) && baseName(get("StartModule")), dash(get("StartFunction"))].filter(Boolean).join("!");
+      const fn = [dash(get("StartModule")) && baseName(get("StartModule")), dash(get("StartFunction"))]
+        .filter(Boolean)
+        .join("!");
       return `${baseName(get("SourceImage"))} → ${get("TargetImage")}${fn ? ` (${fn})` : get("StartAddress") ? ` (${get("StartAddress")})` : ""}`;
     }
     case 9:

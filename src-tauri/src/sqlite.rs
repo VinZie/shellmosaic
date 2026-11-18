@@ -12,8 +12,8 @@ mod schema;
 use serde_json::Value;
 use tauri::{AppHandle, Manager};
 
-pub use db::{sweep_temp, Sqlite};
 use db::DbInfo;
+pub use db::{sweep_temp, Sqlite};
 use query::QueryResult;
 use schema::SchemaObject;
 
@@ -22,8 +22,15 @@ use crate::paths::blocking;
 /// Open a local database file, read-only unless `writable`; from a temporary copy when
 /// `copy` is set or the file is locked by another program.
 #[tauri::command]
-pub async fn sqlite_open(app: AppHandle, owner: String, path: String, writable: Option<bool>, copy: Option<bool>) -> Result<DbInfo, String> {
-    blocking(move || app.state::<Sqlite>().open(&owner, &path, writable.unwrap_or(false), copy.unwrap_or(false))).await?
+pub async fn sqlite_open(
+    app: AppHandle,
+    owner: String,
+    path: String,
+    writable: Option<bool>,
+    copy: Option<bool>,
+) -> Result<DbInfo, String> {
+    blocking(move || app.state::<Sqlite>().open(&owner, &path, writable.unwrap_or(false), copy.unwrap_or(false)))
+        .await?
 }
 
 #[tauri::command]
@@ -46,7 +53,8 @@ pub async fn sqlite_query(
     params: Option<Vec<Value>>,
     max_rows: Option<u32>,
 ) -> Result<QueryResult, String> {
-    blocking(move || app.state::<Sqlite>().query(&owner, id, &sql, params.as_deref().unwrap_or_default(), max_rows)).await?
+    blocking(move || app.state::<Sqlite>().query(&owner, id, &sql, params.as_deref().unwrap_or_default(), max_rows))
+        .await?
 }
 
 #[tauri::command]

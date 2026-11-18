@@ -26,7 +26,15 @@ import { processMenu, resumeProcess, suspendProcess } from "./components/actions
 import { Header } from "./components/Header";
 import { ProcessPicker } from "./components/Picker";
 import { TabSettings } from "./components/TabSettings";
-import { ALL_TABS, DEFAULT_PREFS, normalizePrefs, TAB_LABELS, type Prefs, type TabId, type TabProps } from "./lib/prefs";
+import {
+  ALL_TABS,
+  DEFAULT_PREFS,
+  normalizePrefs,
+  TAB_LABELS,
+  type Prefs,
+  type TabId,
+  type TabProps,
+} from "./lib/prefs";
 import { useResource, type Live } from "./lib/resource";
 import { isExited, type Recent } from "./lib/util";
 import { HandlesTab } from "./tabs/Handles";
@@ -62,7 +70,8 @@ function initialTarget(ctx: PaneContext) {
   const tab = st.tab && ALL_TABS.includes(st.tab) ? st.tab : null;
   // saved by this same pane (opened with these args): the user may have switched process since
   const restored = statePid !== null && (argPid === null || st.argsPid === argPid);
-  if (restored) return { pid: statePid, argsPid: argPid, restoredName: typeof st.name === "string" ? st.name : null, tab };
+  if (restored)
+    return { pid: statePid, argsPid: argPid, restoredName: typeof st.name === "string" ? st.name : null, tab };
   return { pid: argPid, argsPid: argPid, restoredName: null, tab: argPid !== null ? null : tab };
 }
 
@@ -77,7 +86,12 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
   const [storedPrefs, setPrefs, prefsLoaded] = useStored<Prefs>("prefs", DEFAULT_PREFS);
   const prefs = useMemo(() => normalizePrefs(storedPrefs), [storedPrefs]);
   const [recent, setRecent] = useStored<Recent[]>("recent", []);
-  const [, savePane] = usePaneState<Saved>(ctx, { pid: init.pid, name: init.restoredName, argsPid: init.argsPid, tab: init.tab });
+  const [, savePane] = usePaneState<Saved>(ctx, {
+    pid: init.pid,
+    name: init.restoredName,
+    argsPid: init.argsPid,
+    tab: init.tab,
+  });
 
   const [pid, setPid] = useState<number | null>(init.pid);
   const [tabChoice, setTabChoice] = useState<TabId | null>(init.tab);
@@ -89,7 +103,12 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const visibleTabs = prefs.tabs.filter((t) => t.visible).map((t) => t.id);
-  const tab: TabId = tabChoice && visibleTabs.includes(tabChoice) ? tabChoice : visibleTabs.includes(prefs.defaultTab) ? prefs.defaultTab : visibleTabs[0];
+  const tab: TabId =
+    tabChoice && visibleTabs.includes(tabChoice)
+      ? tabChoice
+      : visibleTabs.includes(prefs.defaultTab)
+        ? prefs.defaultTab
+        : visibleTabs[0];
   // tabs stay mounted once opened (hidden), so switching back keeps filters, scroll and data
   const visited = useRef(new Set<TabId>());
   visited.current.add(tab);
@@ -97,7 +116,13 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
   const canControl = ctx.grantedPermissions.includes("process.control");
   const refreshAll = useCallback(() => setTick((t) => t + 1), []);
 
-  const overview = useResource<ProcOverview>(pid, loadOverview, { visible: ctx.visible, interval: prefs.interval, tick, active: tab === "overview", eager: true });
+  const overview = useResource<ProcOverview>(pid, loadOverview, {
+    visible: ctx.visible,
+    interval: prefs.interval,
+    tick,
+    active: tab === "overview",
+    eager: true,
+  });
   const ov = overview.data;
   const exited = pid !== null && isExited(overview.error);
   const restoredName = pid === init.pid ? init.restoredName : null;
@@ -105,7 +130,10 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
   const name = knownName ?? `PID ${pid}`;
   /** "explorer.exe (4812)", or "PID 4812" while the name is unknown */
   const label = knownName ? `${knownName} (${pid})` : name;
-  const live: Live = useMemo(() => ({ visible: ctx.visible && !exited, interval: prefs.interval, tick }), [ctx.visible, exited, prefs.interval, tick]);
+  const live: Live = useMemo(
+    () => ({ visible: ctx.visible && !exited, interval: prefs.interval, tick }),
+    [ctx.visible, exited, prefs.interval, tick],
+  );
 
   const inspect = useCallback(
     (next: number) => {
@@ -144,7 +172,10 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
         e.preventDefault();
         refreshAll();
       } else if (e.ctrlKey && !e.shiftKey && !e.altKey && k === "f") {
-        const scope = document.querySelector(".sm-popover") ?? bodyRef.current?.querySelector(".pi-tabpane:not([hidden])") ?? bodyRef.current;
+        const scope =
+          document.querySelector(".sm-popover") ??
+          bodyRef.current?.querySelector(".pi-tabpane:not([hidden])") ??
+          bodyRef.current;
         const input = scope?.querySelector<HTMLInputElement>(".sm-search input");
         if (input) {
           e.preventDefault();
@@ -162,7 +193,12 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
   const tabItems: TabItem[] = visibleTabs.map((id) => ({
     id,
     label: TAB_LABELS[id],
-    badge: id === "threads" && ov ? formatNumber(ov.threadCount) : id === "handles" && ov ? formatNumber(ov.handleCount) : undefined,
+    badge:
+      id === "threads" && ov
+        ? formatNumber(ov.threadCount)
+        : id === "handles" && ov
+          ? formatNumber(ov.handleCount)
+          : undefined,
   }));
 
   const renderTab = (id: TabId, p: TabProps) => {
@@ -196,9 +232,7 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
               Pick another process
             </Button>
             {ov?.ppid != null && ov.parentName && (
-              <Button onClick={() => inspect(ov.ppid!)}>
-                Inspect its parent, {ov.parentName}
-              </Button>
+              <Button onClick={() => inspect(ov.ppid!)}>Inspect its parent, {ov.parentName}</Button>
             )}
           </>
         }
@@ -215,7 +249,11 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
         <div className="pi-tabbar">
           <Tabs items={tabItems} active={tab} onChange={(id) => setTabChoice(id as TabId)} />
           <div className="pi-tabbar-end">
-            <IconButton title="Tabs and refresh" on={!!settingsAt} onClick={(e) => setSettingsAt(settingsAt ? null : e.currentTarget)}>
+            <IconButton
+              title="Tabs and refresh"
+              on={!!settingsAt}
+              onClick={(e) => setSettingsAt(settingsAt ? null : e.currentTarget)}
+            >
               <Settings2 size={15} />
             </IconButton>
           </div>
@@ -269,7 +307,15 @@ function Inspector({ ctx }: { ctx: PaneContext }) {
                     <Pause size={15} />
                   </IconButton>
                 ))}
-              <IconButton title="More actions" onClick={(e) => openMenu(e.currentTarget, processMenu({ pid, name, ov, canControl, refresh: refreshAll, after: refreshAll }))}>
+              <IconButton
+                title="More actions"
+                onClick={(e) =>
+                  openMenu(
+                    e.currentTarget,
+                    processMenu({ pid, name, ov, canControl, refresh: refreshAll, after: refreshAll }),
+                  )
+                }
+              >
                 <Ellipsis size={16} />
               </IconButton>
             </>

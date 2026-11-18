@@ -38,7 +38,6 @@ interface ThreadRow extends ProcThread {
 const rowKey = (t: ThreadRow) => t.tid;
 const loadThreads = (pid: number) => sm.process.threads(pid);
 
-
 /** Kernel start addresses read as 0 without admin rights. */
 const unknownStart = (a: string) => /^0x0*$/i.test(a);
 
@@ -52,7 +51,11 @@ export function ThreadsTab(p: TabProps) {
 }
 
 type Kind = "suspend" | "resume" | "terminate";
-const VERB: Record<Kind, [string, string]> = { suspend: ["suspend", "Suspended"], resume: ["resume", "Resumed"], terminate: ["terminate", "Terminated"] };
+const VERB: Record<Kind, [string, string]> = {
+  suspend: ["suspend", "Suspended"],
+  resume: ["resume", "Resumed"],
+  terminate: ["terminate", "Terminated"],
+};
 
 function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps & { threads: ProcThread[] }) {
   const [cols, setCols] = useColumnState("threads");
@@ -71,7 +74,12 @@ function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps 
     () =>
       threads.map((t) => {
         const before = prev?.get(t.tid);
-        return { ...t, cpu: t.kernelMs + t.userMs, delta: before === undefined ? null : Math.max(0, t.contextSwitches - before), foreign: !!t.win32StartAddress && !t.win32StartSymbol };
+        return {
+          ...t,
+          cpu: t.kernelMs + t.userMs,
+          delta: before === undefined ? null : Math.max(0, t.contextSwitches - before),
+          foreign: !!t.win32StartAddress && !t.win32StartSymbol,
+        };
       }),
     [threads, prev],
   );
@@ -92,7 +100,10 @@ function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps 
     );
   }, [all, q]);
 
-  const stats = useMemo(() => ({ suspended: all.filter((t) => t.suspended).length, foreign: all.filter((t) => t.foreign).length }), [all]);
+  const stats = useMemo(
+    () => ({ suspended: all.filter((t) => t.suspended).length, foreign: all.filter((t) => t.foreign).length }),
+    [all],
+  );
 
   const columns = useMemo<Column<ThreadRow>[]>(
     () => [
@@ -127,7 +138,10 @@ function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps 
         text: (t) => t.win32StartSymbol ?? t.win32StartAddress ?? "",
         render: (t) =>
           t.foreign ? (
-            <span className="pi-cell-flag sm-danger-text" title="Not inside any loaded module: typical of injected or manually mapped code">
+            <span
+              className="pi-cell-flag sm-danger-text"
+              title="Not inside any loaded module: typical of injected or manually mapped code"
+            >
               <TriangleAlert size={12} />
               <Addr value={t.win32StartAddress} />
             </span>
@@ -156,11 +170,49 @@ function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps 
           ),
       },
       { id: "wait", label: "Wait reason", width: 120, sort: (t) => t.waitReason, text: (t) => t.waitReason ?? "" },
-      { id: "priority", label: "Priority", width: 70, align: "right", sort: (t) => t.priority, text: (t) => String(t.priority) },
-      { id: "basePriority", label: "Base priority", width: 90, align: "right", hidden: true, sort: (t) => t.basePriority, text: (t) => String(t.basePriority) },
-      { id: "cpu", label: "CPU time", width: 90, align: "right", sort: (t) => t.cpu, text: (t) => formatDuration(t.cpu) },
-      { id: "kernel", label: "Kernel time", width: 90, align: "right", hidden: true, sort: (t) => t.kernelMs, text: (t) => formatDuration(t.kernelMs) },
-      { id: "user", label: "User time", width: 90, align: "right", hidden: true, sort: (t) => t.userMs, text: (t) => formatDuration(t.userMs) },
+      {
+        id: "priority",
+        label: "Priority",
+        width: 70,
+        align: "right",
+        sort: (t) => t.priority,
+        text: (t) => String(t.priority),
+      },
+      {
+        id: "basePriority",
+        label: "Base priority",
+        width: 90,
+        align: "right",
+        hidden: true,
+        sort: (t) => t.basePriority,
+        text: (t) => String(t.basePriority),
+      },
+      {
+        id: "cpu",
+        label: "CPU time",
+        width: 90,
+        align: "right",
+        sort: (t) => t.cpu,
+        text: (t) => formatDuration(t.cpu),
+      },
+      {
+        id: "kernel",
+        label: "Kernel time",
+        width: 90,
+        align: "right",
+        hidden: true,
+        sort: (t) => t.kernelMs,
+        text: (t) => formatDuration(t.kernelMs),
+      },
+      {
+        id: "user",
+        label: "User time",
+        width: 90,
+        align: "right",
+        hidden: true,
+        sort: (t) => t.userMs,
+        text: (t) => formatDuration(t.userMs),
+      },
       {
         id: "delta",
         label: "Switches Δ",
@@ -169,13 +221,52 @@ function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps 
         title: "Context switches since the previous refresh",
         sort: (t) => t.delta,
         text: (t) => (t.delta === null ? "" : formatNumber(t.delta)),
-        render: (t) => (t.delta ? formatNumber(t.delta) : <span className="sm-dim">{t.delta === null ? "" : "0"}</span>),
+        render: (t) =>
+          t.delta ? formatNumber(t.delta) : <span className="sm-dim">{t.delta === null ? "" : "0"}</span>,
       },
-      { id: "switches", label: "Context switches", width: 120, align: "right", hidden: true, sort: (t) => t.contextSwitches, text: (t) => formatNumber(t.contextSwitches) },
-      { id: "created", label: "Created", width: 150, hidden: true, sort: (t) => t.createTime, text: (t) => formatDateTime(t.createTime) },
-      { id: "description", label: "Description", width: 200, sort: (t) => t.description, text: (t) => t.description ?? "" },
-      { id: "suspendCount", label: "Suspend count", width: 100, align: "right", hidden: true, sort: (t) => t.suspendCount, text: (t) => (t.suspendCount === null ? "" : String(t.suspendCount)) },
-      { id: "startAddr", label: "Start address", width: 150, mono: true, hidden: true, sort: (t) => toBig(t.startAddress), text: (t) => t.startAddress, render: (t) => <Addr value={t.startAddress} /> },
+      {
+        id: "switches",
+        label: "Context switches",
+        width: 120,
+        align: "right",
+        hidden: true,
+        sort: (t) => t.contextSwitches,
+        text: (t) => formatNumber(t.contextSwitches),
+      },
+      {
+        id: "created",
+        label: "Created",
+        width: 150,
+        hidden: true,
+        sort: (t) => t.createTime,
+        text: (t) => formatDateTime(t.createTime),
+      },
+      {
+        id: "description",
+        label: "Description",
+        width: 200,
+        sort: (t) => t.description,
+        text: (t) => t.description ?? "",
+      },
+      {
+        id: "suspendCount",
+        label: "Suspend count",
+        width: 100,
+        align: "right",
+        hidden: true,
+        sort: (t) => t.suspendCount,
+        text: (t) => (t.suspendCount === null ? "" : String(t.suspendCount)),
+      },
+      {
+        id: "startAddr",
+        label: "Start address",
+        width: 150,
+        mono: true,
+        hidden: true,
+        sort: (t) => toBig(t.startAddress),
+        text: (t) => t.startAddress,
+        render: (t) => <Addr value={t.startAddress} />,
+      },
     ],
     [],
   );
@@ -203,7 +294,11 @@ function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps 
       }
     }
     if (!failed) sm.ui.notify(`${done} ${what}`, "success");
-    else sm.ui.notify(`Couldn't ${verb} ${failed === sel.length ? what : `${failed} of ${sel.length} threads`}: ${firstError}`, "error");
+    else
+      sm.ui.notify(
+        `Couldn't ${verb} ${failed === sel.length ? what : `${failed} of ${sel.length} threads`}: ${firstError}`,
+        "error",
+      );
     afterAction();
   };
 
@@ -215,18 +310,36 @@ function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps 
     if (canControl) {
       items.push(
         { label: `Suspend${n}`, icon: <Pause size={14} />, onSelect: () => run("suspend", sel) },
-        { label: `Resume${n}`, icon: <Play size={14} />, disabled: !sel.some((x) => x.suspended || (x.suspendCount ?? 0) > 0), onSelect: () => run("resume", sel) },
+        {
+          label: `Resume${n}`,
+          icon: <Play size={14} />,
+          disabled: !sel.some((x) => x.suspended || (x.suspendCount ?? 0) > 0),
+          onSelect: () => run("resume", sel),
+        },
         { label: `Terminate${n}…`, icon: <X size={14} />, danger: true, onSelect: () => run("terminate", sel) },
         { separator: true },
       );
     }
     const start = (x: ThreadRow) => x.win32StartAddress ?? x.startAddress;
     items.push(
-      { label: sel.length > 1 ? "Copy TIDs" : "Copy TID", icon: <Hash size={14} />, onSelect: () => copy(sel.map((x) => x.tid).join("\n"), sel.length > 1 ? "TIDs" : "TID") },
-      { label: "Copy start address", icon: <Copy size={14} />, onSelect: () => copy(sel.map(start).join("\n"), "start address") },
+      {
+        label: sel.length > 1 ? "Copy TIDs" : "Copy TID",
+        icon: <Hash size={14} />,
+        onSelect: () => copy(sel.map((x) => x.tid).join("\n"), sel.length > 1 ? "TIDs" : "TID"),
+      },
+      {
+        label: "Copy start address",
+        icon: <Copy size={14} />,
+        onSelect: () => copy(sel.map(start).join("\n"), "start address"),
+      },
     );
     if (sel.some((x) => x.win32StartSymbol || x.startSymbol))
-      items.push({ label: "Copy start symbol", icon: <Copy size={14} />, onSelect: () => copy(sel.map((x) => x.win32StartSymbol ?? x.startSymbol ?? start(x)).join("\n"), "start symbol") });
+      items.push({
+        label: "Copy start symbol",
+        icon: <Copy size={14} />,
+        onSelect: () =>
+          copy(sel.map((x) => x.win32StartSymbol ?? x.startSymbol ?? start(x)).join("\n"), "start symbol"),
+      });
     openMenu(at, items);
   };
 
@@ -249,7 +362,11 @@ function ThreadsTable({ threads, pid, name, canControl, afterAction }: TabProps 
         empty={q ? `No thread matches “${q}”` : "No threads"}
       />
       <Footer>
-        <span>{rows.length === all.length ? pluralize(all.length, "thread") : `${formatNumber(rows.length)} of ${pluralize(all.length, "thread")}`}</span>
+        <span>
+          {rows.length === all.length
+            ? pluralize(all.length, "thread")
+            : `${formatNumber(rows.length)} of ${pluralize(all.length, "thread")}`}
+        </span>
         {stats.suspended > 0 && (
           <>
             <span>·</span>

@@ -287,7 +287,13 @@ fn staged_renames(cwd: &str) -> HashMap<String, String> {
 }
 
 #[tauri::command]
-pub async fn git_diff(app: AppHandle, cwd: String, path: Option<String>, staged: Option<bool>, commit: Option<String>) -> Result<String, String> {
+pub async fn git_diff(
+    app: AppHandle,
+    cwd: String,
+    path: Option<String>,
+    staged: Option<bool>,
+    commit: Option<String>,
+) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || {
         checked_root(&app, &cwd)?;
         let staged = staged.unwrap_or(false) && commit.is_none();
@@ -300,7 +306,14 @@ pub async fn git_diff(app: AppHandle, cwd: String, path: Option<String>, staged:
             if !c.chars().all(|ch| ch.is_ascii_hexdigit()) {
                 return Err("invalid commit".into());
             }
-            args.extend(["show".into(), "--stat".into(), "--patch".into(), "--no-color".into(), "--no-ext-diff".into(), c]);
+            args.extend([
+                "show".into(),
+                "--stat".into(),
+                "--patch".into(),
+                "--no-color".into(),
+                "--no-ext-diff".into(),
+                c,
+            ]);
         } else {
             // a user's color.ui=always or diff.external would otherwise leak into the pane's output
             args.extend(["diff".into(), "--no-color".into(), "--no-ext-diff".into()]);

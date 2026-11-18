@@ -69,7 +69,14 @@ export function closeModal() {
 }
 
 /** A modal asking for one line of text; resolves null when cancelled. */
-export function prompt(opts: { title: string; label?: string; value?: string; okLabel?: string; mono?: boolean; validate?: (v: string) => string | null }): Promise<string | null> {
+export function prompt(opts: {
+  title: string;
+  label?: string;
+  value?: string;
+  okLabel?: string;
+  mono?: boolean;
+  validate?: (v: string) => string | null;
+}): Promise<string | null> {
   return new Promise((resolve) => {
     let done = false;
     const finish = (v: string | null) => {
@@ -127,7 +134,13 @@ function PromptBody({
     >
       <h3>{title}</h3>
       {label && <label className="sm-field-label">{label}</label>}
-      <input className={cx("sm-input wide", mono && "mono")} autoFocus value={v} onChange={(e) => setV(e.target.value)} spellCheck={false} />
+      <input
+        className={cx("sm-input wide", mono && "mono")}
+        autoFocus
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        spellCheck={false}
+      />
       {error && <div className="sm-dialog-error">{error}</div>}
       <div className="sm-dialog-buttons">
         <button type="button" className="sm-btn subtle" onClick={onCancel}>
@@ -202,7 +215,13 @@ function Menu({ state }: { state: MenuState }) {
   }, []);
 
   return (
-    <div ref={ref} className="sm-menu" tabIndex={-1} style={{ left: pos.x, top: pos.y }} onContextMenu={(e) => e.preventDefault()}>
+    <div
+      ref={ref}
+      className="sm-menu"
+      tabIndex={-1}
+      style={{ left: pos.x, top: pos.y }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <MenuItems items={state.items} />
     </div>
   );
@@ -216,7 +235,8 @@ function SubMenu({ items }: { items: MenuItem[] }) {
     const el = ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const next: React.CSSProperties = r.right > window.innerWidth - 4 ? { right: "100%", top: -4 } : { left: "100%", top: -4 };
+    const next: React.CSSProperties =
+      r.right > window.innerWidth - 4 ? { right: "100%", top: -4 } : { left: "100%", top: -4 };
     if (r.bottom > window.innerHeight - 4) next.top = -4 - (r.bottom - window.innerHeight + 8);
     setStyle(next);
   }, []);
@@ -233,7 +253,12 @@ function MenuItems({ items }: { items: MenuItem[] }) {
     <>
       {items.map((it, i) => {
         if ("separator" in it) return <div key={i} className="sm-menu-sep" />;
-        if ("header" in it) return <div key={i} className="sm-menu-header">{it.header}</div>;
+        if ("header" in it)
+          return (
+            <div key={i} className="sm-menu-header">
+              {it.header}
+            </div>
+          );
         const sub = it.submenu?.length ? it.submenu : null;
         return (
           <div

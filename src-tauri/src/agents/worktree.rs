@@ -15,7 +15,16 @@ pub const INTEGRATION: &str = "orch/integration";
 
 fn git_out(dir: &Path, args: &[&str]) -> Result<std::process::Output, String> {
     hidden_command("git")
-        .args(["-c", "core.longpaths=true", "-c", "core.quotepath=off", "-c", "core.hooksPath=NUL", "-c", "core.fsmonitor=false"])
+        .args([
+            "-c",
+            "core.longpaths=true",
+            "-c",
+            "core.quotepath=off",
+            "-c",
+            "core.hooksPath=NUL",
+            "-c",
+            "core.fsmonitor=false",
+        ])
         .args(["-c", "safe.bareRepository=explicit", "--no-optional-locks"])
         .args(args)
         .current_dir(dir)
@@ -95,7 +104,16 @@ pub fn base(root: &Path) -> PathBuf {
 }
 
 fn is_worktree_root(path: &Path) -> bool {
-    path.is_dir() && git(path, &["rev-parse", "--show-toplevel"]).is_ok_and(|t| win_path(&t) == path)
+    path.is_dir() && git(path, &["rev-parse", "--show-toplevel"]).is_ok_and(|t| same_dir(&win_path(&t), path))
+}
+
+/// Git reports long, resolved paths; `path` may use 8.3 short names (C:\Users\RUNNER~1),
+/// another case or a junction, so compare what both resolve to.
+fn same_dir(a: &Path, b: &Path) -> bool {
+    match (a.canonicalize(), b.canonicalize()) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => a == b,
+    }
 }
 
 /// A worker slot's worktree (created detached at the integration branch; every task gets
@@ -186,7 +204,8 @@ pub fn merge_into_integration(root: &Path, branch: &str, message: &str) -> Resul
     if stats(root, branch)?.commits == 0 {
         return Ok(Merge::Empty);
     }
-    let out = git_out(root, &["merge-tree", "--write-tree", "--name-only", "--no-messages", "-z", INTEGRATION, branch])?;
+    let out =
+        git_out(root, &["merge-tree", "--write-tree", "--name-only", "--no-messages", "-z", INTEGRATION, branch])?;
     match out.status.code() {
         Some(0) => {}
         Some(1) => {
@@ -248,11 +267,17 @@ pub fn base_preview(root: &Path, base: &str) -> Result<BasePreview, String> {
     }
     let out = git_out(root, &["merge-tree", "--write-tree", "--name-only", "--no-messages", "-z", base, INTEGRATION])?;
     let conflicts = match out.status.code() {
-        Some(1) => String::from_utf8_lossy(&out.stdout).split('\0').skip(1).filter(|s| !s.is_empty()).map(str::to_string).collect(),
+        Some(1) => String::from_utf8_lossy(&out.stdout)
+            .split('\0')
+            .skip(1)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .collect(),
         Some(0) => Vec::new(),
         _ => return Err(String::from_utf8_lossy(&out.stderr).trim().to_string()),
     };
-    let dirty: Vec<String> = changes(root)?.iter().map(|l| l.get(3..).unwrap_or("").trim_matches('"').replace('\\', "/")).collect();
+    let dirty: Vec<String> =
+        changes(root)?.iter().map(|l| l.get(3..).unwrap_or("").trim_matches('"').replace('\\', "/")).collect();
     let dirty_overlap = files.iter().filter(|f| dirty.iter().any(|d| d == *f)).cloned().collect();
     let current = git(root, &["symbolic-ref", "--short", "-q", "HEAD"]).ok().filter(|b| !b.is_empty());
     Ok(BasePreview { commits, files, added, removed, conflicts, dirty_overlap, current })
@@ -273,12 +298,28 @@ pub fn merge_into_base(root: &Path, base: &str) -> Result<u32, String> {
         return Ok(0);
     }
     if !p.conflicts.is_empty() {
-        return Err(format!("{INTEGRATION} conflicts with {base} in: {}. Resolve it in the team (a task to merge {base} in) first.", p.conflicts.join(", ")));
+        return Err(format!(
+            "{INTEGRATION} conflicts with {base} in: {}. Resolve it in the team (a task to merge {base} in) first.",
+            p.conflicts.join(", ")
+        ));
     }
     if !p.dirty_overlap.is_empty() {
-        return Err(format!("You have uncommitted changes in files the merge changes: {}. Commit or stash them first.", p.dirty_overlap.join(", ")));
+        return Err(format!(
+            "You have uncommitted changes in files the merge changes: {}. Commit or stash them first.",
+            p.dirty_overlap.join(", ")
+        ));
     }
-    git(root, &["merge", "--no-ff", "--no-edit", "-m", &format!("Merge {INTEGRATION} (Shellmosaic Orchestrator)"), INTEGRATION])?;
+    git(
+        root,
+        &[
+            "merge",
+            "--no-ff",
+            "--no-edit",
+            "-m",
+            &format!("Merge {INTEGRATION} (Shellmosaic Orchestrator)"),
+            INTEGRATION,
+        ],
+    )?;
     Ok(p.commits)
 }
 
@@ -377,7 +418,10 @@ mod tests {
         merge_into_integration(&root, &task_branch("r", "t1"), "t1").unwrap();
 
         let p = base_preview(&root, "main").unwrap();
-        assert_eq!((p.commits > 0, p.files.clone(), p.current.as_deref()), (true, vec!["a.txt".to_string()], Some("main")));
+        assert_eq!(
+            (p.commits > 0, p.files.clone(), p.current.as_deref()),
+            (true, vec!["a.txt".to_string()], Some("main"))
+        );
         assert!(p.conflicts.is_empty() && p.dirty_overlap.is_empty());
 
         // the user's uncommitted change to a file the merge touches blocks it; others don't

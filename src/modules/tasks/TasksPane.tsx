@@ -6,7 +6,14 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { errorText, ipc, type TaskGroup } from "../../lib/ipc";
 import { Icon, ICONS } from "../../lib/icons";
 import { basename, clamp, cx, joinPath } from "../../lib/util";
-import { openFilesAt, openPreview, runInNewTerminal, sendToTerminal, setPaneMeta, terminalTarget } from "../../state/actions";
+import {
+  openFilesAt,
+  openPreview,
+  runInNewTerminal,
+  sendToTerminal,
+  setPaneMeta,
+  terminalTarget,
+} from "../../state/actions";
 import { findProfile } from "../../state/profiles";
 import { getState } from "../../state/store";
 import { ui, type MenuItem } from "../../state/ui";
@@ -32,7 +39,19 @@ interface Section {
   rows: Row[];
 }
 
-const SUPPORTED = ["package.json", "Cargo.toml", "go.mod", "Makefile", "justfile", "compose.yaml", "*.ps1", "*.bat", "*.cmd", "*.sh", "*.py"];
+const SUPPORTED = [
+  "package.json",
+  "Cargo.toml",
+  "go.mod",
+  "Makefile",
+  "justfile",
+  "compose.yaml",
+  "*.ps1",
+  "*.bat",
+  "*.cmd",
+  "*.sh",
+  "*.py",
+];
 
 const taskId = (g: TaskGroup, t: Task) => `${g.source}:${t.name}`;
 const groupIcon = (g: TaskGroup) => (ICONS[g.icon] ? g.icon : "list-checks");
@@ -142,17 +161,23 @@ function TasksPane({ pane, tabId, visible }: ModuleProps) {
     if (pinned.length) out.push({ id: "pinned", title: "Pinned", icon: "star", rows: pinned });
     for (const g of groups) {
       const rows = g.tasks.filter((t) => match(g, t)).map((t) => all.get(taskId(g, t))!);
-      if (rows.length) out.push({ id: `${g.source}|${g.file}`, title: g.source, icon: groupIcon(g), file: g.file, group: g, rows });
+      if (rows.length)
+        out.push({ id: `${g.source}|${g.file}`, title: g.source, icon: groupIcon(g), file: g.file, group: g, rows });
     }
     return out;
   }, [groups, query, favorites]);
 
-  const flat = useMemo(() => sections.flatMap((s) => (collapsed[s.id] ? [] : s.rows.map((r) => ({ key: `${s.id}::${r.id}`, row: r })))), [sections, collapsed]);
+  const flat = useMemo(
+    () => sections.flatMap((s) => (collapsed[s.id] ? [] : s.rows.map((r) => ({ key: `${s.id}::${r.id}`, row: r })))),
+    [sections, collapsed],
+  );
   const taskCount = groups?.reduce((n, g) => n + g.tasks.length, 0) ?? 0;
 
   useEffect(() => {
     if (!sel) return;
-    listRef.current?.querySelector<HTMLElement>(`[data-key="${CSS.escape(sel)}"]`)?.scrollIntoView({ block: "nearest" });
+    listRef.current
+      ?.querySelector<HTMLElement>(`[data-key="${CSS.escape(sel)}"]`)
+      ?.scrollIntoView({ block: "nearest" });
   }, [sel]);
 
   // ── actions ──
@@ -162,7 +187,9 @@ function TasksPane({ pane, tabId, visible }: ModuleProps) {
   };
   // loose scripts depend on the receiving shell's syntax; other tasks are plain commands
   const commandFor = (r: Row, kind: string | undefined, absolute = false) =>
-    isFolderGroup(r.group) ? scriptCommand(absolute ? joinPath(r.group.file, r.task.name) : r.task.name, kind) : r.task.command;
+    isFolderGroup(r.group)
+      ? scriptCommand(absolute ? joinPath(r.group.file, r.task.name) : r.task.name, kind)
+      : r.task.command;
   const runNew = (r: Row, key?: string) => {
     if (key) flash(key);
     // a new terminal gets the default profile (findProfile with no id); it starts in the folder the
@@ -173,7 +200,10 @@ function TasksPane({ pane, tabId, visible }: ModuleProps) {
     if (key) flash(key);
     // that terminal may be in another folder: give scripts their full path
     const target = terminalTarget(tabId, { local: true });
-    sendToTerminal(commandFor(r, findProfile(target ? getState().model.panes[target]?.meta.profile : undefined)?.kind, true), { tabId, enter: true, local: true });
+    sendToTerminal(
+      commandFor(r, findProfile(target ? getState().model.panes[target]?.meta.profile : undefined)?.kind, true),
+      { tabId, enter: true, local: true },
+    );
   };
   const toggleFav = (id: string) => {
     const next = favorites.includes(id) ? favorites.filter((f) => f !== id) : [...favorites, id];
@@ -225,12 +255,20 @@ function TasksPane({ pane, tabId, visible }: ModuleProps) {
     <div className="toolbar tasks-toolbar">
       <button
         className={cx("icon-btn", following && "on")}
-        title={following ? "Following the terminal's folder (click to pin this folder)" : "Pinned to this folder (click to follow the terminal)"}
+        title={
+          following
+            ? "Following the terminal's folder (click to pin this folder)"
+            : "Pinned to this folder (click to follow the terminal)"
+        }
         onClick={toggleFollow}
       >
         <Icon name="crosshair" size={14} />
       </button>
-      <button className="tasks-path" title={dir ? `${dir}\nClick to choose another folder` : "Choose a folder"} onClick={chooseFolder}>
+      <button
+        className="tasks-path"
+        title={dir ? `${dir}\nClick to choose another folder` : "Choose a folder"}
+        onClick={chooseFolder}
+      >
         <Icon name="folder" size={13} />
         <span>{dir ? basename(dir) || dir : "No folder"}</span>
       </button>
@@ -305,11 +343,17 @@ function TasksPane({ pane, tabId, visible }: ModuleProps) {
       <div ref={listRef} className="module-scroll tasks-list" tabIndex={0} onKeyDown={onKeyDown}>
         {sections.map((s) => (
           <div key={s.id} className="tasks-group">
-            <div className="tasks-group-head" onClick={() => setCollapsed((c) => ({ ...c, [s.id]: !c[s.id] }))} title={s.file}>
+            <div
+              className="tasks-group-head"
+              onClick={() => setCollapsed((c) => ({ ...c, [s.id]: !c[s.id] }))}
+              title={s.file}
+            >
               <Icon name={collapsed[s.id] ? "chevron-right" : "chevron-down"} size={13} className="dim" />
               <Icon name={s.icon} size={14} className={cx("tasks-group-icon", s.id === "pinned" && "pinned")} />
               <span className="tasks-group-title">{s.title}</span>
-              {s.group && <span className="tasks-group-file">{isFolderGroup(s.group) ? "folder" : basename(s.group.file)}</span>}
+              {s.group && (
+                <span className="tasks-group-file">{isFolderGroup(s.group) ? "folder" : basename(s.group.file)}</span>
+              )}
               <span className="tasks-count">{s.rows.length}</span>
               <span className="grow" />
               {s.group && (
@@ -355,14 +399,30 @@ function TasksPane({ pane, tabId, visible }: ModuleProps) {
                     <span className="tasks-name">{r.task.name}</span>
                     {s.id === "pinned" && <span className="chip tasks-source">{r.group.source}</span>}
                     <span className="tasks-cmd">{r.task.command}</span>
-                    <span className="tasks-actions" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
-                      <button className="icon-btn" title="Run in current terminal (Shift+Enter)" onClick={() => runHere(r, key)}>
+                    <span
+                      className="tasks-actions"
+                      onClick={(e) => e.stopPropagation()}
+                      onDoubleClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        className="icon-btn"
+                        title="Run in current terminal (Shift+Enter)"
+                        onClick={() => runHere(r, key)}
+                      >
                         <Icon name="square-terminal" size={13} />
                       </button>
-                      <button className="icon-btn" title="Copy command" onClick={() => copyText(commandFor(r, findProfile()?.kind))}>
+                      <button
+                        className="icon-btn"
+                        title="Copy command"
+                        onClick={() => copyText(commandFor(r, findProfile()?.kind))}
+                      >
                         <Icon name="copy" size={13} />
                       </button>
-                      <button className={cx("icon-btn tasks-star", fav && "on")} title={fav ? "Unpin" : "Pin to top"} onClick={() => toggleFav(r.id)}>
+                      <button
+                        className={cx("icon-btn tasks-star", fav && "on")}
+                        title={fav ? "Unpin" : "Pin to top"}
+                        onClick={() => toggleFav(r.id)}
+                      >
                         <Icon name="star" size={13} fill={fav ? "currentColor" : "none"} />
                       </button>
                     </span>

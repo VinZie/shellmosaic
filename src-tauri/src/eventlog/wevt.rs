@@ -17,12 +17,13 @@ use windows_sys::Win32::Foundation::{
     ERROR_INSUFFICIENT_BUFFER, ERROR_INVALID_OPERATION, ERROR_NO_MORE_ITEMS, ERROR_TIMEOUT, WAIT_OBJECT_0,
 };
 use windows_sys::Win32::System::EventLog::{
-    EvtChannelConfigEnabled, EvtChannelConfigType, EvtClose, EvtFormatMessage, EvtFormatMessageXml, EvtGetChannelConfigProperty,
-    EvtGetExtendedStatus, EvtGetLogInfo, EvtGetQueryInfo, EvtLogFileSize, EvtLogLastWriteTime, EvtLogNumberOfLogRecords, EvtLogOldestRecordNumber,
-    EvtNext, EvtNextChannelPath, EvtOpenChannelConfig, EvtOpenChannelEnum, EvtOpenChannelPath, EvtOpenLog,
-    EvtOpenPublisherMetadata, EvtQuery, EvtQueryChannelPath, EvtQueryForwardDirection, EvtQueryReverseDirection,
-    EvtQueryStatuses, EvtQueryTolerateQueryErrors, EvtRender, EvtRenderEventXml, EvtSubscribe, EvtSubscribeToFutureEvents, EvtVarTypeBoolean,
-    EvtVarTypeFileTime, EvtVarTypeHexInt32, EvtVarTypeHexInt64, EvtVarTypeUInt32, EvtVarTypeUInt64,
+    EvtChannelConfigEnabled, EvtChannelConfigType, EvtClose, EvtFormatMessage, EvtFormatMessageXml,
+    EvtGetChannelConfigProperty, EvtGetExtendedStatus, EvtGetLogInfo, EvtGetQueryInfo, EvtLogFileSize,
+    EvtLogLastWriteTime, EvtLogNumberOfLogRecords, EvtLogOldestRecordNumber, EvtNext, EvtNextChannelPath,
+    EvtOpenChannelConfig, EvtOpenChannelEnum, EvtOpenChannelPath, EvtOpenLog, EvtOpenPublisherMetadata, EvtQuery,
+    EvtQueryChannelPath, EvtQueryForwardDirection, EvtQueryReverseDirection, EvtQueryStatuses,
+    EvtQueryTolerateQueryErrors, EvtRender, EvtRenderEventXml, EvtSubscribe, EvtSubscribeToFutureEvents,
+    EvtVarTypeBoolean, EvtVarTypeFileTime, EvtVarTypeHexInt32, EvtVarTypeHexInt64, EvtVarTypeUInt32, EvtVarTypeUInt64,
     EVT_CHANNEL_CONFIG_PROPERTY_ID, EVT_HANDLE, EVT_LOG_PROPERTY_ID, EVT_VARIANT, EVT_VARIANT_TYPE_ARRAY,
 };
 use windows_sys::Win32::System::Threading::{CreateEventW, ResetEvent, WaitForSingleObject};
@@ -108,7 +109,9 @@ fn channel_names() -> Result<Vec<String>, String> {
         }
         match last_error() {
             ERROR_NO_MORE_ITEMS => return Ok(names),
-            ERROR_INSUFFICIENT_BUFFER if (used as usize) > buf.len() && used <= 32 * 1024 => buf.resize(used as usize, 0),
+            ERROR_INSUFFICIENT_BUFFER if (used as usize) > buf.len() && used <= 32 * 1024 => {
+                buf.resize(used as usize, 0)
+            }
             e => return Err(failed(e)),
         }
     }
@@ -135,7 +138,9 @@ fn channel(name: String) -> EventChannel {
 fn channel_property(config: &EvtHandle, id: EVT_CHANNEL_CONFIG_PROPERTY_ID) -> Option<u64> {
     let mut v = EVT_VARIANT::default();
     let mut used = 0u32;
-    let ok = unsafe { EvtGetChannelConfigProperty(config.0, id, 0, size_of::<EVT_VARIANT>() as u32, &mut v, &mut used) } != 0;
+    let ok =
+        unsafe { EvtGetChannelConfigProperty(config.0, id, 0, size_of::<EVT_VARIANT>() as u32, &mut v, &mut used) }
+            != 0;
     if ok {
         variant_u64(&v)
     } else {
@@ -224,7 +229,10 @@ fn check_xpath(xpath: Option<&str>) -> Result<String, String> {
     }
     // a structured <QueryList> could name other logs and .evtx files anywhere on disk
     if xpath.starts_with('<') {
-        return Err("The filter isn't a valid event query: use an XPath filter such as *[System[Level=2]], not a <QueryList>.".into());
+        return Err(
+            "The filter isn't a valid event query: use an XPath filter such as *[System[Level=2]], not a <QueryList>."
+                .into(),
+        );
     }
     Ok(xpath.to_string())
 }
@@ -240,8 +248,12 @@ fn open_error(code: u32, channel: &str) -> String {
         | ERROR_EVT_FILTER_OUT_OF_RANGE => {
             format!("The filter isn't a valid event query: {}", extended_status().unwrap_or_else(|| describe(code)))
         }
-        ERROR_ACCESS_DENIED => format!("Couldn't open the {channel} log: access denied (it needs Shellmosaic running as administrator)"),
-        ERROR_EVT_SUBSCRIPTION_TO_DIRECT_CHANNEL => format!("{channel} is an analytic or debug log: it can't be watched live"),
+        ERROR_ACCESS_DENIED => {
+            format!("Couldn't open the {channel} log: access denied (it needs Shellmosaic running as administrator)")
+        }
+        ERROR_EVT_SUBSCRIPTION_TO_DIRECT_CHANNEL => {
+            format!("{channel} is an analytic or debug log: it can't be watched live")
+        }
         ERROR_EVT_INVALID_OPERATION_OVER_ENABLED_DIRECT_CHANNEL => {
             format!("{channel} is an analytic or debug log: it can only be read while it's disabled")
         }
@@ -262,7 +274,10 @@ fn query_status(results: &EvtHandle) -> Option<u32> {
     let v = unsafe { &*(buf.as_ptr() as *const EVT_VARIANT) };
     let room = (used.min(size) as usize).saturating_sub(size_of::<EVT_VARIANT>()) / size_of::<u32>();
     let count = (v.Count as usize).min(room);
-    if v.Type != EvtVarTypeUInt32 as u32 | EVT_VARIANT_TYPE_ARRAY || count == 0 || unsafe { v.Anonymous.UInt32Arr }.is_null() {
+    if v.Type != EvtVarTypeUInt32 as u32 | EVT_VARIANT_TYPE_ARRAY
+        || count == 0
+        || unsafe { v.Anonymous.UInt32Arr }.is_null()
+    {
         return None;
     }
     let statuses = unsafe { std::slice::from_raw_parts(v.Anonymous.UInt32Arr, count) };
@@ -272,7 +287,9 @@ fn query_status(results: &EvtHandle) -> Option<u32> {
 /// Why reading the next events failed.
 fn read_error(code: u32) -> String {
     match code {
-        ERROR_EVT_QUERY_RESULT_STALE => "The log was cleared or overwritten while it was being read. Run the query again.".into(),
+        ERROR_EVT_QUERY_RESULT_STALE => {
+            "The log was cleared or overwritten while it was being read. Run the query again.".into()
+        }
         _ => format!("Couldn't read more events: {}", describe(code)),
     }
 }
@@ -365,7 +382,9 @@ impl Renderer {
         for _ in 0..2 {
             let (mut used, mut count) = (0u32, 0u32);
             let size = (self.raw.len() * 2) as u32;
-            let ok = unsafe { EvtRender(0, event.0, EvtRenderEventXml, size, self.raw.as_mut_ptr().cast(), &mut used, &mut count) } != 0;
+            let ok = unsafe {
+                EvtRender(0, event.0, EvtRenderEventXml, size, self.raw.as_mut_ptr().cast(), &mut used, &mut count)
+            } != 0;
             // `used` counts bytes here
             let units = (used as usize).div_ceil(2);
             if ok {
@@ -389,7 +408,17 @@ impl Renderer {
             let mut used = 0u32;
             let len = self.formatted.len() as u32;
             let ok = unsafe {
-                EvtFormatMessage(meta.0, event.0, 0, 0, null(), EvtFormatMessageXml, len, self.formatted.as_mut_ptr(), &mut used)
+                EvtFormatMessage(
+                    meta.0,
+                    event.0,
+                    0,
+                    0,
+                    null(),
+                    EvtFormatMessageXml,
+                    len,
+                    self.formatted.as_mut_ptr(),
+                    &mut used,
+                )
             } != 0;
             // `used` counts characters here
             let used = used as usize;
@@ -427,9 +456,7 @@ fn provider_name(xml: &str) -> Option<String> {
     let tag = &xml[start..];
     let tag = &tag[..tag.find('>')?];
     // `Name=`, not the end of `EventSourceName=`
-    let (at, _) = tag
-        .match_indices("Name=")
-        .find(|&(i, _)| i == 0 || tag.as_bytes()[i - 1].is_ascii_whitespace())?;
+    let (at, _) = tag.match_indices("Name=").find(|&(i, _)| i == 0 || tag.as_bytes()[i - 1].is_ascii_whitespace())?;
     let value = &tag[at + "Name=".len()..];
     let quote = value.chars().next().filter(|&q| q == '\'' || q == '"')?;
     let value = &value[1..];
@@ -460,7 +487,8 @@ fn publisher(name: &str) -> Option<Publisher> {
             return p.clone();
         }
     }
-    let p = EvtHandle::new(unsafe { EvtOpenPublisherMetadata(0, wide(name).as_ptr(), null(), 0, 0) }).map(|h| Arc::new(Mutex::new(h)));
+    let p = EvtHandle::new(unsafe { EvtOpenPublisherMetadata(0, wide(name).as_ptr(), null(), 0, 0) })
+        .map(|h| Arc::new(Mutex::new(h)));
     let mut c = cache.lock();
     if c.len() >= MAX_PUBLISHERS {
         c.clear();
@@ -530,7 +558,7 @@ impl Query {
             };
             page.scanned += 1;
             if let Some(xml) = render.event_xml(&event) {
-                if self.filter.as_ref().map_or(true, |f| f.matches(&xml)) {
+                if self.filter.as_ref().is_none_or(|f| f.matches(&xml)) {
                     page.events.push(xml);
                 }
             }
@@ -560,7 +588,16 @@ impl Subscription {
         let signal = Handle::new(unsafe { CreateEventW(null(), 1, 0, null()) })
             .ok_or_else(|| format!("Couldn't watch the {channel} log: {}", last_error_text()))?;
         let h = unsafe {
-            EvtSubscribe(0, signal.0, wide(channel).as_ptr(), wide(&xpath).as_ptr(), 0, null(), None, EvtSubscribeToFutureEvents)
+            EvtSubscribe(
+                0,
+                signal.0,
+                wide(channel).as_ptr(),
+                wide(&xpath).as_ptr(),
+                0,
+                null(),
+                None,
+                EvtSubscribeToFutureEvents,
+            )
         };
         let handle = EvtHandle::new(h).ok_or_else(|| open_error(last_error(), channel))?;
         Ok(Self { handle, signal, filter, waiting: false })
@@ -588,7 +625,7 @@ impl Subscription {
             };
             for event in batch {
                 if let Some(xml) = render.event_xml(&event) {
-                    if self.filter.as_ref().map_or(true, |f| f.matches(&xml)) {
+                    if self.filter.as_ref().is_none_or(|f| f.matches(&xml)) {
                         events.push(xml);
                     }
                 }

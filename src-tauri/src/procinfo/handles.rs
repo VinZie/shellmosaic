@@ -98,16 +98,16 @@ pub fn handles(pid: u32) -> Result<Vec<ProcHandle>, String> {
 
     let count = buf.read::<usize>(0).unwrap_or(0);
     let first = 2 * size_of::<usize>();
-    let entries: Vec<HandleEntry> = (0..count.min(1 << 20))
-        .map_while(|i| buf.read::<HandleEntry>(first + i * size_of::<HandleEntry>()))
-        .collect();
+    let entries: Vec<HandleEntry> =
+        (0..count.min(1 << 20)).map_while(|i| buf.read::<HandleEntry>(first + i * size_of::<HandleEntry>())).collect();
 
     let types = type_names(entries.iter().map(|e| e.object_type_index));
     let mut namer = (rights & PROCESS_DUP_HANDLE != 0).then(|| Namer::new(pid, process.0));
     Ok(entries
         .iter()
         .map(|e| {
-            let kind = types.get(&e.object_type_index).cloned().unwrap_or_else(|| format!("Type {}", e.object_type_index));
+            let kind =
+                types.get(&e.object_type_index).cloned().unwrap_or_else(|| format!("Type {}", e.object_type_index));
             let (name, target_pid) = match namer.as_mut() {
                 Some(n) => n.name(e.handle_value, &kind),
                 None => (None, None),
@@ -142,7 +142,10 @@ fn type_names(wanted: impl Iterator<Item = u32>) -> Arc<HashMap<u32, String>> {
 }
 
 fn load_type_names() -> Option<HashMap<u32, String>> {
-    let buf = nt::query_var(32 * 1024, 4 << 20, |p, n, r| unsafe { nt::NtQueryObject(null_mut(), class::OBJECT_TYPES, p, n, r) }).ok()?;
+    let buf = nt::query_var(32 * 1024, 4 << 20, |p, n, r| unsafe {
+        nt::NtQueryObject(null_mut(), class::OBJECT_TYPES, p, n, r)
+    })
+    .ok()?;
     let count = buf.read::<u32>(0)? as usize;
     let align = size_of::<usize>();
     let mut off = align;
@@ -170,7 +173,14 @@ struct Namer {
 
 impl Namer {
     fn new(pid: u32, process: HANDLE) -> Self {
-        Self { pid, process, snapshot: Snapshot::take().ok(), user_sid: current_user_sid(), dos: DosPaths::get(), files: None }
+        Self {
+            pid,
+            process,
+            snapshot: Snapshot::take().ok(),
+            user_sid: current_user_sid(),
+            dos: DosPaths::get(),
+            files: None,
+        }
     }
 
     /// A duplicate of the target's handle `value` in this process.
@@ -180,7 +190,9 @@ impl Namer {
             Some(a) => (a, 0),
             None => (0, DUPLICATE_SAME_ACCESS),
         };
-        let ok = unsafe { DuplicateHandle(self.process, value as HANDLE, GetCurrentProcess(), &mut out, desired, 0, options) };
+        let ok = unsafe {
+            DuplicateHandle(self.process, value as HANDLE, GetCurrentProcess(), &mut out, desired, 0, options)
+        };
         if ok == 0 {
             return None;
         }
@@ -307,7 +319,8 @@ impl FileNamer {
 
 /// NtQueryObject(ObjectNameInformation); None for unnamed objects.
 fn object_name(h: HANDLE) -> Option<String> {
-    let buf = nt::query_var(1024, 64 * 1024, |p, n, r| unsafe { nt::NtQueryObject(h, class::OBJECT_NAME, p, n, r) }).ok()?;
+    let buf =
+        nt::query_var(1024, 64 * 1024, |p, n, r| unsafe { nt::NtQueryObject(h, class::OBJECT_NAME, p, n, r) }).ok()?;
     let s = buf.read::<UnicodeString>(0)?;
     buf.ustr(&s).filter(|n| !n.is_empty())
 }

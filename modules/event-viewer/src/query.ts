@@ -40,11 +40,17 @@ export function parseIds(text: string): Parsed<IdSpec> {
     if (!raw) continue;
     const m = /^(-)?(\d+)(?:-(\d+))?$/.exec(raw);
     if (!m) {
-      return { ok: false, error: /^-?\d+-$/.test(raw) ? `"${raw}" is missing the end of the range` : `"${raw}" isn't an event ID or a range like 4700-4710` };
+      return {
+        ok: false,
+        error: /^-?\d+-$/.test(raw)
+          ? `"${raw}" is missing the end of the range`
+          : `"${raw}" isn't an event ID or a range like 4700-4710`,
+      };
     }
     const lo = Number(m[2]);
     const hi = m[3] !== undefined ? Number(m[3]) : lo;
-    if (lo > 65535 || hi > 65535) return { ok: false, error: `${lo > 65535 ? lo : hi} is too big: event IDs go up to 65535` };
+    if (lo > 65535 || hi > 65535)
+      return { ok: false, error: `${lo > 65535 ? lo : hi} is too big: event IDs go up to 65535` };
     if (hi < lo) return { ok: false, error: `${raw}: the range ends before it starts` };
     (m[1] ? exclude : include).push([lo, hi]);
   }
@@ -87,7 +93,13 @@ export function buildXPath(f: Filters, ids: IdSpec | null): string | null {
 }
 
 export function filterCount(f: Filters): number {
-  return (f.levels.length && f.levels.length < 5 ? 1 : 0) + (f.audit ? 1 : 0) + (f.ids.trim() ? 1 : 0) + (f.providers.length ? 1 : 0) + (f.range !== "any" ? 1 : 0);
+  return (
+    (f.levels.length && f.levels.length < 5 ? 1 : 0) +
+    (f.audit ? 1 : 0) +
+    (f.ids.trim() ? 1 : 0) +
+    (f.providers.length ? 1 : 0) +
+    (f.range !== "any" ? 1 : 0)
+  );
 }
 
 /** Add `-id` to an ID filter (dropping a plain `id` include of the same number). */

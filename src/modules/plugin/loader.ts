@@ -11,13 +11,16 @@ import { PluginHeaderActions, PluginPane, pluginMenu } from "./PluginPane";
 /** Result of the last scan, valid or not (Settings → Plugins can show it). */
 export const usePlugins = create<{ list: PluginInfo[]; loaded: boolean }>(() => ({ list: [], loaded: false }));
 
-const str = (v: unknown, max: number): string | undefined => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined);
+const str = (v: unknown, max: number): string | undefined =>
+  typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined;
 
 export function pluginModuleDef(m: PluginManifest): ModuleDef {
   const name = str(m.name, 60) ?? m.id;
   const icon = typeof m.icon === "string" && Object.prototype.hasOwnProperty.call(ICONS, m.icon) ? m.icon : "puzzle";
   const author = str(m.author, 80);
-  const permissions = Array.isArray(m.permissions) ? [...new Set(m.permissions.filter((p): p is string => typeof p === "string"))] : [];
+  const permissions = Array.isArray(m.permissions)
+    ? [...new Set(m.permissions.filter((p): p is string => typeof p === "string"))]
+    : [];
   return {
     id: `plugin:${m.id}`,
     name,

@@ -65,11 +65,7 @@ pub async fn fs_list(path: String, show_hidden: Option<bool>) -> Result<Vec<Entr
                 name,
             });
         }
-        out.sort_by(|a, b| {
-            b.is_dir
-                .cmp(&a.is_dir)
-                .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
-        });
+        out.sort_by(|a, b| b.is_dir.cmp(&a.is_dir).then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase())));
         Ok(out)
     })
     .await
@@ -109,11 +105,7 @@ pub async fn fs_preview(path: String, max_bytes: Option<u64>) -> Result<Preview,
             return Ok(Preview::Directory);
         }
         let size = meta.len();
-        let ext = p
-            .extension()
-            .and_then(|e| e.to_str())
-            .map(|e| e.to_ascii_lowercase())
-            .unwrap_or_default();
+        let ext = p.extension().and_then(|e| e.to_str()).map(|e| e.to_ascii_lowercase()).unwrap_or_default();
         // SVG is rendered as an <img>, so scripts inside it never run.
         if let Some(mime) = image_mime(&ext) {
             if size <= 25 * 1024 * 1024 {
@@ -148,11 +140,7 @@ pub async fn fs_preview(path: String, max_bytes: Option<u64>) -> Result<Preview,
                 .join("\n");
             return Ok(Preview::Binary { size, head });
         }
-        Ok(Preview::Text {
-            text: String::from_utf8_lossy(&buf).into_owned(),
-            size,
-            truncated: size > max,
-        })
+        Ok(Preview::Text { text: String::from_utf8_lossy(&buf).into_owned(), size, truncated: size > max })
     })
     .await
     .s()?
@@ -165,13 +153,7 @@ pub fn fs_home() -> String {
 
 #[tauri::command]
 pub async fn fs_drives() -> Result<Vec<String>, String> {
-    blocking(|| {
-        (b'A'..=b'Z')
-            .map(|c| format!("{}:\\", c as char))
-            .filter(|d| Path::new(d).exists())
-            .collect()
-    })
-    .await
+    blocking(|| (b'A'..=b'Z').map(|c| format!("{}:\\", c as char)).filter(|d| Path::new(d).exists()).collect()).await
 }
 
 #[tauri::command]

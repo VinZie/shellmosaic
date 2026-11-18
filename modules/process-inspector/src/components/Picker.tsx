@@ -2,7 +2,18 @@
 // first, arrow keys + Enter, and "Enter a PID…" for anything not listed.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Hash, LoaderCircle } from "lucide-react";
-import { Button, cx, errorText, formatBytes, natural, prompt, SearchBox, sm, useInterval, type ProcListItem } from "../../../shared";
+import {
+  Button,
+  cx,
+  errorText,
+  formatBytes,
+  natural,
+  prompt,
+  SearchBox,
+  sm,
+  useInterval,
+  type ProcListItem,
+} from "../../../shared";
 import type { Recent } from "../lib/util";
 
 interface Entry {
@@ -93,7 +104,8 @@ export function ProcessPicker({
   const recentCount = entries.findIndex((e) => !e.recent);
   const firstAll = recentCount < 0 ? entries.length : recentCount;
 
-  const scrollTo = (i: number) => rowsRef.current?.querySelector<HTMLElement>(`[data-i="${i}"]`)?.scrollIntoView({ block: "nearest" });
+  const scrollTo = (i: number) =>
+    rowsRef.current?.querySelector<HTMLElement>(`[data-i="${i}"]`)?.scrollIntoView({ block: "nearest" });
   const move = (i: number) => {
     const n = Math.max(0, Math.min(entries.length - 1, i));
     setHi(n);
@@ -175,7 +187,11 @@ export function ProcessPicker({
           <Hash size={13} /> Enter a PID…
         </Button>
         <span className="sm-grow" />
-        {procs && <span className="sm-dim">{q ? `${entries.length - Math.max(0, recentCount)} of ${procs.length}` : `${procs.length} processes`}</span>}
+        {procs && (
+          <span className="sm-dim">
+            {q ? `${entries.length - Math.max(0, recentCount)} of ${procs.length}` : `${procs.length} processes`}
+          </span>
+        )}
       </div>
     </div>
   );

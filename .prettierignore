@@ -1,0 +1,17 @@
+# build output
+dist/
+modules/*/dist/
+release/
+
+# Rust side has rustfmt
+src-tauri/
+
+# signed catalog and manifests: reformatting would break the signatures
+modules/**/*.json
+modules/*/index.html
+modules/index.json.sig
+
+# generated
+pnpm-lock.yaml
+THIRD-PARTY-LICENSES.txt
+CHANGELOG.md

@@ -65,7 +65,17 @@ const KIND: Record<string, [string, Tone | undefined]> = {
 
 const kindLabel = (k: string) => KIND[k]?.[0] ?? k;
 
-export function ActivityTab({ snap, run, items, active }: { snap: AgentSnapshot; run: AgentRun; items: AgentActivity[]; active: boolean }) {
+export function ActivityTab({
+  snap,
+  run,
+  items,
+  active,
+}: {
+  snap: AgentSnapshot;
+  run: AgentRun;
+  items: AgentActivity[];
+  active: boolean;
+}) {
   const [group, setGroup] = useStored<Group>("activity:group", "all");
   const [who, setWho] = useState("");
   const [q, setQ] = useState("");
@@ -74,18 +84,29 @@ export function ActivityTab({ snap, run, items, active }: { snap: AgentSnapshot;
   const [sel, setSel] = useState<number | null>(null);
   const [cols, setCols] = useColumnState("activity");
   const agents = runAgents(snap, run);
-  const nameOf = (id: string | null) => (id ? agents.find((a) => a.id === id)?.name ?? "Removed agent" : "Team");
+  const nameOf = (id: string | null) => (id ? (agents.find((a) => a.id === id)?.name ?? "Removed agent") : "Team");
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return items.filter(
-      (a) => (group === "all" || groupOf(a.kind) === group) && (!who || a.agentId === who) && (!leadOnly || a.lead) && (!needle || a.text.toLowerCase().includes(needle) || a.taskId === needle),
+      (a) =>
+        (group === "all" || groupOf(a.kind) === group) &&
+        (!who || a.agentId === who) &&
+        (!leadOnly || a.lead) &&
+        (!needle || a.text.toLowerCase().includes(needle) || a.taskId === needle),
     );
   }, [items, group, who, leadOnly, q]);
 
   const columns = useMemo<Column<AgentActivity>[]>(
     () => [
-      { id: "time", label: "Time", width: 74, mono: true, text: (a) => formatDateTime(a.t).slice(11), title: "Local time" },
+      {
+        id: "time",
+        label: "Time",
+        width: 74,
+        mono: true,
+        text: (a) => formatDateTime(a.t).slice(11),
+        title: "Local time",
+      },
       { id: "agent", label: "Who", width: 96, text: (a) => nameOf(a.agentId) },
       {
         id: "kind",
@@ -117,14 +138,29 @@ export function ActivityTab({ snap, run, items, active }: { snap: AgentSnapshot;
     <div className="orc-tab-col">
       <Toolbar>
         <Select value={group} onChange={setGroup} options={GROUPS} title="Kinds of events" />
-        <Select value={who} onChange={setWho} options={[{ value: "", label: "Everyone" }, ...agents.map((a) => ({ value: a.id, label: a.name }))]} title="One agent's events" />
+        <Select
+          value={who}
+          onChange={setWho}
+          options={[{ value: "", label: "Everyone" }, ...agents.map((a) => ({ value: a.id, label: a.name }))]}
+          title="One agent's events"
+        />
         <SearchBox value={q} onChange={setQ} placeholder="Filter activity" width={190} />
-        <IconButton title="Only what the lead was told (tasks finished, questions, workers that stopped)" on={leadOnly} onClick={() => setLeadOnly((v) => !v)}>
+        <IconButton
+          title="Only what the lead was told (tasks finished, questions, workers that stopped)"
+          on={leadOnly}
+          onClick={() => setLeadOnly((v) => !v)}
+        >
           <Flag size={14} />
         </IconButton>
         <Grow />
-        <span className="sm-dim orc-counts">{rows.length === items.length ? `${items.length} events` : `${rows.length} of ${items.length}`}</span>
-        <IconButton title={follow ? "Following new events (click to stop)" : "Follow new events"} on={follow} onClick={() => setFollow((v) => !v)}>
+        <span className="sm-dim orc-counts">
+          {rows.length === items.length ? `${items.length} events` : `${rows.length} of ${items.length}`}
+        </span>
+        <IconButton
+          title={follow ? "Following new events (click to stop)" : "Follow new events"}
+          on={follow}
+          onClick={() => setFollow((v) => !v)}
+        >
           <ArrowDownToLine size={14} />
         </IconButton>
       </Toolbar>
@@ -152,7 +188,11 @@ export function ActivityTab({ snap, run, items, active }: { snap: AgentSnapshot;
             <span>{nameOf(current.agentId)}</span>
             <Chip tone={KIND[current.kind]?.[1]}>{kindLabel(current.kind)}</Chip>
             {current.taskId && <span className="orc-task-id">{current.taskId}</span>}
-            {current.lead && <Chip tone="accent" icon={<Flag size={11} />}>The lead was told</Chip>}
+            {current.lead && (
+              <Chip tone="accent" icon={<Flag size={11} />}>
+                The lead was told
+              </Chip>
+            )}
             <span className="sm-grow" />
             <IconButton title="Close" onClick={() => setSel(null)}>
               <X size={13} />

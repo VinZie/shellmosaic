@@ -117,7 +117,7 @@ impl<T> Table<T> {
     }
 
     fn remove(&mut self, owner: &str, id: u32, trash: &mut Vec<T>) -> bool {
-        if self.slots.get(&id).map_or(true, |s| s.owner != owner) {
+        if self.slots.get(&id).is_none_or(|s| s.owner != owner) {
             return false;
         }
         trash.extend(self.slots.remove(&id).and_then(|s| s.item));
@@ -213,7 +213,13 @@ impl EventLogs {
         }
     }
 
-    pub fn subscribe(&self, owner: &str, channel: &str, xpath: Option<&str>, text: Option<&str>) -> Result<u32, String> {
+    pub fn subscribe(
+        &self,
+        owner: &str,
+        channel: &str,
+        xpath: Option<&str>,
+        text: Option<&str>,
+    ) -> Result<u32, String> {
         let sub = Subscription::open(channel, xpath, text)?;
         Ok(self.with(|t, trash| {
             let id = t.new_id();

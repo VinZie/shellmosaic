@@ -100,7 +100,14 @@ export function beginDrag(e: React.PointerEvent | PointerEvent, payload: DragPay
       document.body.classList.add("dragging");
       useUi.setState({ dragging: true });
     }
-    useDrag.setState({ payload, label, icon, x: ev.clientX, y: ev.clientY, target: hitTest(ev.clientX, ev.clientY, payload) });
+    useDrag.setState({
+      payload,
+      label,
+      icon,
+      x: ev.clientX,
+      y: ev.clientY,
+      target: hitTest(ev.clientX, ev.clientY, payload),
+    });
   };
   const end = (ev: PointerEvent) => {
     cleanup();
@@ -150,8 +157,10 @@ function performDrop(p: DragPayload, t: DropTarget) {
       return;
     }
     case "pane": {
-      if (t.kind === "pane") return commit((d) => M.movePane(d, p.paneId, { tab: t.tabId, target: t.paneId, side: t.zone }));
-      if (t.kind === "outer") return commit((d) => M.movePane(d, p.paneId, { tab: t.tabId, side: t.side, outer: true }));
+      if (t.kind === "pane")
+        return commit((d) => M.movePane(d, p.paneId, { tab: t.tabId, target: t.paneId, side: t.zone }));
+      if (t.kind === "outer")
+        return commit((d) => M.movePane(d, p.paneId, { tab: t.tabId, side: t.side, outer: true }));
       if (t.kind === "tab") return A.movePaneToTab(p.paneId, t.tabId);
       if (t.kind === "tabbar") return A.movePaneToNewTab(p.paneId);
       if (t.kind === "workspace") return A.movePaneToNewTab(p.paneId, t.wsId);

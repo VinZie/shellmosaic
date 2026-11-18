@@ -5,8 +5,40 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  check:
+  frontend:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Tests
+        run: pnpm test
+
+  rust:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,27 +56,26 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # typecheck + production build (the Rust build embeds dist/)
-      - name: Frontend
+      - name: Frontend build
         run: pnpm build
 
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
 
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - name: cargo check
+      - name: cargo fmt
         working-directory: src-tauri
-        run: cargo check --locked
+        run: cargo fmt --check
 
-      - name: Terminal stream tests
+      - name: cargo clippy
         working-directory: src-tauri
-        run: |
-          rustc --edition 2021 --test src/vt.rs -o vt-tests.exe
-          ./vt-tests.exe
+        run: cargo clippy --locked --all-targets -- -D warnings
 
-      - name: Untrusted name tests
+      # every #[cfg(test)] module, including terminal stream parsing and untrusted names
+      - name: cargo test
         working-directory: src-tauri
-        run: |
-          rustc --edition 2021 --test src/sanitize.rs -o sanitize-tests.exe
-          ./sanitize-tests.exe
+        run: cargo test --locked

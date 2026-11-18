@@ -51,7 +51,11 @@ export function CellEditor({
   latest.current = { changed, onSave, onCancel, saving };
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (ref.current?.contains(e.target as Node) || (e.target as HTMLElement).closest?.(".sm-menu, .sm-modal-backdrop")) return;
+      if (
+        ref.current?.contains(e.target as Node) ||
+        (e.target as HTMLElement).closest?.(".sm-menu, .sm-modal-backdrop")
+      )
+        return;
       const l = latest.current;
       if (l.saving) return;
       if (l.changed) l.onSave();
@@ -98,17 +102,38 @@ export function CellEditor({
           NULL
         </button>
       </div>
-      <div className="sqlb-editor-hint">{error ? <span className="sm-danger-text">{error}</span> : <>Enter saves · Shift+Enter new line · Esc cancels</>}</div>
+      <div className="sqlb-editor-hint">
+        {error ? (
+          <span className="sm-danger-text">{error}</span>
+        ) : (
+          <>Enter saves · Shift+Enter new line · Esc cancels</>
+        )}
+      </div>
     </div>
   );
 }
 
 /** A dialog for longer values (multi-line text, JSON). `save` returns an error message or null. */
-export function openValueEditor(opts: { title: string; subtitle?: string; initial: string; isNull: boolean; mono?: boolean; save: (text: string | null) => Promise<string | null> }) {
+export function openValueEditor(opts: {
+  title: string;
+  subtitle?: string;
+  initial: string;
+  isNull: boolean;
+  mono?: boolean;
+  save: (text: string | null) => Promise<string | null>;
+}) {
   openModal((close) => <ValueEditor {...opts} close={close} />);
 }
 
-function ValueEditor({ title, subtitle, initial, isNull, mono, save, close }: Parameters<typeof openValueEditor>[0] & { close: () => void }) {
+function ValueEditor({
+  title,
+  subtitle,
+  initial,
+  isNull,
+  mono,
+  save,
+  close,
+}: Parameters<typeof openValueEditor>[0] & { close: () => void }) {
   const [text, setText] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -147,7 +172,13 @@ function ValueEditor({ title, subtitle, initial, isNull, mono, save, close }: Pa
       />
       {error && <div className="sm-dialog-error">{error}</div>}
       <div className="sm-dialog-buttons">
-        <button type="button" className="sm-btn small subtle" disabled={busy} onClick={() => run(null)} title="Store NULL instead of a value">
+        <button
+          type="button"
+          className="sm-btn small subtle"
+          disabled={busy}
+          onClick={() => run(null)}
+          title="Store NULL instead of a value"
+        >
           Set NULL
         </button>
         {json && json !== text && (
@@ -204,7 +235,9 @@ function NewRowForm({ obj, reason, insert, done, close }: Parameters<typeof open
       params.push(v.param);
       return v.sql;
     });
-    const sql = used.length ? `INSERT INTO ${qi(obj.name)} (${used.map((c) => qi(c.name)).join(", ")}) VALUES (${exprs.join(", ")})` : `INSERT INTO ${qi(obj.name)} DEFAULT VALUES`;
+    const sql = used.length
+      ? `INSERT INTO ${qi(obj.name)} (${used.map((c) => qi(c.name)).join(", ")}) VALUES (${exprs.join(", ")})`
+      : `INSERT INTO ${qi(obj.name)} DEFAULT VALUES`;
     setBusy(true);
     try {
       const r = await insert(sql, params);
@@ -241,7 +274,15 @@ function NewRowForm({ obj, reason, insert, done, close }: Parameters<typeof open
               autoFocus={i === cols.findIndex((x) => x !== alias)}
               spellCheck={false}
               value={values[c.name] ?? ""}
-              placeholder={c === alias ? "automatic" : c.default !== null ? `default: ${c.default}` : required(c) ? "required" : "NULL"}
+              placeholder={
+                c === alias
+                  ? "automatic"
+                  : c.default !== null
+                    ? `default: ${c.default}`
+                    : required(c)
+                      ? "required"
+                      : "NULL"
+              }
               onChange={(e) => setValues((v) => ({ ...v, [c.name]: e.target.value }))}
             />
             <span className="sqlb-newrow-type">{c.type || "any"}</span>
@@ -253,7 +294,12 @@ function NewRowForm({ obj, reason, insert, done, close }: Parameters<typeof open
         <button type="button" className="sm-btn subtle" onClick={close}>
           Cancel
         </button>
-        <button type="submit" className="sm-btn primary" disabled={busy || missing.length > 0} title={missing.length ? `Needs ${missing.map((c) => c.name).join(", ")}` : undefined}>
+        <button
+          type="submit"
+          className="sm-btn primary"
+          disabled={busy || missing.length > 0}
+          title={missing.length ? `Needs ${missing.map((c) => c.name).join(", ")}` : undefined}
+        >
           Add row
         </button>
       </div>

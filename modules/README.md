@@ -6,13 +6,13 @@ Modules that don't ship inside Shellmosaic but can be installed from the app:
 SQLite files, running Claude Code agents) is done by Shellmosaic itself behind permissions you
 approve.
 
-| Module | What it does | Permissions |
-|---|---|---|
-| [Process Inspector](process-inspector) | One process in depth: modules, threads, handles, token, memory map, mitigations, signature; suspend/resume, priority, affinity, thread control | `process.inspect`, `process.control`, `clipboard` |
-| [Event Viewer](event-viewer) | Windows event logs with filters, live tail and a Sysmon view | `eventlog.read`, `clipboard` |
-| [SQLite Browser](sqlite-browser) | Browse and query SQLite databases; read-only unless you allow changes | `sqlite`, `clipboard` |
-| [Claude Usage](claude-usage) | Your Claude plan's session and weekly limits with reset countdowns | `claude.usage` |
-| [Orchestrator](orchestrator) | A lead Claude Code agent and up to three workers in their own worktrees: tasks, requests, activity, model routing, merging (Shellmosaic 0.4.0+) | `agents.read`, `agents.manage`, `claude.usage` |
+| Module                                 | What it does                                                                                                                                    | Permissions                                       |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| [Process Inspector](process-inspector) | One process in depth: modules, threads, handles, token, memory map, mitigations, signature; suspend/resume, priority, affinity, thread control  | `process.inspect`, `process.control`, `clipboard` |
+| [Event Viewer](event-viewer)           | Windows event logs with filters, live tail and a Sysmon view                                                                                    | `eventlog.read`, `clipboard`                      |
+| [SQLite Browser](sqlite-browser)       | Browse and query SQLite databases; read-only unless you allow changes                                                                           | `sqlite`, `clipboard`                             |
+| [Claude Usage](claude-usage)           | Your Claude plan's session and weekly limits with reset countdowns                                                                              | `claude.usage`                                    |
+| [Orchestrator](orchestrator)           | A lead Claude Code agent and up to three workers in their own worktrees: tasks, requests, activity, model routing, merging (Shellmosaic 0.4.0+) | `agents.read`, `agents.manage`, `claude.usage`    |
 
 ## How installing works
 

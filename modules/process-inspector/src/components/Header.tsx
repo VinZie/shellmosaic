@@ -6,12 +6,22 @@ import { SigChip, useSignature } from "../lib/signatures";
 import { integrityTone } from "../lib/util";
 import { reveal } from "./actions";
 
-export function Header({ ov, error, onInspect }: { ov: ProcOverview | null; error: string | null; onInspect: (pid: number) => void }) {
+export function Header({
+  ov,
+  error,
+  onInspect,
+}: {
+  ov: ProcOverview | null;
+  error: string | null;
+  onInspect: (pid: number) => void;
+}) {
   const sig = useSignature(ov?.path, true);
   if (!ov) {
     return (
       <div className="pi-head">
-        <div className="pi-head-line">{error ? <span className="sm-danger-text sm-ellipsis">{error}</span> : <span className="pi-skeleton" />}</div>
+        <div className="pi-head-line">
+          {error ? <span className="sm-danger-text sm-ellipsis">{error}</span> : <span className="pi-skeleton" />}
+        </div>
       </div>
     );
   }
@@ -23,7 +33,12 @@ export function Header({ ov, error, onInspect }: { ov: ProcOverview | null; erro
           <span className="pi-head-parent">
             <span>Parent</span>
             {ov.parentName ? (
-              <button type="button" className="pi-link" title={`Inspect ${ov.parentName} (${ov.ppid})`} onClick={() => onInspect(ov.ppid!)}>
+              <button
+                type="button"
+                className="pi-link"
+                title={`Inspect ${ov.parentName} (${ov.ppid})`}
+                onClick={() => onInspect(ov.ppid!)}
+              >
                 {ov.parentName} ({ov.ppid})
               </button>
             ) : (
@@ -43,7 +58,9 @@ export function Header({ ov, error, onInspect }: { ov: ProcOverview | null; erro
             </IconButton>
           </span>
         ) : (
-          <span className="pi-head-gone">{ov.denied.includes("path") ? "Image path needs administrator" : "No image path"}</span>
+          <span className="pi-head-gone">
+            {ov.denied.includes("path") ? "Image path needs administrator" : "No image path"}
+          </span>
         )}
       </div>
       <div className="pi-chips">
@@ -59,7 +76,11 @@ export function Header({ ov, error, onInspect }: { ov: ProcOverview | null; erro
           </Chip>
         )}
         {protectedProc && (
-          <Chip tone="accent" icon={<Shield size={12} />} title="Protected process: even administrators get limited access">
+          <Chip
+            tone="accent"
+            icon={<Shield size={12} />}
+            title="Protected process: even administrators get limited access"
+          >
             {ov.protection}
           </Chip>
         )}

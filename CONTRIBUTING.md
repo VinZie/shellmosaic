@@ -4,16 +4,23 @@ Thanks for helping! Open an issue first for anything large, so we can agree on t
 
 ## Building
 
-You need Rust (stable), Node.js 20+ with pnpm, and WebView2.
+You need Rust (stable, 1.82 or later), Node.js 20+ with pnpm, and WebView2.
 
 ```powershell
 pnpm install
 pnpm tauri dev        # the app, with hot reload for the UI
 pnpm typecheck        # TypeScript (strict)
+pnpm lint             # ESLint
+pnpm format           # Prettier (pnpm format:check to only check)
 pnpm build            # typecheck + production frontend build
 cd src-tauri
 cargo check
+cargo fmt             # rustfmt (settings in rustfmt.toml)
+cargo clippy --all-targets -- -D warnings
 ```
+
+The formatting commits are listed in `.git-blame-ignore-revs`; run
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` once so `git blame` skips them.
 
 Both the MSVC and the GNU (MinGW) Rust toolchains work. With MinGW the library is built as an
 `rlib` only (the linker can't export a `cdylib` this large), which is already set in
@@ -21,8 +28,15 @@ Both the MSVC and the GNU (MinGW) Rust toolchains work. With MinGW the library i
 
 ## Tests
 
+```powershell
+pnpm test             # Vitest: layout tree, path quoting and other frontend helpers
+cd src-tauri
+cargo test            # every #[cfg(test)] module (MSVC toolchain)
+```
+
 Logic that touches untrusted input lives in modules without Tauri types so it can be tested on
-its own (test binaries that link Tauri don't start under MinGW):
+its own. Test binaries that link Tauri don't start under MinGW, so with that toolchain run these
+directly:
 
 ```powershell
 cd src-tauri
@@ -30,7 +44,9 @@ rustc --edition 2021 --test src/vt.rs -o target/vt-tests.exe; ./target/vt-tests.
 rustc --edition 2021 --test src/sanitize.rs -o target/sanitize-tests.exe; ./target/sanitize-tests.exe  # names from remote servers
 ```
 
-CI runs the typecheck, the frontend build, `cargo check` and these tests on every push.
+CI runs lint, formatting checks, the typecheck, both test suites, the frontend build and clippy on
+every push and pull request, and CodeQL scans the TypeScript, Rust and workflows weekly and on
+every change.
 
 ## Project layout
 
@@ -57,7 +73,7 @@ src/
 ## Guidelines
 
 - Keep the style of the surrounding code: naming, structure and comment density. Comments say
-  *why*, briefly.
+  _why_, briefly.
 - Treat everything outside the app as hostile: files, repositories, terminal output, web pages,
   plugins and SSH servers. Never build shell commands from them without quoting for the target
   shell, never touch a path from them before checking it's local, and never pass them to

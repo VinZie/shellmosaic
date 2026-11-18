@@ -30,10 +30,26 @@ export function StructureTab() {
   const lower = obj.name.toLowerCase();
   const triggers = schema.filter((o) => o.type === "trigger" && o.tblName.toLowerCase() === lower);
   const indexSql = new Map(schema.filter((o) => o.type === "index").map((o) => [o.name, o.sql]));
-  const referencedBy = schema.flatMap((o) => (o.type === "table" ? o.foreignKeys.filter((fk) => fk.table.toLowerCase() === lower).map((fk) => ({ from: o, fk })) : []));
-  const Icon = obj.type === "view" ? Eye : obj.type === "index" ? ListTree : obj.type === "trigger" ? Zap : obj.virtual ? Sheet : Table2;
+  const referencedBy = schema.flatMap((o) =>
+    o.type === "table"
+      ? o.foreignKeys.filter((fk) => fk.table.toLowerCase() === lower).map((fk) => ({ from: o, fk }))
+      : [],
+  );
+  const Icon =
+    obj.type === "view"
+      ? Eye
+      : obj.type === "index"
+        ? ListTree
+        : obj.type === "trigger"
+          ? Zap
+          : obj.virtual
+            ? Sheet
+            : Table2;
   const count = countText(counts[obj.name]);
-  const owner = obj.type === "index" || obj.type === "trigger" ? schema.find((o) => o.name.toLowerCase() === obj.tblName.toLowerCase()) : null;
+  const owner =
+    obj.type === "index" || obj.type === "trigger"
+      ? schema.find((o) => o.name.toLowerCase() === obj.tblName.toLowerCase())
+      : null;
   const ownIndex = owner?.indexes.find((i) => i.name === obj.name);
 
   return (
@@ -87,7 +103,10 @@ export function StructureTab() {
             {obj.sql ? (
               <pre className="sm-code sqlb-sqlblock">{highlightSql(obj.sql)}</pre>
             ) : (
-              <div className="sqlb-note">SQLite created this {obj.type} automatically{ownIndex ? ` for a ${ORIGIN[ownIndex.origin] ?? ownIndex.origin}` : ""}; it has no CREATE statement.</div>
+              <div className="sqlb-note">
+                SQLite created this {obj.type} automatically
+                {ownIndex ? ` for a ${ORIGIN[ownIndex.origin] ?? ownIndex.origin}` : ""}; it has no CREATE statement.
+              </div>
             )}
           </Section>
 
@@ -174,7 +193,9 @@ export function StructureTab() {
                             <Link onClick={() => select(ix.name, "structure")}>{ix.name}</Link>
                             {ix.partial && <span className="sqlb-dim"> · partial</span>}
                           </td>
-                          <td className="mono">{ix.columns.join(", ") || <span className="sqlb-dim">(expression)</span>}</td>
+                          <td className="mono">
+                            {ix.columns.join(", ") || <span className="sqlb-dim">(expression)</span>}
+                          </td>
                           <td>{ix.unique ? <Check size={13} className="sqlb-ok" /> : null}</td>
                           <td className="sqlb-dim">{ORIGIN[ix.origin] ?? ix.origin}</td>
                         </tr>
@@ -196,7 +217,8 @@ export function StructureTab() {
                     <span className="mono">{fk.from}</span>
                     <ArrowRight size={12} className="sqlb-dim" />
                     <span className="mono">
-                      <Link onClick={() => select(fk.table, "structure")}>{fk.table}</Link>({fk.to ?? <span className="sqlb-dim">primary key</span>})
+                      <Link onClick={() => select(fk.table, "structure")}>{fk.table}</Link>(
+                      {fk.to ?? <span className="sqlb-dim">primary key</span>})
                     </span>
                     <FkActions u={fk.onUpdate} d={fk.onDelete} />
                   </div>
@@ -241,6 +263,11 @@ export function StructureTab() {
 }
 
 function FkActions({ u, d }: { u: string; d: string }) {
-  const parts = [u && u !== "NO ACTION" ? `on update ${u.toLowerCase()}` : "", d && d !== "NO ACTION" ? `on delete ${d.toLowerCase()}` : ""].filter(Boolean);
-  return parts.length ? <span className={cx("sqlb-fk-act", /cascade/i.test(d) && "warn")}>{parts.join(" · ")}</span> : null;
+  const parts = [
+    u && u !== "NO ACTION" ? `on update ${u.toLowerCase()}` : "",
+    d && d !== "NO ACTION" ? `on delete ${d.toLowerCase()}` : "",
+  ].filter(Boolean);
+  return parts.length ? (
+    <span className={cx("sqlb-fk-act", /cascade/i.test(d) && "warn")}>{parts.join(" · ")}</span>
+  ) : null;
 }

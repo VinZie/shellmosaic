@@ -106,7 +106,9 @@ fn create(name: &str, first: bool) -> std::io::Result<NamedPipeServer> {
 fn create_with(name: &str, first: bool, sddl: &str) -> std::io::Result<NamedPipeServer> {
     unsafe {
         let mut sd: *mut c_void = std::ptr::null_mut();
-        if ConvertStringSecurityDescriptorToSecurityDescriptorW(wide(sddl).as_ptr(), 1, &mut sd, std::ptr::null_mut()) == 0 {
+        if ConvertStringSecurityDescriptorToSecurityDescriptorW(wide(sddl).as_ptr(), 1, &mut sd, std::ptr::null_mut())
+            == 0
+        {
             return Err(std::io::Error::last_os_error());
         }
         let mut sa = SECURITY_ATTRIBUTES {
@@ -134,7 +136,10 @@ fn client_pid(pipe: &NamedPipeServer) -> std::io::Result<u32> {
 
 async fn read_framed<R: AsyncBufRead + Unpin>(r: &mut R) -> std::io::Result<Vec<u8>> {
     let line = mcp::read_line(r, 32).await?.ok_or_else(|| std::io::Error::other("no length"))?;
-    let len: usize = std::str::from_utf8(&line).ok().and_then(|s| s.trim().parse().ok()).ok_or_else(|| std::io::Error::other("bad length"))?;
+    let len: usize = std::str::from_utf8(&line)
+        .ok()
+        .and_then(|s| s.trim().parse().ok())
+        .ok_or_else(|| std::io::Error::other("bad length"))?;
     if len > MAX_BODY {
         return Err(std::io::Error::other("payload too large"));
     }

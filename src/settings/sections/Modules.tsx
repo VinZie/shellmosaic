@@ -35,7 +35,10 @@ function ModuleBarList() {
   const bar = useSetting<string[]>("modules.bar");
   const hidden = useSetting<string[]>("modules.barHidden");
   const order = useMemo(
-    () => [...bar.filter((id) => modules[id] && !modules[id].hidden), ...Object.keys(modules).filter((id) => !bar.includes(id) && !modules[id].hidden)],
+    () => [
+      ...bar.filter((id) => modules[id] && !modules[id].hidden),
+      ...Object.keys(modules).filter((id) => !bar.includes(id) && !modules[id].hidden),
+    ],
     [bar, modules],
   );
   // non-plugin modules missing from `bar` aren't shown by the module bar
@@ -62,7 +65,21 @@ function ModuleBarList() {
     <>
       {order.map((id, i) => {
         const m = modules[id];
-        return <ModuleRow key={id} id={id} name={m.name} icon={m.icon} description={m.description} plugin={!!m.plugin} index={i} last={order.length - 1} shown={shown(id)} onMove={move} onToggle={toggle} />;
+        return (
+          <ModuleRow
+            key={id}
+            id={id}
+            name={m.name}
+            icon={m.icon}
+            description={m.description}
+            plugin={!!m.plugin}
+            index={i}
+            last={order.length - 1}
+            shown={shown(id)}
+            onMove={move}
+            onToggle={toggle}
+          />
+        );
       })}
       {order.length === 0 && <div className="settings-empty small">No modules registered yet.</div>}
     </>
@@ -103,7 +120,11 @@ function ModuleRow(props: {
       <button className="icon-btn" disabled={index === last} onClick={() => onMove(index, 1)} title="Move down">
         <Icon name="chevron-down" size={15} />
       </button>
-      <Switch value={shown} onChange={() => onToggle(id)} title={shown ? "Shown in the module bar" : "Hidden from the module bar (still available from Add module…)"} />
+      <Switch
+        value={shown}
+        onChange={() => onToggle(id)}
+        title={shown ? "Shown in the module bar" : "Hidden from the module bar (still available from Add module…)"}
+      />
     </div>
   );
 }
@@ -176,7 +197,11 @@ function HighlightRules() {
             <div key={i} className="rule-item">
               <div className={cx("rule-row", error && "invalid")}>
                 <label className="swatch big custom filled" style={{ background: r.color }} title="Color">
-                  <input type="color" value={toHex6(r.color)} onChange={(e) => edit((x) => void (x[i].color = e.target.value))} />
+                  <input
+                    type="color"
+                    value={toHex6(r.color)}
+                    onChange={(e) => edit((x) => void (x[i].color = e.target.value))}
+                  />
                 </label>
                 <input
                   className="input mono"
@@ -185,13 +210,24 @@ function HighlightRules() {
                   placeholder={r.regex ? "regular expression, e.g. \\berror\\b" : "text to match"}
                   onChange={(e) => edit((x) => void (x[i].pattern = e.target.value))}
                 />
-                <button className={cx("icon-btn", r.regex && "on")} title={r.regex ? "Regular expression (click for plain text)" : "Plain text (click for regular expression)"} onClick={() => edit((x) => void (x[i].regex = !x[i].regex))}>
+                <button
+                  className={cx("icon-btn", r.regex && "on")}
+                  title={
+                    r.regex ? "Regular expression (click for plain text)" : "Plain text (click for regular expression)"
+                  }
+                  onClick={() => edit((x) => void (x[i].regex = !x[i].regex))}
+                >
                   <Icon name="regex" size={15} />
                 </button>
                 <button className="icon-btn" disabled={i === 0} onClick={() => move(i, -1)} title="Move up">
                   <Icon name="chevron-up" size={15} />
                 </button>
-                <button className="icon-btn" disabled={i === rules.length - 1} onClick={() => move(i, 1)} title="Move down">
+                <button
+                  className="icon-btn"
+                  disabled={i === rules.length - 1}
+                  onClick={() => move(i, 1)}
+                  title="Move down"
+                >
                   <Icon name="chevron-down" size={15} />
                 </button>
                 <button className="icon-btn close" onClick={() => edit((x) => void x.splice(i, 1))} title="Remove rule">
@@ -203,16 +239,39 @@ function HighlightRules() {
           );
         })}
         <div className="row rules-foot">
-          <button className="btn small" onClick={() => edit((r) => void r.push({ pattern: "", color: WORKSPACE_COLORS[r.length % WORKSPACE_COLORS.length], regex: false }))}>
+          <button
+            className="btn small"
+            onClick={() =>
+              edit(
+                (r) =>
+                  void r.push({
+                    pattern: "",
+                    color: WORKSPACE_COLORS[r.length % WORKSPACE_COLORS.length],
+                    regex: false,
+                  }),
+              )
+            }
+          >
             <Icon name="plus" size={13} /> Add rule
           </button>
           <span className="grow" />
-          <button className="btn small subtle" onClick={() => setSetting("modules.logs.highlights", structuredClone(DEFAULT_SETTINGS.modules.logs.highlights))}>
+          <button
+            className="btn small subtle"
+            onClick={() =>
+              setSetting("modules.logs.highlights", structuredClone(DEFAULT_SETTINGS.modules.logs.highlights))
+            }
+          >
             <Icon name="undo" size={13} /> Default rules
           </button>
         </div>
         <label className="field-label">Try it</label>
-        <textarea className="input mono wide rules-sample" rows={4} value={sample} spellCheck={false} onChange={(e) => setSample(e.target.value)} />
+        <textarea
+          className="input mono wide rules-sample"
+          rows={4}
+          value={sample}
+          spellCheck={false}
+          onChange={(e) => setSample(e.target.value)}
+        />
         <div className="log-preview">
           {sample.split(/\r?\n/).map((line, i) => (
             <div key={i}>{line ? highlightLine(line, rules) : " "}</div>
@@ -254,7 +313,12 @@ function VaultRows() {
         </div>
       </Row>
       {changing && exists && (
-        <Row label="Change master password" desc="Everything in the vault is re-encrypted with the new password." keywords="ssh hosts vault" stack>
+        <Row
+          label="Change master password"
+          desc="Everything in the vault is re-encrypted with the new password."
+          keywords="ssh hosts vault"
+          stack
+        >
           <ChangePasswordForm variant="inline" autoFocus onDone={() => setChanging(false)} />
         </Row>
       )}
@@ -307,7 +371,12 @@ export function ModulesSection() {
             { value: "hidden", label: "Hidden" },
           ]}
         />
-        <ToggleSetting path="appearance.moduleBarLabels" label="Show labels" keywords="module bar names text" disabled={moduleBar === "hidden"} />
+        <ToggleSetting
+          path="appearance.moduleBarLabels"
+          label="Show labels"
+          keywords="module bar names text"
+          disabled={moduleBar === "hidden"}
+        />
         <ModuleBarList />
       </Group>
 
@@ -326,29 +395,77 @@ export function ModulesSection() {
       </Group>
 
       <Group title="Files">
-        <ToggleSetting path="modules.files.showHidden" label="Show hidden files" desc="Include dot-files and files marked hidden." keywords="explorer dotfiles" />
-        <ToggleSetting path="modules.files.followTerminal" label="Follow the terminal's folder" desc="New file panes open in, and follow, the folder of the terminal you're using." keywords="cwd sync directory" />
+        <ToggleSetting
+          path="modules.files.showHidden"
+          label="Show hidden files"
+          desc="Include dot-files and files marked hidden."
+          keywords="explorer dotfiles"
+        />
+        <ToggleSetting
+          path="modules.files.followTerminal"
+          label="Follow the terminal's folder"
+          desc="New file panes open in, and follow, the folder of the terminal you're using."
+          keywords="cwd sync directory"
+        />
       </Group>
 
       <Group title="Web">
-        <TextSetting path="modules.web.home" label="Home page" desc="Opened by new web panes." placeholder="https://…" mono width={300} keywords="browser url start page" />
+        <TextSetting
+          path="modules.web.home"
+          label="Home page"
+          desc="Opened by new web panes."
+          placeholder="https://…"
+          mono
+          width={300}
+          keywords="browser url start page"
+        />
       </Group>
 
       <Group title="System info">
-        <SelectSetting path="modules.sysinfo.intervalMs" label="Refresh" options={INTERVALS} keywords="interval cpu memory update rate" />
+        <SelectSetting
+          path="modules.sysinfo.intervalMs"
+          label="Refresh"
+          options={INTERVALS}
+          keywords="interval cpu memory update rate"
+        />
       </Group>
 
       <Group title="Processes">
-        <SelectSetting path="modules.processes.intervalMs" label="Refresh" options={INTERVALS} keywords="interval update rate task manager" />
+        <SelectSetting
+          path="modules.processes.intervalMs"
+          label="Refresh"
+          options={INTERVALS}
+          keywords="interval update rate task manager"
+        />
       </Group>
 
       <Group title="Ports">
-        <SelectSetting path="modules.ports.intervalMs" label="Refresh" options={INTERVALS} keywords="interval update rate network sockets" />
-        <ToggleSetting path="modules.ports.listeningOnly" label="Only listening ports" desc="Default filter for new ports panes." keywords="network sockets listen tcp" />
+        <SelectSetting
+          path="modules.ports.intervalMs"
+          label="Refresh"
+          options={INTERVALS}
+          keywords="interval update rate network sockets"
+        />
+        <ToggleSetting
+          path="modules.ports.listeningOnly"
+          label="Only listening ports"
+          desc="Default filter for new ports panes."
+          keywords="network sockets listen tcp"
+        />
       </Group>
 
       <Group title="Logs">
-        <NumberSetting path="modules.logs.maxLines" label="Lines kept" desc="Older lines are dropped from log panes beyond this." min={1000} max={1000000} step={1000} suffix="lines" width={110} keywords="buffer limit tail" />
+        <NumberSetting
+          path="modules.logs.maxLines"
+          label="Lines kept"
+          desc="Older lines are dropped from log panes beyond this."
+          min={1000}
+          max={1000000}
+          step={1000}
+          suffix="lines"
+          width={110}
+          keywords="buffer limit tail"
+        />
         <HighlightRules />
       </Group>
     </Section>

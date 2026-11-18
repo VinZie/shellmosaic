@@ -1,7 +1,30 @@
 // The schema tree: tables (with lazily counted rows), views, indexes and triggers.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, ChevronRight, Code, Copy, Eye, Hash, KeyRound, ListTree, Rows3, Sheet, Table2, Zap, type LucideIcon } from "lucide-react";
-import { SearchBox, copy, cx, openMenu, useStored, type DbColumn, type MenuItem, type SchemaObject } from "../../shared";
+import {
+  ChevronDown,
+  ChevronRight,
+  Code,
+  Copy,
+  Eye,
+  Hash,
+  KeyRound,
+  ListTree,
+  Rows3,
+  Sheet,
+  Table2,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+import {
+  SearchBox,
+  copy,
+  cx,
+  openMenu,
+  useStored,
+  type DbColumn,
+  type MenuItem,
+  type SchemaObject,
+} from "../../shared";
 import { isSystem, qi } from "./sql";
 import { countShort, countText, useDb } from "./state";
 
@@ -33,10 +56,15 @@ export function Sidebar() {
   const entries = useMemo(() => {
     const out: Entry[] = [];
     for (const g of GROUPS) {
-      const all = schema.filter((o) => o.type === g.type).sort((a, b) => Number(isSystem(a.name)) - Number(isSystem(b.name)) || collator.compare(a.name, b.name));
+      const all = schema
+        .filter((o) => o.type === g.type)
+        .sort((a, b) => Number(isSystem(a.name)) - Number(isSystem(b.name)) || collator.compare(a.name, b.name));
       const items = all
         .map((obj) => {
-          const nameHit = !q || obj.name.toLowerCase().includes(q) || (obj.tblName && obj.type !== "table" && obj.tblName.toLowerCase().includes(q));
+          const nameHit =
+            !q ||
+            obj.name.toLowerCase().includes(q) ||
+            (obj.tblName && obj.type !== "table" && obj.tblName.toLowerCase().includes(q));
           const colHits = q ? obj.columns.filter((c) => c.name.toLowerCase().includes(q)) : [];
           return { obj, nameHit, colHits };
         })
@@ -44,7 +72,14 @@ export function Sidebar() {
       if (!all.length) continue;
       const open = q ? items.length > 0 : !closedGroups.includes(g.type);
       if (q && !items.length) continue;
-      out.push({ kind: "group", key: `g:${g.type}`, type: g.type, label: g.label, count: q ? items.length : all.length, open });
+      out.push({
+        kind: "group",
+        key: `g:${g.type}`,
+        type: g.type,
+        label: g.label,
+        count: q ? items.length : all.length,
+        open,
+      });
       if (!open) continue;
       for (const { obj, colHits } of items) {
         const expandable = obj.columns.length > 0 && (obj.type === "table" || obj.type === "view");
@@ -52,7 +87,8 @@ export function Sidebar() {
         out.push({ kind: "obj", key: `o:${obj.type}:${obj.name}`, obj, open: isOpen, expandable });
         if (isOpen) {
           const hitSet = new Set(colHits);
-          for (const col of obj.columns) out.push({ kind: "col", key: `c:${obj.name}:${col.name}`, obj, col, hit: hitSet.has(col) });
+          for (const col of obj.columns)
+            out.push({ kind: "col", key: `c:${obj.name}:${col.name}`, obj, col, hit: hitSet.has(col) });
         }
       }
     }
@@ -104,7 +140,8 @@ export function Sidebar() {
     for (const name of visible.current) if (!counts[name]) wantCount(name);
   }, [counts, wantCount]);
 
-  const toggleGroup = (type: Group) => setClosedGroups((list) => (list.includes(type) ? list.filter((t) => t !== type) : [...list, type]));
+  const toggleGroup = (type: Group) =>
+    setClosedGroups((list) => (list.includes(type) ? list.filter((t) => t !== type) : [...list, type]));
   const toggleExpand = (name: string, open?: boolean) =>
     setExpanded((s) => {
       const n = new Set(s);
@@ -125,18 +162,36 @@ export function Sidebar() {
       items.push(
         { label: "Browse data", icon: <Rows3 size={14} />, onSelect: () => select(obj.name, "data") },
         { label: "Structure", icon: <ListTree size={14} />, onSelect: () => select(obj.name, "structure") },
-        { label: "Query in SQL tab", icon: <Code size={14} />, onSelect: () => sendToSql(`SELECT * FROM ${qi(obj.name)} LIMIT 100;`, true) },
+        {
+          label: "Query in SQL tab",
+          icon: <Code size={14} />,
+          onSelect: () => sendToSql(`SELECT * FROM ${qi(obj.name)} LIMIT 100;`, true),
+        },
       );
     } else {
       items.push({ label: "Structure", icon: <ListTree size={14} />, onSelect: () => select(obj.name, "structure") });
-      if (obj.tblName) items.push({ label: `Browse ${obj.tblName}`, icon: <Rows3 size={14} />, onSelect: () => select(obj.tblName, "data") });
+      if (obj.tblName)
+        items.push({
+          label: `Browse ${obj.tblName}`,
+          icon: <Rows3 size={14} />,
+          onSelect: () => select(obj.tblName, "data"),
+        });
     }
     items.push(
       { separator: true },
       { label: "Copy name", icon: <Copy size={14} />, onSelect: () => copy(obj.name, "name") },
-      { label: "Copy CREATE statement", disabled: !obj.sql, hint: obj.sql ? undefined : "automatic", onSelect: () => obj.sql && copy(obj.sql, "CREATE statement") },
+      {
+        label: "Copy CREATE statement",
+        disabled: !obj.sql,
+        hint: obj.sql ? undefined : "automatic",
+        onSelect: () => obj.sql && copy(obj.sql, "CREATE statement"),
+      },
     );
-    if (rows) items.push({ separator: true }, { label: "Count rows", icon: <Hash size={14} />, onSelect: () => wantCount(obj.name, true) });
+    if (rows)
+      items.push(
+        { separator: true },
+        { label: "Count rows", icon: <Hash size={14} />, onSelect: () => wantCount(obj.name, true) },
+      );
     return items;
   };
 
@@ -199,7 +254,10 @@ export function Sidebar() {
         const el = listRef.current?.querySelector(`[data-key="${CSS.escape(e?.key ?? "")}"]`);
         if (!el || !e || e.kind === "group") return;
         const r = el.getBoundingClientRect();
-        openMenu({ clientX: r.left + 24, clientY: r.bottom }, e.kind === "obj" ? objMenu(e.obj) : colMenu(e.obj, e.col));
+        openMenu(
+          { clientX: r.left + 24, clientY: r.bottom },
+          e.kind === "obj" ? objMenu(e.obj) : colMenu(e.obj, e.col),
+        );
         break;
       }
       default:
@@ -239,7 +297,12 @@ export function Sidebar() {
           data-key={e.key}
           ref={countable ? observeRef(obj.name) : undefined}
           data-count={countable ? obj.name : undefined}
-          className={cx("sqlb-tree-item", selected === obj && "selected", isCursor && "cursor", isSystem(obj.name) && "system")}
+          className={cx(
+            "sqlb-tree-item",
+            selected === obj && "selected",
+            isCursor && "cursor",
+            isSystem(obj.name) && "system",
+          )}
           title={obj.type === "index" || obj.type === "trigger" ? `${obj.name} on ${obj.tblName}` : obj.name}
           onMouseDown={() => setCursor(e.key)}
           onClick={() => activate(obj)}
@@ -263,7 +326,10 @@ export function Sidebar() {
           <span className="sqlb-tree-name">{obj.name}</span>
           {(obj.type === "index" || obj.type === "trigger") && <span className="sqlb-tree-on">{obj.tblName}</span>}
           {countable && (
-            <span className="sqlb-tree-count" title={c && "n" in c ? `${countText(c)} rows` : c && "error" in c ? c.error : undefined}>
+            <span
+              className="sqlb-tree-count"
+              title={c && "n" in c ? `${countText(c)} rows` : c && "error" in c ? c.error : undefined}
+            >
               {c && "n" in c ? countShort(c.n) : c && "loading" in c ? "…" : c && "error" in c ? "?" : ""}
             </span>
           )}
@@ -285,7 +351,11 @@ export function Sidebar() {
       >
         <span className="sqlb-tree-pk">{col.pk > 0 && <KeyRound size={11} />}</span>
         <span className="sqlb-tree-name">{col.name}</span>
-        {col.notNull && !col.pk && <span className="sqlb-nn" title="NOT NULL">NN</span>}
+        {col.notNull && !col.pk && (
+          <span className="sqlb-nn" title="NOT NULL">
+            NN
+          </span>
+        )}
         <span className="sqlb-tree-type">{col.type || "any"}</span>
       </div>
     );
@@ -296,9 +366,17 @@ export function Sidebar() {
       <div className="sqlb-side-search">
         <SearchBox value={filter} onChange={setFilter} placeholder="Filter tables and columns" />
       </div>
-      <div className="sqlb-tree" ref={listRef} tabIndex={0} role="tree" onFocus={() => cursor === null && entries[0] && setCursor(entries[0].key)}>
+      <div
+        className="sqlb-tree"
+        ref={listRef}
+        tabIndex={0}
+        role="tree"
+        onFocus={() => cursor === null && entries[0] && setCursor(entries[0].key)}
+      >
         {rows}
-        {!entries.length && <div className="sqlb-tree-empty">{q ? "Nothing matches" : "This database has no tables"}</div>}
+        {!entries.length && (
+          <div className="sqlb-tree-empty">{q ? "Nothing matches" : "This database has no tables"}</div>
+        )}
       </div>
     </div>
   );

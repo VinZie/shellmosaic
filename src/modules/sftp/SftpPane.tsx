@@ -71,7 +71,9 @@ function badName(n: string): string | null {
 
 const IMG_EXT = new Set("png jpg jpeg gif webp bmp svg ico avif tif tiff".split(" "));
 const CODE_EXT = new Set(
-  "js jsx ts tsx mjs cjs py rb go rs java kt c h cpp hpp cs php sh bash zsh fish ps1 lua pl sql json yaml yml toml xml html htm css scss ini conf cfg env service".split(" "),
+  "js jsx ts tsx mjs cjs py rb go rs java kt c h cpp hpp cs php sh bash zsh fish ps1 lua pl sql json yaml yml toml xml html htm css scss ini conf cfg env service".split(
+    " ",
+  ),
 );
 const TEXT_EXT = new Set("txt md log csv tsv rst".split(" "));
 
@@ -85,7 +87,13 @@ function entryIcon(e: RemoteEntry): string {
   return "file";
 }
 
-const dateFmt = new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateFmt = new Intl.DateTimeFormat(undefined, {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
 function formatDate(ms: number): string {
   if (!ms) return "";
@@ -99,7 +107,8 @@ interface Sort {
   desc: boolean;
 }
 
-const nameCmp = (a: RemoteEntry, b: RemoteEntry) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+const nameCmp = (a: RemoteEntry, b: RemoteEntry) =>
+  a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
 
 function sortEntries(list: RemoteEntry[], sort: Sort): RemoteEntry[] {
   const by =
@@ -115,10 +124,7 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const toastErr = (e: unknown) => ui.toast(errorText(e), "error");
 
 function copyText(text: string, what = "Path") {
-  writeText(text).then(
-    () => ui.toast(`${what} copied`, "success", 1500),
-    toastErr,
-  );
+  writeText(text).then(() => ui.toast(`${what} copied`, "success", 1500), toastErr);
 }
 
 // ── connections (per pane, outside React) ───────────────────────────────
@@ -175,19 +181,35 @@ function connect(paneId: Id, hostId: string, fresh = false): Promise<void> {
     // sftp_connect hands back a pane's open connection whatever host is asked for
     if (fresh || (prev && !same)) await ipc.sftpClose(paneId).catch(() => {});
     useSessions.setState({
-      [paneId]: { hostId, phase: "connecting", rev: prev?.rev ?? 0, hostName: same ? prev?.hostName : undefined, home: same ? prev?.home : undefined },
+      [paneId]: {
+        hostId,
+        phase: "connecting",
+        rev: prev?.rev ?? 0,
+        hostName: same ? prev?.hostName : undefined,
+        home: same ? prev?.home : undefined,
+      },
     });
     const vault = await ipc.vaultStatus().catch(() => null);
     if (vault && !vault.unlocked) {
       // still connected (the pane came from another window)? then the vault isn't needed
-      const open = !fresh && (await ipc.sftpList(paneId, ".").then(() => true, () => false));
+      const open =
+        !fresh &&
+        (await ipc.sftpList(paneId, ".").then(
+          () => true,
+          () => false,
+        ));
       if (!open) return patchSession(paneId, { phase: "locked" });
     }
     try {
       const info = await ipc.sftpConnect(paneId, hostId);
       // closed, turned into another module, or pointed at another host meanwhile
       if (paneHost(paneId) !== hostId) return void ipc.sftpClose(paneId).catch(() => {});
-      patchSession(paneId, { phase: "ready", home: info.home || "/", hostName: info.hostName || undefined, error: undefined });
+      patchSession(paneId, {
+        phase: "ready",
+        home: info.home || "/",
+        hostName: info.hostName || undefined,
+        error: undefined,
+      });
     } catch (e) {
       patchSession(paneId, { phase: "error", error: errorText(e) });
     }
@@ -210,7 +232,8 @@ function chooseAnotherHost(paneId: Id) {
 
 /** A pane closed for good (or turned into another module): stop everything it started. */
 function forgetPane(paneId: Id) {
-  for (const t of useTransfers.getState()[paneId] ?? []) if (t.id !== null && isRunning(t)) ipc.sftpCancel(t.id).catch(() => {});
+  for (const t of useTransfers.getState()[paneId] ?? [])
+    if (t.id !== null && isRunning(t)) ipc.sftpCancel(t.id).catch(() => {});
   dropTransfers(paneId);
   dropSession(paneId);
   ipc.sftpClose(paneId).catch(() => {});
@@ -236,7 +259,8 @@ function listenForPrompts(): Promise<unknown> {
     }),
     // what a terminal would print while connecting: banners, "saved password was rejected"…
     listen<{ paneId: string; kind: "info" | "warning"; message: string }>("ssh://notice", (e) => {
-      if (mounted.has(e.payload.paneId)) ui.toast(e.payload.message, e.payload.kind, e.payload.kind === "warning" ? 6000 : 4000);
+      if (mounted.has(e.payload.paneId))
+        ui.toast(e.payload.message, e.payload.kind, e.payload.kind === "warning" ? 6000 : 4000);
     }),
   ]).catch((err) => console.error("ssh prompts unavailable", err));
   return promptListener;
@@ -253,7 +277,11 @@ async function askPrompt(q: SshPrompt) {
       if (q.kind === "confirm") {
         value = (await ui.confirm(`${name} — SFTP`, `${q.message.trim()}?`, { okLabel: "Yes" })) ? "yes" : null;
       } else {
-        value = await ui.prompt(q.message.replace(/[\s:]+$/, "") || "Answer", "", { label: `SFTP · ${name}`, secret: q.kind === "secret", okLabel: "OK" });
+        value = await ui.prompt(q.message.replace(/[\s:]+$/, "") || "Answer", "", {
+          label: `SFTP · ${name}`,
+          secret: q.kind === "secret",
+          okLabel: "OK",
+        });
       }
     } finally {
       activePrompt = null;
@@ -297,7 +325,9 @@ function patchTransfer(paneId: Id, key: string, patch: Partial<Transfer> | ((t: 
   useTransfers.setState((all) => {
     const list = all[paneId];
     if (!list?.some((t) => t.key === key)) return all;
-    return { [paneId]: list.map((t) => (t.key === key ? { ...t, ...(typeof patch === "function" ? patch(t) : patch) } : t)) };
+    return {
+      [paneId]: list.map((t) => (t.key === key ? { ...t, ...(typeof patch === "function" ? patch(t) : patch) } : t)),
+    };
   });
 }
 
@@ -320,9 +350,27 @@ function cancelTransfer(paneId: Id, t: Transfer) {
   if (t.id !== null) ipc.sftpCancel(t.id).catch(toastErr);
 }
 
-function startTransfer(paneId: Id, kind: Transfer["kind"], count: number, target: string, begin: (ch: Channel<TransferEvent>) => Promise<number>) {
+function startTransfer(
+  paneId: Id,
+  kind: Transfer["kind"],
+  count: number,
+  target: string,
+  begin: (ch: Channel<TransferEvent>) => Promise<number>,
+) {
   const key = uid();
-  const t: Transfer = { key, id: null, kind, count, target, state: "starting", total: 0, done: 0, files: 0, file: "", skipped: 0 };
+  const t: Transfer = {
+    key,
+    id: null,
+    kind,
+    count,
+    target,
+    state: "starting",
+    total: 0,
+    done: 0,
+    files: 0,
+    file: "",
+    skipped: 0,
+  };
   useTransfers.setState((all) => ({ [paneId]: [...(all[paneId] ?? []), t] }));
   const relist = () => kind === "upload" && patchSession(paneId, (s) => ({ rev: s.rev + 1 }));
   const ch = new Channel<TransferEvent>();
@@ -337,7 +385,10 @@ function startTransfer(paneId: Id, kind: Transfer["kind"], count: number, target
       case "done": {
         patchTransfer(paneId, key, (x) => ({ state: "done", files: ev.files, skipped: ev.skipped, done: x.total }));
         const skipped = ev.skipped ? ` (${ev.skipped} skipped)` : "";
-        ui.toast(`${kind === "upload" ? "Uploaded" : "Downloaded"} ${plural(ev.files, "file")} to ${target}${skipped}`, "success");
+        ui.toast(
+          `${kind === "upload" ? "Uploaded" : "Downloaded"} ${plural(ev.files, "file")} to ${target}${skipped}`,
+          "success",
+        );
         relist();
         setTimeout(() => removeTransfer(paneId, key), 10_000);
         break;
@@ -406,16 +457,24 @@ async function uploadInto(paneId: Id, dir: string, paths: string[]) {
   const clash = paths.map((p) => basename(p)).filter((n) => existing.has(n));
   let overwrite = false;
   if (clash.length) {
-    const names = clash.slice(0, 10).map((n) => `  ${n}`).join("\n") + (clash.length > 10 ? `\n  …and ${clash.length - 10} more` : "");
+    const names =
+      clash
+        .slice(0, 10)
+        .map((n) => `  ${n}`)
+        .join("\n") + (clash.length > 10 ? `\n  …and ${clash.length - 10} more` : "");
     overwrite = await ui.confirm(
       clash.length === 1 ? `"${clash[0]}" already exists` : `${clash.length} items already exist`,
       `In ${dir}:\n${names}\n\nReplace them? Files inside folders that already exist are replaced too.`,
       { okLabel: "Replace", danger: true },
     );
     if (!overwrite) {
-      const skip = await ui.confirm("Upload without replacing?", "Files that already exist are skipped; everything else is uploaded (into existing folders too).", {
-        okLabel: "Skip existing",
-      });
+      const skip = await ui.confirm(
+        "Upload without replacing?",
+        "Files that already exist are skipped; everything else is uploaded (into existing folders too).",
+        {
+          okLabel: "Skip existing",
+        },
+      );
       if (!skip) return;
     }
   }
@@ -531,13 +590,17 @@ function HostPicker({ pane, tabId, active }: { pane: Pane; tabId: Id; active: bo
         const hay = `${h.name} ${hostAddress(h)} ${h.group} ${h.tags.join(" ")}`.toLowerCase();
         return words.every((w) => hay.includes(w));
       })
-      .sort((a, b) => (a.group || "￿").localeCompare(b.group || "￿") || a.name.localeCompare(b.name, undefined, { numeric: true }));
+      .sort(
+        (a, b) =>
+          (a.group || "￿").localeCompare(b.group || "￿") || a.name.localeCompare(b.name, undefined, { numeric: true }),
+      );
   }, [hosts, query]);
   const i = rows.findIndex((h) => h.id === sel);
   const hasRows = rows.length > 0;
 
   useEffect(() => {
-    if (active && hasRows && !ui.get().dialog && !ui.get().palette.open) listRef.current?.focus({ preventScroll: true });
+    if (active && hasRows && !ui.get().dialog && !ui.get().palette.open)
+      listRef.current?.focus({ preventScroll: true });
   }, [active, hasRows]);
 
   const pick = (h: HostView) => setPaneMeta(pane.id, { hostId: h.id, hostName: h.name, path: null });
@@ -556,7 +619,8 @@ function HostPicker({ pane, tabId, active }: { pane: Pane; tabId: Id; active: bo
       </ModuleMessage>
     );
   }
-  if (!vault.unlocked) return <UnlockVaultForm autoFocus={active} message="Unlock the vault to pick one of your saved hosts." />;
+  if (!vault.unlocked)
+    return <UnlockVaultForm autoFocus={active} message="Unlock the vault to pick one of your saved hosts." />;
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     const move = (to: number) => rows.length && setSel(rows[clamp(to, 0, rows.length - 1)].id);
@@ -577,7 +641,14 @@ function HostPicker({ pane, tabId, active }: { pane: Pane; tabId: Id; active: bo
           <Icon name="server" size={14} />
         </button>
       </div>
-      <div ref={listRef} className="module-scroll sftp-picker" tabIndex={0} role="listbox" aria-label="Saved hosts" onKeyDown={onKeyDown}>
+      <div
+        ref={listRef}
+        className="module-scroll sftp-picker"
+        tabIndex={0}
+        role="listbox"
+        aria-label="Saved hosts"
+        onKeyDown={onKeyDown}
+      >
         {rows.map((h) => (
           <div
             key={h.id}
@@ -611,7 +682,21 @@ function HostPicker({ pane, tabId, active }: { pane: Pane; tabId: Id; active: bo
 
 // ── browser ─────────────────────────────────────────────────────────────
 
-function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane; tabId: Id; session: Session; hostId: string; visible: boolean; active: boolean }) {
+function Browser({
+  pane,
+  tabId,
+  session,
+  hostId,
+  visible,
+  active,
+}: {
+  pane: Pane;
+  tabId: Id;
+  session: Session;
+  hostId: string;
+  visible: boolean;
+  active: boolean;
+}) {
   const home = session.home || "/";
   const dir: string = typeof pane.meta.path === "string" && pane.meta.path ? pane.meta.path : home;
   const hostName = session.hostName || (pane.meta.hostName as string | undefined) || "server";
@@ -683,7 +768,8 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
     if (!el || i < 0) return;
     const top = i * ROW_H;
     if (top < el.scrollTop) el.scrollTop = top;
-    else if (HEADER_H + top + ROW_H > el.scrollTop + el.clientHeight) el.scrollTop = HEADER_H + top + ROW_H - el.clientHeight;
+    else if (HEADER_H + top + ROW_H > el.scrollTop + el.clientHeight)
+      el.scrollTop = HEADER_H + top + ROW_H - el.clientHeight;
   }, []);
 
   // select a remembered entry once it shows up (the folder we came from, a new folder…)
@@ -833,7 +919,12 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
     if (!ok) return;
     const gone = new Set(list.map((x) => x.path));
     const at = rows.findIndex((x) => gone.has(x.path));
-    const next = rows.slice(at).find((x) => !gone.has(x.path)) ?? rows.slice(0, Math.max(0, at)).reverse().find((x) => !gone.has(x.path));
+    const next =
+      rows.slice(at).find((x) => !gone.has(x.path)) ??
+      rows
+        .slice(0, Math.max(0, at))
+        .reverse()
+        .find((x) => !gone.has(x.path));
     try {
       await ipc.sftpDelete(pane.id, [...gone]);
       if (next) pendingSelect.current = next.path;
@@ -846,7 +937,11 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
   };
 
   const upload = async (folders: boolean) => {
-    const picked = await openDialog({ multiple: true, directory: folders, title: `Upload ${folders ? "folders" : "files"} to ${dir}` }).catch(() => null);
+    const picked = await openDialog({
+      multiple: true,
+      directory: folders,
+      title: `Upload ${folders ? "folders" : "files"} to ${dir}`,
+    }).catch(() => null);
     refocus();
     const paths = Array.isArray(picked) ? picked : typeof picked === "string" ? [picked] : [];
     if (paths.length) await uploadInto(pane.id, dir, paths);
@@ -863,13 +958,31 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
     const list = targetsOf(r);
     const many = list.length > 1;
     const items: MenuItem[] = [
-      ...(r.isDir && !many ? [{ label: "Open", icon: "folder-open", shortcut: "Enter", onSelect: () => navigate(r.path) }] : []),
-      { label: many ? `Download ${list.length} items…` : "Download…", icon: "download", shortcut: r.isDir ? undefined : "Enter", onSelect: () => void downloadTo(pane.id, list) },
+      ...(r.isDir && !many
+        ? [{ label: "Open", icon: "folder-open", shortcut: "Enter", onSelect: () => navigate(r.path) }]
+        : []),
+      {
+        label: many ? `Download ${list.length} items…` : "Download…",
+        icon: "download",
+        shortcut: r.isDir ? undefined : "Enter",
+        onSelect: () => void downloadTo(pane.id, list),
+      },
       { type: "separator" },
       { label: "Rename…", icon: "pencil", disabled: many, onSelect: () => rename(r) },
-      { label: many ? `Delete ${list.length} items…` : "Delete…", icon: "trash", shortcut: "Del", danger: true, onSelect: () => remove(list) },
+      {
+        label: many ? `Delete ${list.length} items…` : "Delete…",
+        icon: "trash",
+        shortcut: "Del",
+        danger: true,
+        onSelect: () => remove(list),
+      },
       { type: "separator" },
-      { label: many ? "Copy paths" : "Copy path", icon: "copy", shortcut: "Ctrl+C", onSelect: () => copyText(list.map((x) => x.path).join("\n"), many ? "Paths" : "Path") },
+      {
+        label: many ? "Copy paths" : "Copy path",
+        icon: "copy",
+        shortcut: "Ctrl+C",
+        onSelect: () => copyText(list.map((x) => x.path).join("\n"), many ? "Paths" : "Path"),
+      },
       { label: "Copy name", icon: "clipboard-copy", disabled: many, onSelect: () => copyText(r.name, "Name") },
       { type: "separator" },
       { label: "New folder…", icon: "folder-plus", onSelect: newFolder },
@@ -986,7 +1099,8 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
     e.preventDefault();
   };
 
-  const toggleSort = (key: SortKey) => setSort((s) => (s.key === key ? { key, desc: !s.desc } : { key, desc: key !== "name" }));
+  const toggleSort = (key: SortKey) =>
+    setSort((s) => (s.key === key ? { key, desc: !s.desc } : { key, desc: key !== "name" }));
 
   // ── render ──
   const first = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN);
@@ -1042,14 +1156,23 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
               ["modified", "Modified"],
             ] as [SortKey, string][]
           ).map(([k, label]) => (
-            <button key={k} className={cx("sftp-cell", `sftp-col-${k}`, sort.key === k && "sorted")} onClick={() => toggleSort(k)} title={`Sort by ${label.toLowerCase()}`}>
+            <button
+              key={k}
+              className={cx("sftp-cell", `sftp-col-${k}`, sort.key === k && "sorted")}
+              onClick={() => toggleSort(k)}
+              title={`Sort by ${label.toLowerCase()}`}
+            >
               {label}
               {sort.key === k && <Icon name={sort.desc ? "chevron-down" : "chevron-up"} size={11} />}
             </button>
           ))}
           <span className="sftp-cell sftp-col-mode">Permissions</span>
         </div>
-        <div className="sftp-rows" style={{ height: rows.length * ROW_H }} onClick={(e) => e.target === e.currentTarget && setSelected(new Set())}>
+        <div
+          className="sftp-rows"
+          style={{ height: rows.length * ROW_H }}
+          onClick={(e) => e.target === e.currentTarget && setSelected(new Set())}
+        >
           {rows.slice(first, last).map((r, k) => {
             const i = first + k;
             return (
@@ -1076,7 +1199,11 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
             );
           })}
         </div>
-        {rows.length === 0 && <div className="sftp-empty dim">This folder is empty. Upload files with the upload button, or drop them here.</div>}
+        {rows.length === 0 && (
+          <div className="sftp-empty dim">
+            This folder is empty. Upload files with the upload button, or drop them here.
+          </div>
+        )}
       </div>
     );
   }
@@ -1107,13 +1234,22 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
         </button>
         <button
           className="icon-btn"
-          title={selectedRows.length ? `Download ${selectedRows.length === 1 ? `"${selectedRows[0].name}"` : plural(selectedRows.length, "item")}…` : "Download (select files first)"}
+          title={
+            selectedRows.length
+              ? `Download ${selectedRows.length === 1 ? `"${selectedRows[0].name}"` : plural(selectedRows.length, "item")}…`
+              : "Download (select files first)"
+          }
           disabled={!selectedRows.length}
           onClick={() => void downloadTo(pane.id, selectedRows)}
         >
           <Icon name="download" size={15} />
         </button>
-        <button className="icon-btn close" title="Delete (Del)" disabled={!selectedRows.length} onClick={() => remove(selectedRows)}>
+        <button
+          className="icon-btn close"
+          title="Delete (Del)"
+          disabled={!selectedRows.length}
+          onClick={() => remove(selectedRows)}
+        >
           <Icon name="trash" size={14} />
         </button>
       </div>
@@ -1146,7 +1282,15 @@ function Browser({ pane, tabId, session, hostId, visible, active }: { pane: Pane
 
 // ── path bar ────────────────────────────────────────────────────────────
 
-function PathBar({ dir, onNavigate, onSubmit }: { dir: string; onNavigate: (p: string) => void; onSubmit: (p: string) => Promise<boolean> }) {
+function PathBar({
+  dir,
+  onNavigate,
+  onSubmit,
+}: {
+  dir: string;
+  onNavigate: (p: string) => void;
+  onSubmit: (p: string) => Promise<boolean>;
+}) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
@@ -1189,11 +1333,20 @@ function PathBar({ dir, onNavigate, onSubmit }: { dir: string; onNavigate: (p: s
 
   const parts = rcrumbs(dir);
   return (
-    <div className="sftp-path" ref={ref} onClick={(e) => e.target === e.currentTarget && startEdit()} title="Click an empty spot to type a path">
+    <div
+      className="sftp-path"
+      ref={ref}
+      onClick={(e) => e.target === e.currentTarget && startEdit()}
+      title="Click an empty spot to type a path"
+    >
       {parts.map((c, i) => (
         <Fragment key={c.path}>
           {i > 0 && <Icon name="chevron-right" size={12} className="sftp-crumb-sep" />}
-          <button className={cx("sftp-crumb", i === parts.length - 1 && "current")} onClick={() => onNavigate(c.path)} title={c.path}>
+          <button
+            className={cx("sftp-crumb", i === parts.length - 1 && "current")}
+            onClick={() => onNavigate(c.path)}
+            title={c.path}
+          >
             {c.label}
           </button>
         </Fragment>
@@ -1214,12 +1367,18 @@ function Transfers({ paneId }: { paneId: Id }) {
       {list.map((t) => {
         const running = isRunning(t);
         const pct = t.state === "done" ? 100 : t.total ? Math.min(100, (t.done / t.total) * 100) : 0;
-        const what = t.kind === "upload" ? `Upload ${plural(t.count, "item")} to ${t.target}` : `Download ${plural(t.count, "item")} to ${t.target}`;
+        const what =
+          t.kind === "upload"
+            ? `Upload ${plural(t.count, "item")} to ${t.target}`
+            : `Download ${plural(t.count, "item")} to ${t.target}`;
         let status: string;
         if (t.state === "starting") status = "Preparing…";
-        else if (t.state === "running") status = `${formatBytes(t.done)} of ${formatBytes(t.total)}${t.file ? ` · ${t.file}` : ""}`;
-        else if (t.state === "done") status = `Done · ${plural(t.files, "file")}${t.skipped ? `, ${t.skipped} skipped` : ""}`;
-        else if (t.state === "cancelled") status = t.kind === "upload" ? "Cancelled (a file being sent may be incomplete)" : "Cancelled";
+        else if (t.state === "running")
+          status = `${formatBytes(t.done)} of ${formatBytes(t.total)}${t.file ? ` · ${t.file}` : ""}`;
+        else if (t.state === "done")
+          status = `Done · ${plural(t.files, "file")}${t.skipped ? `, ${t.skipped} skipped` : ""}`;
+        else if (t.state === "cancelled")
+          status = t.kind === "upload" ? "Cancelled (a file being sent may be incomplete)" : "Cancelled";
         else status = t.message ?? "Failed";
         return (
           <div key={t.key} className={cx("sftp-transfer", t.state)}>
@@ -1243,7 +1402,12 @@ function Transfers({ paneId }: { paneId: Id }) {
               </button>
             )}
             {running ? (
-              <button className="icon-btn close" title={t.cancelRequested ? "Cancelling…" : "Cancel"} disabled={t.cancelRequested} onClick={() => cancelTransfer(paneId, t)}>
+              <button
+                className="icon-btn close"
+                title={t.cancelRequested ? "Cancelling…" : "Cancel"}
+                disabled={t.cancelRequested}
+                onClick={() => cancelTransfer(paneId, t)}
+              >
                 <Icon name="x" size={13} />
               </button>
             ) : (
@@ -1283,7 +1447,11 @@ export const sftpModule: ModuleDef = {
     if (!hostId) return [];
     return [
       { label: "Reconnect", icon: "rotate-cw", onSelect: () => void connect(pane.id, hostId, true) },
-      { label: "Open SSH terminal", icon: "square-terminal", onSelect: () => connectHost({ id: hostId, name: pane.meta.hostName ?? "" }, { tabId, near: pane.id }) },
+      {
+        label: "Open SSH terminal",
+        icon: "square-terminal",
+        onSelect: () => connectHost({ id: hostId, name: pane.meta.hostName ?? "" }, { tabId, near: pane.id }),
+      },
       { label: "Choose another host…", icon: "server", onSelect: () => chooseAnotherHost(pane.id) },
     ];
   },

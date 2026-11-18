@@ -15,7 +15,9 @@ use windows_sys::Win32::Storage::FileSystem::{GetFileVersionInfoSizeW, GetFileVe
 use windows_sys::Win32::System::Diagnostics::ToolHelp::{
     CreateToolhelp32Snapshot, Module32FirstW, Module32NextW, MODULEENTRY32W, TH32CS_SNAPMODULE, TH32CS_SNAPMODULE32,
 };
-use windows_sys::Win32::System::Threading::{QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION};
+use windows_sys::Win32::System::Threading::{
+    QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
+};
 
 use super::nt::{self, hex, EXITED};
 use crate::winutil::{self, from_wide, is_local_path, wide, Handle};
@@ -226,7 +228,9 @@ fn raw_version_block(path: &str) -> Option<Vec<u32>> {
     const VS_VERSION_INFO: usize = 1;
     const RT_VERSION: usize = 16;
     let wpath = wide(path);
-    let module = unsafe { LoadLibraryExW(wpath.as_ptr(), null_mut(), LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE) };
+    let module = unsafe {
+        LoadLibraryExW(wpath.as_ptr(), null_mut(), LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE)
+    };
     if module.is_null() {
         return None;
     }
@@ -266,7 +270,9 @@ fn api_version_block(path: &str) -> Option<Vec<u32>> {
 }
 
 fn read_version(path: &str) -> VersionInfo {
-    let Some(block) = raw_version_block(path).or_else(|| api_version_block(path)) else { return VersionInfo::default() };
+    let Some(block) = raw_version_block(path).or_else(|| api_version_block(path)) else {
+        return VersionInfo::default();
+    };
     let res = Resource { block: &block };
 
     let mut translations: Vec<(u16, u16)> = Vec::new();
@@ -326,6 +332,7 @@ impl Resource<'_> {
     fn fixed_version(&self) -> Option<String> {
         let word = |i: usize| self.block.get(i / 4).copied();
         let (signature, ms, ls) = (word(40)?, word(48)?, word(52)?);
-        (signature == 0xFEEF_04BD && (ms | ls) != 0).then(|| format!("{}.{}.{}.{}", ms >> 16, ms & 0xFFFF, ls >> 16, ls & 0xFFFF))
+        (signature == 0xFEEF_04BD && (ms | ls) != 0)
+            .then(|| format!("{}.{}.{}.{}", ms >> 16, ms & 0xFFFF, ls >> 16, ls & 0xFFFF))
     }
 }

@@ -122,7 +122,12 @@ fn theme_path(paths: &Paths, id: &str) -> Result<PathBuf, String> {
 }
 
 #[tauri::command]
-pub fn theme_save(app: AppHandle, paths: State<'_, Paths>, watch: State<'_, ConfigWatch>, theme: Value) -> Result<(), String> {
+pub fn theme_save(
+    app: AppHandle,
+    paths: State<'_, Paths>,
+    watch: State<'_, ConfigWatch>,
+    theme: Value,
+) -> Result<(), String> {
     let id = theme.get("id").and_then(Value::as_str).ok_or("theme needs an id")?;
     let path = theme_path(&paths, id)?;
     let mut theme = theme.clone();
@@ -197,11 +202,7 @@ pub async fn background_import(app: AppHandle, path: String) -> Result<String, S
 
 fn import_background(paths: &Paths, path: &str) -> Result<String, String> {
     let src = PathBuf::from(path);
-    let ext = src
-        .extension()
-        .and_then(|e| e.to_str())
-        .map(|e| e.to_ascii_lowercase())
-        .unwrap_or_default();
+    let ext = src.extension().and_then(|e| e.to_str()).map(|e| e.to_ascii_lowercase()).unwrap_or_default();
     if !["png", "jpg", "jpeg", "gif", "webp", "bmp", "avif"].contains(&ext.as_str()) {
         return Err("unsupported image type".into());
     }
@@ -223,10 +224,7 @@ pub fn data_dir(paths: State<'_, Paths>) -> String {
 #[tauri::command]
 pub fn plugin_storage_get(paths: State<'_, Paths>, plugin_id: String) -> Result<Value, String> {
     let p = paths.plugin_data().join(format!("{}.json", safe_key(&plugin_id)?));
-    Ok(fs::read(p)
-        .ok()
-        .and_then(|b| serde_json::from_slice(&b).ok())
-        .unwrap_or(Value::Object(Default::default())))
+    Ok(fs::read(p).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or(Value::Object(Default::default())))
 }
 
 #[tauri::command]

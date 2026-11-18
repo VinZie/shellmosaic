@@ -140,7 +140,9 @@
   background: color-mix(in srgb, var(--success) 14%, transparent);
   color: var(--success);
   cursor: pointer;
-  transition: background 0.12s, transform 0.12s;
+  transition:
+    background 0.12s,
+    transform 0.12s;
 }
 .tasks-play:hover {
   background: var(--success);

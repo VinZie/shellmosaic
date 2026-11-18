@@ -51,7 +51,19 @@ export function Hl({ text }: { text: string }) {
     return text.split(new RegExp(`(${t.map(escapeRe).join("|")})`, "gi"));
   }, [q, text]);
   if (!parts) return <>{text}</>;
-  return <>{parts.map((p, i) => (i % 2 ? <mark key={i} className="hl">{p}</mark> : p))}</>;
+  return (
+    <>
+      {parts.map((p, i) =>
+        i % 2 ? (
+          <mark key={i} className="hl">
+            {p}
+          </mark>
+        ) : (
+          p
+        ),
+      )}
+    </>
+  );
 }
 
 // ── layout ────────────────────────────────────────────────────────────────
@@ -79,10 +91,14 @@ export function Section({
   const go = useContext(NavCtx);
   const reset = async () => {
     if (!onReset) return;
-    const ok = await ui.confirm(`Reset ${title.toLowerCase()} settings?`, resetHint ?? `Everything in ${title} goes back to its default.`, {
-      okLabel: "Reset",
-      danger: true,
-    });
+    const ok = await ui.confirm(
+      `Reset ${title.toLowerCase()} settings?`,
+      resetHint ?? `Everything in ${title} goes back to its default.`,
+      {
+        okLabel: "Reset",
+        danger: true,
+      },
+    );
     if (!ok) return;
     onReset();
     ui.toast(`${title} settings reset`, "success", 2200);
@@ -166,12 +182,23 @@ export interface RowProps {
 }
 
 /** label + description on the left, control on the right. Hidden when it doesn't match the search. */
-export function Row({ label, desc, keywords, stack, disabled, children, onLabelClick }: RowProps & { children?: ReactNode; onLabelClick?: () => void }) {
+export function Row({
+  label,
+  desc,
+  keywords,
+  stack,
+  disabled,
+  children,
+  onLabelClick,
+}: RowProps & { children?: ReactNode; onLabelClick?: () => void }) {
   const match = useMatch(label, typeof desc === "string" ? desc : undefined, keywords);
   if (!match) return null;
   return (
     <div className={cx("setting-row setting-hit", stack && "stack", disabled && "disabled")}>
-      <div className={cx("setting-text", onLabelClick && !disabled && "clickable")} onClick={disabled ? undefined : onLabelClick}>
+      <div
+        className={cx("setting-text", onLabelClick && !disabled && "clickable")}
+        onClick={disabled ? undefined : onLabelClick}
+      >
         <div className="setting-label">
           <Hl text={label} />
         </div>
@@ -183,7 +210,17 @@ export function Row({ label, desc, keywords, stack, disabled, children, onLabelC
 }
 
 /** Free-form block that takes part in search like a row. */
-export function Searchable({ label, keywords, className, children }: { label: string; keywords?: string; className?: string; children: ReactNode }) {
+export function Searchable({
+  label,
+  keywords,
+  className,
+  children,
+}: {
+  label: string;
+  keywords?: string;
+  className?: string;
+  children: ReactNode;
+}) {
   const match = useMatch(label, keywords);
   if (!match) return null;
   return <div className={cx("setting-block setting-hit", className)}>{children}</div>;
@@ -198,7 +235,17 @@ export interface Opt<T> {
   title?: string;
 }
 
-export function Switch({ value, onChange, disabled, title }: { value: boolean; onChange: (v: boolean) => void; disabled?: boolean; title?: string }) {
+export function Switch({
+  value,
+  onChange,
+  disabled,
+  title,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+  title?: string;
+}) {
   return (
     <button
       type="button"
@@ -260,7 +307,14 @@ export function Segmented<T extends string | number>({
   return (
     <div className={cx("segmented", disabled && "disabled")}>
       {options.map((o) => (
-        <button type="button" key={String(o.value)} className={cx(o.value === value && "on")} title={o.title} disabled={disabled} onClick={() => onChange(o.value)}>
+        <button
+          type="button"
+          key={String(o.value)}
+          className={cx(o.value === value && "on")}
+          title={o.title}
+          disabled={disabled}
+          onClick={() => onChange(o.value)}
+        >
           {o.icon && <Icon name={o.icon} size={13} />}
           {o.label}
         </button>
@@ -290,7 +344,15 @@ export function Slider({
 }) {
   return (
     <div className="slider-control" style={{ width }}>
-      <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e) => onChange(Number(e.target.value))} />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
       <output>{format ? format(value) : value}</output>
     </div>
   );
@@ -420,15 +482,35 @@ export function ColorInput({
   return (
     <div className="swatch-row color-input">
       {allowNone && (
-        <button type="button" className={cx("swatch big none", !value && "selected")} title={noneLabel} onClick={() => onChange(null)}>
+        <button
+          type="button"
+          className={cx("swatch big none", !value && "selected")}
+          title={noneLabel}
+          onClick={() => onChange(null)}
+        >
           <Icon name="x" size={12} />
         </button>
       )}
       {swatches.map((c) => (
-        <button type="button" key={c} className={cx("swatch big", v === c.toLowerCase() && "selected")} style={{ background: c }} title={c} onClick={() => onChange(c)} />
+        <button
+          type="button"
+          key={c}
+          className={cx("swatch big", v === c.toLowerCase() && "selected")}
+          style={{ background: c }}
+          title={c}
+          onClick={() => onChange(c)}
+        />
       ))}
-      <label className={cx("swatch big custom", custom && "selected filled")} title="Custom color…" style={custom ? { background: value! } : undefined}>
-        <input type="color" value={toHex6(value || cssVar("--accent") || "#808080")} onChange={(e) => onChange(e.target.value)} />
+      <label
+        className={cx("swatch big custom", custom && "selected filled")}
+        title="Custom color…"
+        style={custom ? { background: value! } : undefined}
+      >
+        <input
+          type="color"
+          value={toHex6(value || cssVar("--accent") || "#808080")}
+          onChange={(e) => onChange(e.target.value)}
+        />
         {!custom && <Icon name="palette" size={13} />}
       </label>
       {value && <code className="color-code">{value}</code>}
@@ -437,7 +519,15 @@ export function ColorInput({
 }
 
 /** Text field with quick-pick chips underneath (fonts). */
-export function FontField({ value, onChange, picks }: { value: string; onChange: (v: string) => void; picks: { label: string; value: string }[] }) {
+export function FontField({
+  value,
+  onChange,
+  picks,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  picks: { label: string; value: string }[];
+}) {
   const first = firstFamily(value);
   return (
     <div className="font-field">
@@ -461,7 +551,10 @@ export function FontField({ value, onChange, picks }: { value: string; onChange:
 }
 
 export function firstFamily(s: string): string {
-  return (s.split(",")[0] ?? "").trim().replace(/^["']|["']$/g, "").toLowerCase();
+  return (s.split(",")[0] ?? "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .toLowerCase();
 }
 
 /** Key combo rendered as <kbd> parts. */
@@ -492,7 +585,12 @@ export function ToggleSetting({ path, ...row }: Bound) {
   );
 }
 
-export function SelectSetting<T extends string | number>({ path, options, width, ...row }: Bound & { options: Opt<T>[]; width?: number }) {
+export function SelectSetting<T extends string | number>({
+  path,
+  options,
+  width,
+  ...row
+}: Bound & { options: Opt<T>[]; width?: number }) {
   const v = useSetting<T>(path);
   return (
     <Row {...row}>
@@ -521,34 +619,83 @@ export function SliderSetting({
   const v = useSetting<number>(path);
   return (
     <Row {...row}>
-      <Slider value={v} min={min} max={max} step={step} format={format} disabled={row.disabled} onChange={(x) => setSetting(path, x)} />
+      <Slider
+        value={v}
+        min={min}
+        max={max}
+        step={step}
+        format={format}
+        disabled={row.disabled}
+        onChange={(x) => setSetting(path, x)}
+      />
     </Row>
   );
 }
 
-export function NumberSetting({ path, min, max, step, suffix, width, ...row }: Bound & { min?: number; max?: number; step?: number; suffix?: string; width?: number }) {
+export function NumberSetting({
+  path,
+  min,
+  max,
+  step,
+  suffix,
+  width,
+  ...row
+}: Bound & { min?: number; max?: number; step?: number; suffix?: string; width?: number }) {
   const v = useSetting<number>(path);
   return (
     <Row {...row}>
-      <NumberInput value={v} min={min} max={max} step={step} suffix={suffix} width={width} onChange={(x) => setSetting(path, x)} />
+      <NumberInput
+        value={v}
+        min={min}
+        max={max}
+        step={step}
+        suffix={suffix}
+        width={width}
+        onChange={(x) => setSetting(path, x)}
+      />
     </Row>
   );
 }
 
-export function TextSetting({ path, placeholder, mono, width, ...row }: Bound & { placeholder?: string; mono?: boolean; width?: number | string }) {
+export function TextSetting({
+  path,
+  placeholder,
+  mono,
+  width,
+  ...row
+}: Bound & { placeholder?: string; mono?: boolean; width?: number | string }) {
   const v = useSetting<string>(path);
   return (
     <Row {...row}>
-      <TextInput value={v ?? ""} placeholder={placeholder} mono={mono} width={width} disabled={row.disabled} onChange={(x) => setSetting(path, x)} />
+      <TextInput
+        value={v ?? ""}
+        placeholder={placeholder}
+        mono={mono}
+        width={width}
+        disabled={row.disabled}
+        onChange={(x) => setSetting(path, x)}
+      />
     </Row>
   );
 }
 
-export function ColorSetting({ path, swatches, allowNone, noneLabel, ...row }: Bound & { swatches?: string[]; allowNone?: boolean; noneLabel?: string }) {
+export function ColorSetting({
+  path,
+  swatches,
+  allowNone,
+  noneLabel,
+  ...row
+}: Bound & { swatches?: string[]; allowNone?: boolean; noneLabel?: string }) {
   const v = useSetting<string | null>(path);
   return (
     <Row {...row}>
-      <ColorInput value={v} swatches={swatches} allowNone={allowNone} noneLabel={noneLabel} onChange={(x) => setSetting(path, x)} />
+      <ColorInput
+        value={v}
+        swatches={swatches}
+        allowNone={allowNone}
+        noneLabel={noneLabel}
+        onChange={(x) => setSetting(path, x)}
+      />
     </Row>
   );
 }

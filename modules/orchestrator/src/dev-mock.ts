@@ -72,11 +72,27 @@ function changed() {
   listeners.forEach((l) => l({ rev: W.rev }));
 }
 
-function log(runId: string, agentId: string | null, taskId: string | null, kind: string, text: string, lead = false, t = Date.now()) {
+function log(
+  runId: string,
+  agentId: string | null,
+  taskId: string | null,
+  kind: string,
+  text: string,
+  lead = false,
+  t = Date.now(),
+) {
   W.activity.push({ seq: ++W.seq, t, runId, agentId, taskId, kind, text, ...(lead ? { lead: true } : {}) });
 }
 
-function agent(run: AgentRun, slot: string, model: string, modelId: string | null, effort: string, state: AgentState, extra: Partial<Agent> = {}): Agent {
+function agent(
+  run: AgentRun,
+  slot: string,
+  model: string,
+  modelId: string | null,
+  effort: string,
+  state: AgentState,
+  extra: Partial<Agent> = {},
+): Agent {
   const lead = slot === "lead";
   return {
     id: `${run.id}-${slot}`,
@@ -121,34 +137,89 @@ interface Seed {
 const SEEDS: Seed[] = [
   {
     title: "Add a cursor blink-rate setting",
-    description: "Settings → Terminal: a blink rate (slow / normal / fast) next to \"Cursor blink\". Apply it live to every terminal. Add it to the settings schema with a default of normal.",
+    description:
+      'Settings → Terminal: a blink rate (slow / normal / fast) next to "Cursor blink". Apply it live to every terminal. Add it to the settings schema with a default of normal.',
     difficulty: 1,
     status: "done",
     who: "w2",
-    summary: "Added terminal.cursorBlinkRate (slow/normal/fast, default normal) to the schema and the Terminal section; termRegistry applies it live. pnpm typecheck passes.",
+    summary:
+      "Added terminal.cursorBlinkRate (slow/normal/fast, default normal) to the schema and the Terminal section; termRegistry applies it live. pnpm typecheck passes.",
   },
   {
     title: "Fix tab drag ghost on high-DPI screens",
-    description: "Dragging a tab on a 150% display shows the ghost image offset by the scale. Use devicePixelRatio in the drag layer. Check at 100%, 125% and 150%.",
+    description:
+      "Dragging a tab on a 150% display shows the ghost image offset by the scale. Use devicePixelRatio in the drag layer. Check at 100%, 125% and 150%.",
     difficulty: 2,
     status: "done",
     who: "w1",
-    summary: "The drag layer positioned the ghost in device pixels. Divided by devicePixelRatio in dnd.ts; checked by hand at 100/125/150%.",
+    summary:
+      "The drag layer positioned the ghost in device pixels. Divided by devicePixelRatio in dnd.ts; checked by hand at 100/125/150%.",
   },
-  { title: "Extract pane layout helpers into layout.ts", description: "Move the split-tree functions out of model.ts.", difficulty: 2, status: "done", who: "w2", summary: "Moved 9 pure functions to layout.ts with their tests; model.ts re-exports the types. No behavior change." },
-  { title: "Write tests for the routing table", description: "Unit tests for Routing.sanitized() and level().", difficulty: 2, status: "done", who: "w1", summary: "8 tests: clamping, missing levels filled from defaults, opus cap above max workers." },
-  { title: "Make the module store retry downloads", description: "Retry a failed module download twice with backoff before reporting it.", difficulty: 3, status: "done", who: "w3", summary: "Two retries with 1 s and 3 s backoff; the error names the file that failed." },
-  { title: "Event Viewer: remember column widths per channel", description: "", difficulty: 2, status: "done", who: "w2", summary: "Column state is keyed by channel now." },
-  { title: "Speed up the Files pane for 10 000-entry folders", description: "Profile, then virtualize the list.", difficulty: 4, status: "done", who: "w3", summary: "Virtualized the list (render ~60 rows); first paint of C:\\Windows\\WinSxS went from 2.3 s to 140 ms." },
-  { title: "Debounce Git status refreshes", description: "", difficulty: 1, status: "done", who: "w2", summary: "One refresh per 400 ms burst of file events." },
-  { title: "SFTP: keep the transfer list after reconnecting", description: "", difficulty: 2, status: "done", who: "w1", summary: "The list lives in the pane state now." },
+  {
+    title: "Extract pane layout helpers into layout.ts",
+    description: "Move the split-tree functions out of model.ts.",
+    difficulty: 2,
+    status: "done",
+    who: "w2",
+    summary: "Moved 9 pure functions to layout.ts with their tests; model.ts re-exports the types. No behavior change.",
+  },
+  {
+    title: "Write tests for the routing table",
+    description: "Unit tests for Routing.sanitized() and level().",
+    difficulty: 2,
+    status: "done",
+    who: "w1",
+    summary: "8 tests: clamping, missing levels filled from defaults, opus cap above max workers.",
+  },
+  {
+    title: "Make the module store retry downloads",
+    description: "Retry a failed module download twice with backoff before reporting it.",
+    difficulty: 3,
+    status: "done",
+    who: "w3",
+    summary: "Two retries with 1 s and 3 s backoff; the error names the file that failed.",
+  },
+  {
+    title: "Event Viewer: remember column widths per channel",
+    description: "",
+    difficulty: 2,
+    status: "done",
+    who: "w2",
+    summary: "Column state is keyed by channel now.",
+  },
+  {
+    title: "Speed up the Files pane for 10 000-entry folders",
+    description: "Profile, then virtualize the list.",
+    difficulty: 4,
+    status: "done",
+    who: "w3",
+    summary: "Virtualized the list (render ~60 rows); first paint of C:\\Windows\\WinSxS went from 2.3 s to 140 ms.",
+  },
+  {
+    title: "Debounce Git status refreshes",
+    description: "",
+    difficulty: 1,
+    status: "done",
+    who: "w2",
+    summary: "One refresh per 400 ms burst of file events.",
+  },
+  {
+    title: "SFTP: keep the transfer list after reconnecting",
+    description: "",
+    difficulty: 2,
+    status: "done",
+    who: "w1",
+    summary: "The list lives in the pane state now.",
+  },
   {
     title: "Agents tab: show context window use",
-    description: "A Context column in the Orchestrator's Agents table, from the statusLine's context_window.used_percentage.",
+    description:
+      "A Context column in the Orchestrator's Agents table, from the statusLine's context_window.used_percentage.",
     difficulty: 2,
     status: "review",
     who: "w2",
-    summary: "Added the Context column (hidden until an agent reports it) and a row in the details. Verified with the dev mock; typecheck clean.",
+    summary:
+      "Added the Context column (hidden until an agent reports it) and a row in the details. Verified with the dev mock; typecheck clean.",
   },
   {
     title: "Rework the restore marker for alt-screen apps",
@@ -156,7 +227,8 @@ const SEEDS: Seed[] = [
     difficulty: 4,
     status: "review",
     who: "w3",
-    summary: "Reset modes before the marker, ?1049l only when the alt screen is active; replay at the saved size. Tested with headless xterm.js against recordings of vim and Claude Code.",
+    summary:
+      "Reset modes before the marker, ?1049l only when the alt screen is active; replay at the saved size. Tested with headless xterm.js against recordings of vim and Claude Code.",
     attempts: 2,
     failures: 1,
   },
@@ -166,23 +238,68 @@ const SEEDS: Seed[] = [
     difficulty: 3,
     status: "failed",
     who: "w1",
-    summary: "Blocked: QueryServiceStatusEx needs SERVICE_QUERY_STATUS per service, and enumerating every service on each refresh is too slow (~900 ms). Needs a cache design decision from the lead.",
+    summary:
+      "Blocked: QueryServiceStatusEx needs SERVICE_QUERY_STATUS per service, and enumerating every service on each refresh is too slow (~900 ms). Needs a cache design decision from the lead.",
     attempts: 2,
     failures: 2,
   },
-  { title: "Keyboard shortcut cheat sheet", description: "A searchable overlay of every shortcut (F1).", difficulty: 2, status: "working", who: "w1" },
-  { title: "Theme editor: import VS Code themes", description: "Map a VS Code color theme JSON to our theme keys.", difficulty: 3, status: "working", who: "w3" },
+  {
+    title: "Keyboard shortcut cheat sheet",
+    description: "A searchable overlay of every shortcut (F1).",
+    difficulty: 2,
+    status: "working",
+    who: "w1",
+  },
+  {
+    title: "Theme editor: import VS Code themes",
+    description: "Map a VS Code color theme JSON to our theme keys.",
+    difficulty: 3,
+    status: "working",
+    who: "w3",
+  },
   { title: "Notes: export a note as PDF", description: "", difficulty: 2, status: "queued" },
   { title: "Process Inspector: copy a thread's stack", description: "", difficulty: 3, status: "queued" },
-  { title: "Workspace templates", description: "Save a workspace's tabs and panes as a template; new workspaces can start from one.", difficulty: 4, status: "queued" },
-  { title: "Rename the \"magnify\" command to \"zoom pane\"", description: "", difficulty: 1, status: "queued" },
+  {
+    title: "Workspace templates",
+    description: "Save a workspace's tabs and panes as a template; new workspaces can start from one.",
+    difficulty: 4,
+    status: "queued",
+  },
+  { title: 'Rename the "magnify" command to "zoom pane"', description: "", difficulty: 1, status: "queued" },
   { title: "Log viewer: follow log rotation", description: "", difficulty: 3, status: "queued" },
   { title: "Tab overflow menu", description: "", difficulty: 2, status: "cancelled", summary: undefined },
   { title: "Try a Rust-side pane layout engine", description: "", difficulty: 5, status: "cancelled" },
-  { title: "Follow-up: cheat sheet search ranks prefixes first", description: "", difficulty: 1, status: "queued", followUpOf: "t13" },
-  { title: "Status bar clock option", description: "", difficulty: 1, status: "done", who: "w2", summary: "Added; off by default." },
-  { title: "Fix the about dialog in light themes", description: "", difficulty: 1, status: "done", who: "w2", summary: "The logo used a hard-coded white; it follows --text now." },
-  { title: "Port scanner: owning service (cached)", description: "Cache service lookups for 30 s, as the lead decided.", difficulty: 3, status: "assigned", who: "w1", followUpOf: "t12" },
+  {
+    title: "Follow-up: cheat sheet search ranks prefixes first",
+    description: "",
+    difficulty: 1,
+    status: "queued",
+    followUpOf: "t13",
+  },
+  {
+    title: "Status bar clock option",
+    description: "",
+    difficulty: 1,
+    status: "done",
+    who: "w2",
+    summary: "Added; off by default.",
+  },
+  {
+    title: "Fix the about dialog in light themes",
+    description: "",
+    difficulty: 1,
+    status: "done",
+    who: "w2",
+    summary: "The logo used a hard-coded white; it follows --text now.",
+  },
+  {
+    title: "Port scanner: owning service (cached)",
+    description: "Cache service lookups for 30 s, as the lead decided.",
+    difficulty: 3,
+    status: "assigned",
+    who: "w1",
+    followUpOf: "t12",
+  },
 ];
 
 function seed() {
@@ -191,16 +308,35 @@ function seed() {
     W.usage = {
       rateLimits: {
         five_hour: { used_percentage: usagePct, resets_at: Math.round((NOW + 2.2 * HOUR) / 1000) },
-        seven_day: { used_percentage: Math.min(100, Math.round(usagePct * 0.55)), resets_at: Math.round((NOW + 3.6 * 24 * HOUR) / 1000) },
+        seven_day: {
+          used_percentage: Math.min(100, Math.round(usagePct * 0.55)),
+          resets_at: Math.round((NOW + 3.6 * 24 * HOUR) / 1000),
+        },
       },
       at: NOW - 40_000,
     };
   }
 
   // an earlier team, stopped yesterday
-  const old: AgentRun = { id: "a1b2c3", name: "website", workspaceId: "dev", tabId: null, root: "C:\\Users\\dev\\src\\website", baseBranch: "main", status: "stopped", leadId: "a1b2c3-lead", createdAt: NOW - 26 * HOUR };
+  const old: AgentRun = {
+    id: "a1b2c3",
+    name: "website",
+    workspaceId: "dev",
+    tabId: null,
+    root: "C:\\Users\\dev\\src\\website",
+    baseBranch: "main",
+    status: "stopped",
+    leadId: "a1b2c3-lead",
+    createdAt: NOW - 26 * HOUR,
+  };
   W.runs.push(old);
-  W.agents.push(agent(old, "lead", "opus", "claude-opus-5-5", "high", "stopped", { costUsd: 6.1, contextPct: 64, lastMessage: "Everything is merged into orch/integration. Merge it into main when you're ready." }));
+  W.agents.push(
+    agent(old, "lead", "opus", "claude-opus-5-5", "high", "stopped", {
+      costUsd: 6.1,
+      contextPct: 64,
+      lastMessage: "Everything is merged into orch/integration. Merge it into main when you're ready.",
+    }),
+  );
   W.agents.push(agent(old, "w1", "sonnet", "claude-sonnet-5-5", "medium", "exited", { costUsd: 1.9 }));
   for (const [title, st] of [
     ["Landing page: new hero section", "done"],
@@ -209,7 +345,21 @@ function seed() {
     ["Dark mode for the docs", "failed"],
   ] as const) {
     W.nextTask++;
-    W.tasks.push(task(old, `t${W.nextTask}`, { title, description: "", difficulty: 2, status: st, who: "w1", summary: st === "done" ? "Done and checked." : "Ran out of time." }, NOW - 25 * HOUR));
+    W.tasks.push(
+      task(
+        old,
+        `t${W.nextTask}`,
+        {
+          title,
+          description: "",
+          difficulty: 2,
+          status: st,
+          who: "w1",
+          summary: st === "done" ? "Done and checked." : "Ran out of time.",
+        },
+        NOW - 25 * HOUR,
+      ),
+    );
   }
   log(old.id, null, null, "run.start", `Started the team in ${old.root}`, false, NOW - 26 * HOUR);
   log(old.id, null, null, "run.stop", "Stopped the team", false, NOW - 22 * HOUR);
@@ -218,25 +368,65 @@ function seed() {
 
   if (SCENARIO === "trust" || SCENARIO === "slow") {
     // a team just started in a folder Claude Code doesn't trust yet, or one slow to start
-    const run: AgentRun = { id: "5d0c4b", name: "research", workspaceId: "dev", tabId: "tab-team", root: "C:\\Users\\dev\\src\\research", baseBranch: "master", status: "active", leadId: "5d0c4b-lead", createdAt: NOW - 40_000 };
+    const run: AgentRun = {
+      id: "5d0c4b",
+      name: "research",
+      workspaceId: "dev",
+      tabId: "tab-team",
+      root: "C:\\Users\\dev\\src\\research",
+      baseBranch: "master",
+      status: "active",
+      leadId: "5d0c4b-lead",
+      createdAt: NOW - 40_000,
+    };
     W.runs.push(run);
-    const lead = agent(run, "lead", "opus", null, "high", SCENARIO === "trust" ? "waiting" : "starting", { contextPct: null, costUsd: null, used: false, stateSince: NOW - 30_000 });
+    const lead = agent(run, "lead", "opus", null, "high", SCENARIO === "trust" ? "waiting" : "starting", {
+      contextPct: null,
+      costUsd: null,
+      used: false,
+      stateSince: NOW - 30_000,
+    });
     W.agents.push(lead);
     log(run.id, lead.id, null, "run.start", `Started the team in ${run.root}`, false, run.createdAt);
-    if (SCENARIO === "trust") req(run, lead, "permission", "Trust", `trust the folder ${run.root}`, { folder: run.root }, false, NOW - 28_000);
-    else log(run.id, lead.id, null, "agent.slow", "Lead hasn't started after 20 s. Look at its pane: Claude Code may be waiting for you there.", false, NOW - 10_000);
+    if (SCENARIO === "trust")
+      req(run, lead, "permission", "Trust", `trust the folder ${run.root}`, { folder: run.root }, false, NOW - 28_000);
+    else
+      log(
+        run.id,
+        lead.id,
+        null,
+        "agent.slow",
+        "Lead hasn't started after 20 s. Look at its pane: Claude Code may be waiting for you there.",
+        false,
+        NOW - 10_000,
+      );
     return;
   }
 
-  const run: AgentRun = { id: "7f3e9a", name: "shellmosaic", workspaceId: "dev", tabId: "tab-team", root: ROOT, baseBranch: "main", status: "active", leadId: "7f3e9a-lead", createdAt: NOW - 2 * HOUR };
+  const run: AgentRun = {
+    id: "7f3e9a",
+    name: "shellmosaic",
+    workspaceId: "dev",
+    tabId: "tab-team",
+    root: ROOT,
+    baseBranch: "main",
+    status: "active",
+    leadId: "7f3e9a-lead",
+    createdAt: NOW - 2 * HOUR,
+  };
   W.runs.push(run);
   const lead = agent(run, "lead", "opus", "claude-opus-5-5", "high", "working", {
     contextPct: 38,
     costUsd: 4.27,
-    lastMessage: "Assigned t17 (cheat sheet) to Worker 1 and t18 (VS Code themes) to Worker 3. t14 and t15 are finished and waiting for review.",
+    lastMessage:
+      "Assigned t17 (cheat sheet) to Worker 1 and t18 (VS Code themes) to Worker 3. t14 and t15 are finished and waiting for review.",
   });
   const w1 = agent(run, "w1", "sonnet", "claude-sonnet-5-5", "medium", "waiting", { contextPct: 22, costUsd: 1.12 });
-  const w2 = agent(run, "w2", "haiku", "claude-haiku-5-5", "medium", "idle", { contextPct: 9, costUsd: 0.18, lastMessage: "Done: the Context column is in, typecheck is clean. Committed as 4c1d2e0." });
+  const w2 = agent(run, "w2", "haiku", "claude-haiku-5-5", "medium", "idle", {
+    contextPct: 9,
+    costUsd: 0.18,
+    lastMessage: "Done: the Context column is in, typecheck is clean. Committed as 4c1d2e0.",
+  });
   const w3 = agent(run, "w3", "opus", "claude-opus-5-5", "high", "working", { contextPct: 47, costUsd: 3.05 });
   W.agents.push(lead, w1, w2, w3);
 
@@ -248,10 +438,46 @@ function seed() {
     const t = task(run, id, fixed, NOW - 2 * HOUR + i * 4 * MIN);
     W.tasks.push(t);
     log(run.id, null, id, "task.created", `New task ${id}: ${t.title}`, false, t.createdAt);
-    if (t.assignee) log(run.id, t.assignee, id, "task.assigned", `${id} → ${W.agents.find((a) => a.id === t.assignee)?.name} (${t.model})`, false, t.createdAt + MIN);
-    if (t.status === "done") log(run.id, t.assignee, id, "task.done", `Accepted ${id}: Merged orch/${run.id}/${id} into orch/integration.`, false, t.updatedAt);
-    if (t.status === "review") log(run.id, t.assignee, id, "task.review", `${W.agents.find((a) => a.id === t.assignee)?.name} finished ${id} "${t.title}": ${t.summary}`, true, t.updatedAt);
-    if (t.status === "failed") log(run.id, t.assignee, id, "task.blocked", `${W.agents.find((a) => a.id === t.assignee)?.name} is blocked on ${id} "${t.title}": ${t.summary}`, true, t.updatedAt);
+    if (t.assignee)
+      log(
+        run.id,
+        t.assignee,
+        id,
+        "task.assigned",
+        `${id} → ${W.agents.find((a) => a.id === t.assignee)?.name} (${t.model})`,
+        false,
+        t.createdAt + MIN,
+      );
+    if (t.status === "done")
+      log(
+        run.id,
+        t.assignee,
+        id,
+        "task.done",
+        `Accepted ${id}: Merged orch/${run.id}/${id} into orch/integration.`,
+        false,
+        t.updatedAt,
+      );
+    if (t.status === "review")
+      log(
+        run.id,
+        t.assignee,
+        id,
+        "task.review",
+        `${W.agents.find((a) => a.id === t.assignee)?.name} finished ${id} "${t.title}": ${t.summary}`,
+        true,
+        t.updatedAt,
+      );
+    if (t.status === "failed")
+      log(
+        run.id,
+        t.assignee,
+        id,
+        "task.blocked",
+        `${W.agents.find((a) => a.id === t.assignee)?.name} is blocked on ${id} "${t.title}": ${t.summary}`,
+        true,
+        t.updatedAt,
+      );
   });
   const byTitle = (s: string) => W.tasks.find((t) => t.runId === run.id && t.title.startsWith(s))!;
   w1.taskId = byTitle("Keyboard shortcut").id;
@@ -262,19 +488,87 @@ function seed() {
   w2.branch = byTitle("Agents tab").branch;
 
   // requests: two waiting for you, one for the lead, and a history
-  req(run, w1, "permission", "Bash", "run `cargo test -p shellmosaic --lib agents`", { command: "cargo test -p shellmosaic --lib agents", description: "Run the agents unit tests" }, true, NOW - 70_000);
-  req(run, w3, "question", null, "The VS Code theme has 300+ token colors but we only have 16 ANSI slots. Should I map the closest token colors to ANSI, or only import the editor/terminal colors and leave syntax colors out?", null, false, NOW - 3 * MIN);
-  req(run, w1, "permission", "WebFetch", "fetch https://code.visualstudio.com/api/references/theme-color", { url: "https://code.visualstudio.com/api/references/theme-color", prompt: "List the terminal.* color keys" }, false, NOW - 20_000);
-  const hist: [Agent, "permission" | "question", string | null, string, AgentRequest["status"], string, string | null][] = [
+  req(
+    run,
+    w1,
+    "permission",
+    "Bash",
+    "run `cargo test -p shellmosaic --lib agents`",
+    { command: "cargo test -p shellmosaic --lib agents", description: "Run the agents unit tests" },
+    true,
+    NOW - 70_000,
+  );
+  req(
+    run,
+    w3,
+    "question",
+    null,
+    "The VS Code theme has 300+ token colors but we only have 16 ANSI slots. Should I map the closest token colors to ANSI, or only import the editor/terminal colors and leave syntax colors out?",
+    null,
+    false,
+    NOW - 3 * MIN,
+  );
+  req(
+    run,
+    w1,
+    "permission",
+    "WebFetch",
+    "fetch https://code.visualstudio.com/api/references/theme-color",
+    { url: "https://code.visualstudio.com/api/references/theme-color", prompt: "List the terminal.* color keys" },
+    false,
+    NOW - 20_000,
+  );
+  const hist: [
+    Agent,
+    "permission" | "question",
+    string | null,
+    string,
+    AgentRequest["status"],
+    string,
+    string | null,
+  ][] = [
     [w2, "permission", "PowerShell", "run `pnpm typecheck`", "allowed", "you", null],
-    [w3, "permission", "Write", "create C:\\Users\\dev\\src\\shellmosaic.wt\\w3\\scripts\\bench.ps1", "allowed", "terminal", null],
-    [w1, "permission", "Bash", "run `rm -rf node_modules && pnpm install`", "denied", "you", "Don't reinstall; pnpm install alone is enough."],
-    [w1, "question", null, "Should the cheat sheet include plugin shortcuts?", "answered", "lead", "Yes, under a separate heading per plugin."],
+    [
+      w3,
+      "permission",
+      "Write",
+      "create C:\\Users\\dev\\src\\shellmosaic.wt\\w3\\scripts\\bench.ps1",
+      "allowed",
+      "terminal",
+      null,
+    ],
+    [
+      w1,
+      "permission",
+      "Bash",
+      "run `rm -rf node_modules && pnpm install`",
+      "denied",
+      "you",
+      "Don't reinstall; pnpm install alone is enough.",
+    ],
+    [
+      w1,
+      "question",
+      null,
+      "Should the cheat sheet include plugin shortcuts?",
+      "answered",
+      "lead",
+      "Yes, under a separate heading per plugin.",
+    ],
     [w2, "permission", "PowerShell", "run `git stash`", "closed", "timeout", null],
     [lead, "permission", "PowerShell", "run `git log --oneline -20 orch/integration`", "allowed", "you", null],
   ];
   hist.forEach(([a, kind, tool, summary, status, by, answer], i) => {
-    const r = req(run, a, kind, tool, summary, tool === "Write" ? { file_path: summary.slice(7), content: "param([int]$n = 5)\n" } : null, false, NOW - (90 - i * 12) * MIN);
+    const r = req(
+      run,
+      a,
+      kind,
+      tool,
+      summary,
+      tool === "Write" ? { file_path: summary.slice(7), content: "param([int]$n = 5)\n" } : null,
+      false,
+      NOW - (90 - i * 12) * MIN,
+    );
     r.status = status;
     r.answeredBy = by;
     r.answer = answer;
@@ -291,12 +585,13 @@ function seed() {
 
 function task(run: AgentRun, id: string, s: Seed, created: number): AgentTask {
   const who = s.who ? `${run.id}-${s.who}` : null;
-  const model = who ? W.agents.find((a) => a.id === who)?.model ?? "sonnet" : null;
+  const model = who ? (W.agents.find((a) => a.id === who)?.model ?? "sonnet") : null;
   return {
     id,
     runId: run.id,
     title: s.title,
-    description: s.description || `${s.title}. Keep the change focused; verify with pnpm typecheck and by trying it in the app.`,
+    description:
+      s.description || `${s.title}. Keep the change focused; verify with pnpm typecheck and by trying it in the app.`,
     difficulty: s.difficulty,
     status: s.status,
     assignee: who,
@@ -311,7 +606,16 @@ function task(run: AgentRun, id: string, s: Seed, created: number): AgentTask {
   };
 }
 
-function req(run: AgentRun, a: Agent, kind: "permission" | "question", tool: string | null, summary: string, detail: unknown, suggestions: boolean, t: number): AgentRequest {
+function req(
+  run: AgentRun,
+  a: Agent,
+  kind: "permission" | "question",
+  tool: string | null,
+  summary: string,
+  detail: unknown,
+  suggestions: boolean,
+  t: number,
+): AgentRequest {
   const r: AgentRequest = {
     id: `r${++W.nextReq}`,
     runId: run.id,
@@ -320,7 +624,16 @@ function req(run: AgentRun, a: Agent, kind: "permission" | "question", tool: str
     tool,
     summary,
     detail,
-    suggestions: suggestions ? [{ type: "addRules", rules: [{ toolName: tool, ruleContent: "cargo test:*" }], behavior: "allow", destination: "session" }] : null,
+    suggestions: suggestions
+      ? [
+          {
+            type: "addRules",
+            rules: [{ toolName: tool, ruleContent: "cargo test:*" }],
+            behavior: "allow",
+            destination: "session",
+          },
+        ]
+      : null,
     status: "pending",
     answeredBy: null,
     answer: null,
@@ -328,7 +641,15 @@ function req(run: AgentRun, a: Agent, kind: "permission" | "question", tool: str
     answeredAt: null,
   };
   W.requests.push(r);
-  log(run.id, a.id, a.taskId, "request", kind === "permission" ? `${a.name} asks to ${summary} (${r.id})` : `${a.name} asks (${r.id}): ${summary}`, kind === "question", t);
+  log(
+    run.id,
+    a.id,
+    a.taskId,
+    "request",
+    kind === "permission" ? `${a.name} asks to ${summary} (${r.id})` : `${a.name} asks (${r.id}): ${summary}`,
+    kind === "question",
+    t,
+  );
   return r;
 }
 
@@ -359,7 +680,8 @@ function tick() {
     a.costUsd = (a.costUsd ?? 0) + 0.03;
   }
   const u = W.usage?.rateLimits.five_hour;
-  if (u?.used_percentage !== undefined && u.used_percentage < 99) u.used_percentage = Math.round((u.used_percentage + 0.15) * 100) / 100;
+  if (u?.used_percentage !== undefined && u.used_percentage < 99)
+    u.used_percentage = Math.round((u.used_percentage + 0.15) * 100) / 100;
 
   // a queued task starts on an idle worker
   if (ticks % 5 === 0) {
@@ -380,7 +702,14 @@ function tick() {
       busy.state = "idle";
       busy.stateSince = Date.now();
       busy.lastMessage = `Finished ${t.id}: ${t.summary}`;
-      log(run.id, busy.id, t.id, "task.review", `${busy.name} finished ${t.id} "${t.title}" [2 commit(s), 3 file(s), +84 −12]: ${t.summary}`, true);
+      log(
+        run.id,
+        busy.id,
+        t.id,
+        "task.review",
+        `${busy.name} finished ${t.id} "${t.title}" [2 commit(s), 3 file(s), +84 −12]: ${t.summary}`,
+        true,
+      );
     }
   }
   // the lead reviews
@@ -406,7 +735,16 @@ function tick() {
     if (a) {
       a.state = "waiting";
       a.stateSince = Date.now();
-      req(run, a, "permission", "PowerShell", `run \`${pick(["pnpm test", "cargo build --release", "git diff --stat"])}\``, { command: "pnpm test" }, Math.random() < 0.5, Date.now());
+      req(
+        run,
+        a,
+        "permission",
+        "PowerShell",
+        `run \`${pick(["pnpm test", "cargo build --release", "git diff --stat"])}\``,
+        { command: "pnpm test" },
+        Math.random() < 0.5,
+        Date.now(),
+      );
     }
   }
   for (const r of W.requests) {
@@ -514,7 +852,16 @@ function diffFor(t: AgentTask): TaskDiff {
 
 function preview(run: AgentRun): MergePreview {
   const done = W.tasks.filter((t) => t.runId === run.id && t.status === "done").length;
-  const files = ["src/state/settings.ts", "src/settings/sections/Terminal.tsx", "src/modules/terminal/termRegistry.ts", "src/lib/dnd.ts", "src/state/layout.ts", "src/state/model.ts", "src/modules/files/FilesPane.tsx", "src-tauri/src/store.rs"];
+  const files = [
+    "src/state/settings.ts",
+    "src/settings/sections/Terminal.tsx",
+    "src/modules/terminal/termRegistry.ts",
+    "src/lib/dnd.ts",
+    "src/state/layout.ts",
+    "src/state/model.ts",
+    "src/modules/files/FilesPane.tsx",
+    "src-tauri/src/store.rs",
+  ];
   return {
     base: run.baseBranch ?? "main",
     integration: "orch/integration",
@@ -543,15 +890,39 @@ export function install() {
     start: (o: { cwd?: string; name?: string } = {}) =>
       manage(() => {
         const cwd = (o.cwd ?? ROOT).trim();
-        if (q.has("elevated")) throw new Error("Shellmosaic runs as administrator, and its agents would too. Restart Shellmosaic normally to use the Orchestrator.");
-        if (/empty/i.test(cwd)) throw new Error("no-commits: the repository has no commits yet; commit something first");
-        if (/untrusted/i.test(cwd)) throw new Error("this repository's settings can run programs: trust it in the Git pane first (open a Git pane in " + cwd + ")");
+        if (q.has("elevated"))
+          throw new Error(
+            "Shellmosaic runs as administrator, and its agents would too. Restart Shellmosaic normally to use the Orchestrator.",
+          );
+        if (/empty/i.test(cwd))
+          throw new Error("no-commits: the repository has no commits yet; commit something first");
+        if (/untrusted/i.test(cwd))
+          throw new Error(
+            "this repository's settings can run programs: trust it in the Git pane first (open a Git pane in " +
+              cwd +
+              ")",
+          );
         if (!W.repos.has(cwd.toLowerCase())) throw new Error(`not-a-repo: ${cwd} isn't in a git repository`);
-        if (W.runs.some((r) => r.workspaceId === "dev" && r.status === "active")) throw new Error("This workspace already has a running team.");
+        if (W.runs.some((r) => r.workspaceId === "dev" && r.status === "active"))
+          throw new Error("This workspace already has a running team.");
         const id = Math.random().toString(16).slice(2, 8);
-        const run: AgentRun = { id, name: o.name || cwd.split("\\").pop() || "team", workspaceId: "dev", tabId: null, root: cwd, baseBranch: "main", status: "active", leadId: `${id}-lead`, createdAt: Date.now() };
+        const run: AgentRun = {
+          id,
+          name: o.name || cwd.split("\\").pop() || "team",
+          workspaceId: "dev",
+          tabId: null,
+          root: cwd,
+          baseBranch: "main",
+          status: "active",
+          leadId: `${id}-lead`,
+          createdAt: Date.now(),
+        };
         W.runs.push(run);
-        const lead = agent(run, "lead", W.routing.lead.model, null, W.routing.lead.effort, "starting", { contextPct: null, costUsd: null, lastMessage: null });
+        const lead = agent(run, "lead", W.routing.lead.model, null, W.routing.lead.effort, "starting", {
+          contextPct: null,
+          costUsd: null,
+          lastMessage: null,
+        });
         W.agents.push(lead);
         log(id, lead.id, null, "run.start", `Started the team in ${cwd}`);
         setTimeout(() => {
@@ -568,8 +939,10 @@ export function install() {
         const run = find(W.runs, runId, "run");
         run.status = "stopped";
         for (const a of W.agents.filter((x) => x.runId === runId)) a.state = "stopped";
-        for (const r of W.requests.filter((x) => x.runId === runId && x.status === "pending")) (r.status = "closed"), (r.answeredBy = "stopped");
-        for (const t of W.tasks.filter((x) => x.runId === runId && (x.status === "working" || x.status === "assigned"))) (t.status = "queued"), (t.assignee = null);
+        for (const r of W.requests.filter((x) => x.runId === runId && x.status === "pending"))
+          ((r.status = "closed"), (r.answeredBy = "stopped"));
+        for (const t of W.tasks.filter((x) => x.runId === runId && (x.status === "working" || x.status === "assigned")))
+          ((t.status = "queued"), (t.assignee = null));
         log(runId, null, null, "run.stop", "Stopped the team");
         return true;
       }),
@@ -587,7 +960,10 @@ export function install() {
         const used = W.agents.filter((a) => a.runId === runId && a.role === "worker").map((a) => a.slot);
         const slot = ["w1", "w2", "w3"].find((s) => !used.includes(s));
         if (!slot) throw new Error("The team is full (3 workers). Dismiss one or wait for one to finish.");
-        const a = agent(run, slot, o.model ?? "sonnet", null, "medium", "starting", { contextPct: null, costUsd: null });
+        const a = agent(run, slot, o.model ?? "sonnet", null, "medium", "starting", {
+          contextPct: null,
+          costUsd: null,
+        });
         W.agents.push(a);
         log(runId, a.id, null, "agent.hired", `Started ${a.name} (${a.model})`);
         return a;
@@ -596,7 +972,10 @@ export function install() {
       manage(() => {
         const a = find(W.agents, agentId, "agent");
         if (a.role === "lead") throw new Error("The lead can't be removed: stop the whole team instead.");
-        for (const t of W.tasks.filter((t) => t.assignee === agentId && (t.status === "working" || t.status === "assigned"))) (t.status = "queued"), (t.assignee = null);
+        for (const t of W.tasks.filter(
+          (t) => t.assignee === agentId && (t.status === "working" || t.status === "assigned"),
+        ))
+          ((t.status = "queued"), (t.assignee = null));
         W.agents = W.agents.filter((x) => x.id !== agentId);
         log(a.runId, null, a.taskId, "agent.removed", `Removed ${a.name}`, true);
         return true;
@@ -630,12 +1009,12 @@ export function install() {
         if (r.status !== "pending") throw new Error(`That request was already handled (${r.answeredBy ?? "closed"}).`);
         r.status = ans.allow === true ? "allowed" : ans.allow === false ? "denied" : "answered";
         r.answeredBy = "you";
-        r.answer = ans.always ? "always" : ans.text ?? null;
+        r.answer = ans.always ? "always" : (ans.text ?? null);
         r.answeredAt = Date.now();
         const a = W.agents.find((x) => x.id === r.agentId);
         if (a && r.tool === "Trust") {
           // trusted: the session starts; not trusted: the team stops
-          if (ans.allow) (a.state = "idle"), (a.stateSince = Date.now());
+          if (ans.allow) ((a.state = "idle"), (a.stateSince = Date.now()));
           else for (const x of W.agents.filter((x) => x.runId === a.runId)) x.state = "stopped";
           if (!ans.allow) find(W.runs, a.runId, "run").status = "stopped";
         } else if (a?.state === "waiting") a.state = "working";
@@ -669,13 +1048,18 @@ export function install() {
       manage(() => {
         const t = find(W.tasks, taskId, "task");
         const run = find(W.runs, t.runId, "run");
-        if (t.status !== "queued" && t.status !== "failed") throw new Error(`task ${t.id} is ${t.status}, not queued or failed.`);
+        if (t.status !== "queued" && t.status !== "failed")
+          throw new Error(`task ${t.id} is ${t.status}, not queued or failed.`);
         const level = W.routing.levels[Math.min(5, t.difficulty + (t.failures >= 2 ? 1 : 0)) - 1];
-        let w = agentId ? W.agents.find((a) => a.id === agentId || (a.runId === run.id && a.slot === agentId)) : W.agents.find((a) => a.runId === run.id && a.role === "worker" && !a.taskId && a.state !== "paused");
+        let w = agentId
+          ? W.agents.find((a) => a.id === agentId || (a.runId === run.id && a.slot === agentId))
+          : W.agents.find((a) => a.runId === run.id && a.role === "worker" && !a.taskId && a.state !== "paused");
         if (!w) {
           const used = W.agents.filter((a) => a.runId === run.id && a.role === "worker").map((a) => a.slot);
-          const slot = agentId && /^w[1-3]$/.test(agentId) ? agentId : ["w1", "w2", "w3"].find((s) => !used.includes(s));
-          if (!slot || used.length >= W.routing.maxWorkers) throw new Error("All workers are busy and the team is full.");
+          const slot =
+            agentId && /^w[1-3]$/.test(agentId) ? agentId : ["w1", "w2", "w3"].find((s) => !used.includes(s));
+          if (!slot || used.length >= W.routing.maxWorkers)
+            throw new Error("All workers are busy and the team is full.");
           w = agent(run, slot, level.model, null, level.effort, "starting", { contextPct: null, costUsd: null });
           W.agents.push(w);
           log(run.id, w.id, null, "agent.hired", `Started ${w.name} (${w.model})`);
@@ -689,7 +1073,7 @@ export function install() {
         const t = find(W.tasks, taskId, "task");
         t.status = "cancelled";
         t.updatedAt = Date.now();
-        for (const a of W.agents.filter((a) => a.taskId === taskId)) (a.taskId = null), (a.state = "idle");
+        for (const a of W.agents.filter((a) => a.taskId === taskId)) ((a.taskId = null), (a.state = "idle"));
         log(t.runId, t.assignee, t.id, "task.cancelled", `Cancelled ${t.id}`, true);
         return true;
       }),
@@ -697,7 +1081,10 @@ export function install() {
       manage(() => {
         const t = find(W.tasks, taskId, "task");
         if (accept) {
-          if (q.has("conflict")) throw new Error(`${t.branch} conflicts with orch/integration in: src/state/settings.ts. Ask the worker to merge orch/integration into its branch and resolve it (a follow-up task), then review again.`);
+          if (q.has("conflict"))
+            throw new Error(
+              `${t.branch} conflicts with orch/integration in: src/state/settings.ts. Ask the worker to merge orch/integration into its branch and resolve it (a follow-up task), then review again.`,
+            );
           t.status = "done";
           t.updatedAt = Date.now();
           log(t.runId, t.assignee, t.id, "task.done", `Accepted ${t.id}: Merged ${t.branch} into orch/integration.`);
@@ -707,13 +1094,14 @@ export function install() {
         t.attempts++;
         t.failures++;
         const w = W.agents.find((a) => a.id === t.assignee);
-        if (w) (w.taskId = t.id), (w.state = "working");
+        if (w) ((w.taskId = t.id), (w.state = "working"));
         log(t.runId, t.assignee, t.id, "task.rework", `${t.id} sent back to ${w?.name ?? "its worker"}: ${note}`);
         return `Sent ${t.id} back to ${w?.name ?? "its worker"}.`;
       }),
     setRouting: (r: Routing, base?: Routing) =>
       manage(() => {
-        if (base && JSON.stringify(base) !== JSON.stringify(W.routing)) throw new Error("The routing changed meanwhile; look at it again.");
+        if (base && JSON.stringify(base) !== JSON.stringify(W.routing))
+          throw new Error("The routing changed meanwhile; look at it again.");
         W.routing = structuredClone(r);
         return W.routing;
       }),
@@ -726,9 +1114,19 @@ export function install() {
       manage(() => {
         const run = find(W.runs, runId, "run");
         const p = preview(run);
-        if (p.current !== p.base) throw new Error(`Your repository is on ${p.current} now; switch it back to ${p.base} to merge the team's work into it.`);
+        if (p.current !== p.base)
+          throw new Error(
+            `Your repository is on ${p.current} now; switch it back to ${p.base} to merge the team's work into it.`,
+          );
         if (p.conflicts.length) throw new Error("orch/integration conflicts with main.");
-        log(runId, null, null, "run.merged", `Merged ${p.commits} commit(s) from orch/integration into ${p.base}.`, true);
+        log(
+          runId,
+          null,
+          null,
+          "run.merged",
+          `Merged ${p.commits} commit(s) from orch/integration into ${p.base}.`,
+          true,
+        );
         return `Merged ${p.commits} commit(s) from orch/integration into ${p.base}.`;
       }),
   };
@@ -741,7 +1139,10 @@ export function install() {
             {
               fetchedAt: Date.now(),
               plan: { subscription: "max", tier: "default_claude_max_20x" },
-              usage: { five_hour: { utilization: 37, resets_at: new Date(NOW + 3 * HOUR).toISOString() }, seven_day: { utilization: 19, resets_at: new Date(NOW + 4 * 24 * HOUR).toISOString() } },
+              usage: {
+                five_hour: { utilization: 37, resets_at: new Date(NOW + 3 * HOUR).toISOString() },
+                seven_day: { utilization: 19, resets_at: new Date(NOW + 4 * 24 * HOUR).toISOString() },
+              },
             },
             150,
           ),
@@ -754,8 +1155,19 @@ export function install() {
   const granted = ["agents.read", "agents.manage", "claude.usage"].filter((p) => !denied.includes(p));
   const onRequests = SCENARIO === "requests" || SCENARIO === "trust";
   const args = SCENARIO === "merge" ? { open: "merge" } : onRequests ? { tab: "requests" } : null;
-  const sdk = window.shellmosaic as unknown as { ready: Promise<PaneContext>; context: () => Promise<PaneContext>; on: (e: string, fn: (d: unknown) => void) => () => void };
-  const patch = <T extends PaneContext>(c: T): T => ({ ...c, grantedPermissions: granted, args, appVersion: APP, cwd: ROOT, state: onRequests ? { tab: "requests" } : c.state });
+  const sdk = window.shellmosaic as unknown as {
+    ready: Promise<PaneContext>;
+    context: () => Promise<PaneContext>;
+    on: (e: string, fn: (d: unknown) => void) => () => void;
+  };
+  const patch = <T extends PaneContext>(c: T): T => ({
+    ...c,
+    grantedPermissions: granted,
+    args,
+    appVersion: APP,
+    cwd: ROOT,
+    state: onRequests ? { tab: "requests" } : c.state,
+  });
   sdk.ready = sdk.ready.then(patch);
   const context = sdk.context;
   sdk.context = () => context().then(patch);

@@ -6,7 +6,21 @@ import { ui, useUi, type MenuItem } from "../state/ui";
 type Actionable = Extract<MenuItem, { label: string; type?: "item" }>;
 const isActionable = (i: MenuItem): i is Actionable => (i.type === undefined || i.type === "item") && !i.disabled;
 
-function MenuList({ items, x, y, depth, flip = false, onClose }: { items: MenuItem[]; x: number; y: number; depth: number; flip?: boolean; onClose: () => void }) {
+function MenuList({
+  items,
+  x,
+  y,
+  depth,
+  flip = false,
+  onClose,
+}: {
+  items: MenuItem[];
+  x: number;
+  y: number;
+  depth: number;
+  flip?: boolean;
+  onClose: () => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x, y, ready: false });
   const [active, setActive] = useState<number>(-1);
@@ -80,7 +94,12 @@ function MenuList({ items, x, y, depth, flip = false, onClose }: { items: MenuIt
       >
         {items.map((it, i) => {
           if (it.type === "separator") return <div key={i} className="menu-sep" />;
-          if (it.type === "header") return <div key={i} className="menu-header">{it.label}</div>;
+          if (it.type === "header")
+            return (
+              <div key={i} className="menu-header">
+                {it.label}
+              </div>
+            );
           if (it.type === "swatches")
             return (
               <div key={i} className="menu-swatches">
@@ -104,7 +123,12 @@ function MenuList({ items, x, y, depth, flip = false, onClose }: { items: MenuIt
           return (
             <div
               key={i}
-              className={cx("menu-item", it.disabled && "disabled", it.danger && "danger", (active === i || sub?.index === i) && "active")}
+              className={cx(
+                "menu-item",
+                it.disabled && "disabled",
+                it.danger && "danger",
+                (active === i || sub?.index === i) && "active",
+              )}
               onMouseEnter={(e) => {
                 setActive(i);
                 clearTimeout(subTimer.current);
@@ -130,10 +154,13 @@ function MenuList({ items, x, y, depth, flip = false, onClose }: { items: MenuIt
           );
         })}
       </div>
-      {sub && (() => {
-        const it = items[sub.index];
-        return isActionable(it) && it.submenu ? <MenuList items={it.submenu} x={sub.x} y={sub.y} depth={depth + 1} flip={sub.flip} onClose={onClose} /> : null;
-      })()}
+      {sub &&
+        (() => {
+          const it = items[sub.index];
+          return isActionable(it) && it.submenu ? (
+            <MenuList items={it.submenu} x={sub.x} y={sub.y} depth={depth + 1} flip={sub.flip} onClose={onClose} />
+          ) : null;
+        })()}
     </>
   );
 }

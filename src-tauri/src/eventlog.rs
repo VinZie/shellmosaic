@@ -65,7 +65,12 @@ pub async fn eventlog_subscribe(
 
 /// Events written since the last poll, oldest first.
 #[tauri::command]
-pub async fn eventlog_poll(app: AppHandle, owner: String, subscription: u32, max: Option<u32>) -> Result<Vec<String>, String> {
+pub async fn eventlog_poll(
+    app: AppHandle,
+    owner: String,
+    subscription: u32,
+    max: Option<u32>,
+) -> Result<Vec<String>, String> {
     blocking(move || app.state::<EventLogs>().poll(&owner, subscription, max)).await?
 }
 

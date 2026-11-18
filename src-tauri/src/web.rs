@@ -18,7 +18,8 @@ fn label_for(pane_id: &str) -> Result<String, String> {
     }
 }
 
-const BLOCKED_HOSTS: &[&str] = &["tauri.localhost", "ipc.localhost", "asset.localhost", "smplugin.localhost", "smbg.localhost"];
+const BLOCKED_HOSTS: &[&str] =
+    &["tauri.localhost", "ipc.localhost", "asset.localhost", "smplugin.localhost", "smbg.localhost"];
 
 fn allowed(url: &Url) -> bool {
     match url.scheme() {
@@ -97,14 +98,10 @@ pub async fn web_open(
         })
         .on_page_load(move |_wv, payload| {
             let loading = matches!(payload.event(), PageLoadEvent::Started);
-            let _ = load_app.emit(
-                "web://load",
-                json!({ "paneId": load_pane, "url": payload.url().as_str(), "loading": loading }),
-            );
+            let _ = load_app
+                .emit("web://load", json!({ "paneId": load_pane, "url": payload.url().as_str(), "loading": loading }));
         });
-    window
-        .add_child(builder, LogicalPosition::new(x, y), LogicalSize::new(width.max(1.0), height.max(1.0)))
-        .s()?;
+    window.add_child(builder, LogicalPosition::new(x, y), LogicalSize::new(width.max(1.0), height.max(1.0))).s()?;
     Ok(url.to_string())
 }
 
@@ -120,7 +117,11 @@ pub fn web_bounds(app: AppHandle, pane_id: String, x: f64, y: f64, width: f64, h
 #[tauri::command]
 pub fn web_visible(app: AppHandle, pane_id: String, visible: bool) -> Result<(), String> {
     if let Some(wv) = app.get_webview(&label_for(&pane_id)?) {
-        if visible { wv.show().s()? } else { wv.hide().s()? }
+        if visible {
+            wv.show().s()?
+        } else {
+            wv.hide().s()?
+        }
     }
     Ok(())
 }

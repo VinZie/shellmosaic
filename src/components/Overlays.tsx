@@ -9,7 +9,18 @@ export function Toasts() {
     <div className="toasts">
       {toasts.map((t) => (
         <div key={t.id} className={cx("toast", `toast-${t.kind}`)}>
-          <Icon name={t.kind === "error" ? "warning" : t.kind === "success" ? "check" : t.kind === "warning" ? "warning" : "info"} size={15} />
+          <Icon
+            name={
+              t.kind === "error"
+                ? "warning"
+                : t.kind === "success"
+                  ? "check"
+                  : t.kind === "warning"
+                    ? "warning"
+                    : "info"
+            }
+            size={15}
+          />
           <span>{t.message}</span>
         </div>
       ))}
@@ -51,7 +62,14 @@ export function DragLayer() {
             : { left: r.left, top: r.bottom - r.height * t, width: r.width, height: r.height * t };
     hint = `Full ${s === "left" || s === "right" ? "height" : "width"}`;
   } else if (target?.kind === "workspace") {
-    hint = payload.kind === "workspace" ? "Reorder" : payload.kind === "tab" ? "Move tab here" : payload.kind === "pane" ? "Move to new tab here" : "Open here";
+    hint =
+      payload.kind === "workspace"
+        ? "Reorder"
+        : payload.kind === "tab"
+          ? "Move tab here"
+          : payload.kind === "pane"
+            ? "Move to new tab here"
+            : "Open here";
   } else if (target?.kind === "tab") {
     hint = payload.kind === "tab" ? "Reorder" : payload.kind === "pane" ? "Move into this tab" : "Add to this tab";
   } else if (target?.kind === "tabbar") {

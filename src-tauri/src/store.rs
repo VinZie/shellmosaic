@@ -322,7 +322,8 @@ fn verify(app: &AppHandle, data: &[u8], sig: &[u8]) -> Result<(), String> {
     let bad = || "The module catalog's signature is not valid. It was not installed.".to_string();
     let key_text = String::from_utf8(b64.decode(pubkey.trim()).map_err(|_| bad())?).map_err(|_| bad())?;
     let key = minisign_verify::PublicKey::decode(&key_text).map_err(|_| bad())?;
-    let sig_text = String::from_utf8(b64.decode(String::from_utf8_lossy(sig).trim()).map_err(|_| bad())?).map_err(|_| bad())?;
+    let sig_text =
+        String::from_utf8(b64.decode(String::from_utf8_lossy(sig).trim()).map_err(|_| bad())?).map_err(|_| bad())?;
     let signature = minisign_verify::Signature::decode(&sig_text).map_err(|_| bad())?;
     key.verify(data, &signature, true).map_err(|_| bad())
 }
@@ -331,14 +332,19 @@ async fn fetch_catalog(app: &AppHandle, store: &Store, branch: &str) -> Result<C
     let src = resolve(store, branch).await;
     let missing = || format!("No optional modules are published for this update channel ({branch}) yet.");
     let index = read_from(store, &src, "index.json", MAX_INDEX as u64).await?.ok_or_else(missing)?;
-    let sig = read_from(store, &src, "index.json.sig", 4096).await?.ok_or("The module catalog isn't signed. Nothing was installed.")?;
+    let sig = read_from(store, &src, "index.json.sig", 4096)
+        .await?
+        .ok_or("The module catalog isn't signed. Nothing was installed.")?;
     verify(app, &index, &sig)?;
-    let mut catalog: Catalog = serde_json::from_slice(&index).map_err(|e| format!("The module catalog couldn't be read: {e}"))?;
+    let mut catalog: Catalog =
+        serde_json::from_slice(&index).map_err(|e| format!("The module catalog couldn't be read: {e}"))?;
     if catalog.schema != 1 {
         return Err("This module catalog needs a newer Shellmosaic.".into());
     }
     catalog.modules.retain(|m| {
-        safe_key(&m.id).is_ok() && !m.files.is_empty() && m.files.iter().all(|f| plain_relative(&f.path) && f.sha256.len() == 64)
+        safe_key(&m.id).is_ok()
+            && !m.files.is_empty()
+            && m.files.iter().all(|f| plain_relative(&f.path) && f.sha256.len() == 64)
     });
     catalog.source = src.name();
     catalog.branch = branch.to_string();
@@ -383,7 +389,8 @@ pub async fn store_queue_install(app: AppHandle, channel: String, id: String) ->
     let branch = branch_of(&channel);
     let store = app.state::<Store>();
     let catalog = store.catalog(&app, branch, false).await?;
-    let entry = catalog.modules.iter().find(|m| m.id == id).cloned().ok_or("That module isn't in the catalog any more.")?;
+    let entry =
+        catalog.modules.iter().find(|m| m.id == id).cloned().ok_or("That module isn't in the catalog any more.")?;
     let version = app.package_info().version.to_string();
     if !version_at_least(&version, &entry.min_app_version) {
         return Err(format!("{} needs Shellmosaic {} or newer.", entry.name, entry.min_app_version));
@@ -403,11 +410,18 @@ pub async fn store_queue_install(app: AppHandle, channel: String, id: String) ->
     fs::create_dir_all(&part).s()?;
     let result: Result<(), String> = async {
         for f in &entry.files {
-            let mismatch = || format!("A file of {} didn't match the signed catalog ({}). Nothing was installed.", entry.name, f.path);
+            let mismatch = || {
+                format!("A file of {} didn't match the signed catalog ({}). Nothing was installed.", entry.name, f.path)
+            };
             // never more than the catalog says: a longer file is a mismatch, not a download to finish
             let data = match read_from(&store, &src, &format!("{id}/dist/{}", f.path), MAX_FILE.min(f.size)).await {
                 Ok(Some(d)) => d,
-                Ok(None) => return Err(format!("A file of {} is missing on the server ({}). Try again in a few minutes.", entry.name, f.path)),
+                Ok(None) => {
+                    return Err(format!(
+                        "A file of {} is missing on the server ({}). Try again in a few minutes.",
+                        entry.name, f.path
+                    ))
+                }
                 Err(e) if e.contains("larger than expected") => return Err(mismatch()),
                 Err(e) => return Err(e),
             };

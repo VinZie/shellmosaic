@@ -21,9 +21,41 @@ const KINDS: Opt<string>[] = [
 ];
 
 const PROFILE_ICONS = [
-  "terminal", "square-terminal", "code", "braces", "zap", "server", "cloud", "database", "container", "box", "package",
-  "git-branch", "hash", "binary", "cpu", "monitor", "shield", "lock", "key", "rocket", "flame", "star", "heart", "bug",
-  "wrench", "hammer", "globe", "network", "leaf", "moon", "sun", "ghost", "skull", "gamepad-2", "coffee",
+  "terminal",
+  "square-terminal",
+  "code",
+  "braces",
+  "zap",
+  "server",
+  "cloud",
+  "database",
+  "container",
+  "box",
+  "package",
+  "git-branch",
+  "hash",
+  "binary",
+  "cpu",
+  "monitor",
+  "shield",
+  "lock",
+  "key",
+  "rocket",
+  "flame",
+  "star",
+  "heart",
+  "bug",
+  "wrench",
+  "hammer",
+  "globe",
+  "network",
+  "leaf",
+  "moon",
+  "sun",
+  "ghost",
+  "skull",
+  "gamepad-2",
+  "coffee",
 ];
 
 /** Shared with the Terminal section. */
@@ -35,9 +67,14 @@ export function DefaultProfileRow() {
     { value: "auto", label: `Automatic${auto ? ` (${auto.name})` : ""}` },
     ...profiles.map((p) => ({ value: p.id, label: p.name + (p.hidden ? " (hidden)" : "") })),
   ];
-  if (def !== "auto" && !profiles.some((p) => p.id === def)) options.push({ value: def, label: `${def} (not found — using automatic)` });
+  if (def !== "auto" && !profiles.some((p) => p.id === def))
+    options.push({ value: def, label: `${def} (not found — using automatic)` });
   return (
-    <Row label="Default profile" desc="The shell new tabs and splits start with." keywords="shell default new tab profile">
+    <Row
+      label="Default profile"
+      desc="The shell new tabs and splits start with."
+      keywords="shell default new tab profile"
+    >
       <Select value={def} options={options} width={240} onChange={(v) => setSetting("terminal.defaultProfile", v)} />
     </Row>
   );
@@ -70,14 +107,27 @@ function addCustom(from?: Profile): string {
     const n = s.profiles.custom.length;
     const base: Profile = from
       ? { ...stored(from), name: `${from.name} (custom)` }
-      : { id, name: "New profile", command: "cmd.exe", args: [], kind: "cmd", icon: null, color: WORKSPACE_COLORS[n % WORKSPACE_COLORS.length], cwd: null, env: {} };
+      : {
+          id,
+          name: "New profile",
+          command: "cmd.exe",
+          args: [],
+          kind: "cmd",
+          icon: null,
+          color: WORKSPACE_COLORS[n % WORKSPACE_COLORS.length],
+          cwd: null,
+          env: {},
+        };
     s.profiles.custom.push({ ...base, id });
   });
   return id;
 }
 
 async function deleteCustom(p: Profile) {
-  const ok = await ui.confirm(`Delete “${p.name}”?`, "The profile is removed. Open terminals keep running.", { okLabel: "Delete", danger: true });
+  const ok = await ui.confirm(`Delete “${p.name}”?`, "The profile is removed. Open terminals keep running.", {
+    okLabel: "Delete",
+    danger: true,
+  });
   if (!ok) return;
   updateSettings((s) => {
     s.profiles.custom = s.profiles.custom.filter((c) => c.id !== p.id);
@@ -103,7 +153,17 @@ async function browseFolder(): Promise<string | null> {
   return typeof dir === "string" ? dir : null;
 }
 
-function Field({ label, hint, full, children }: { label: string; hint?: ReactNode; full?: boolean; children: ReactNode }) {
+function Field({
+  label,
+  hint,
+  full,
+  children,
+}: {
+  label: string;
+  hint?: ReactNode;
+  full?: boolean;
+  children: ReactNode;
+}) {
   return (
     <>
       <label className={cx("pe-label", full && "full")}>{label}</label>
@@ -119,7 +179,13 @@ function IconPicker({ value, onChange }: { value: string; onChange: (v: string) 
   return (
     <div className="icon-picker">
       {PROFILE_ICONS.map((n) => (
-        <button key={n} type="button" className={cx("icon-choice", n === value && "selected")} title={n} onClick={() => onChange(n)}>
+        <button
+          key={n}
+          type="button"
+          className={cx("icon-choice", n === value && "selected")}
+          title={n}
+          onClick={() => onChange(n)}
+        >
           <Icon name={n} size={15} />
         </button>
       ))}
@@ -127,7 +193,15 @@ function IconPicker({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-function FolderInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+function FolderInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
   return (
     <div className="row">
       <TextInput value={value} onChange={onChange} placeholder={placeholder} width="100%" />
@@ -158,16 +232,31 @@ function OverrideEditor({ p, raw, onOpen }: { p: Profile; raw?: Profile; onOpen:
   return (
     <div className="profile-editor">
       <Field label="Name">
-        <TextInput value={ov?.name ?? ""} placeholder={raw?.name ?? p.name} onChange={(v) => set({ name: v || undefined })} width="100%" />
+        <TextInput
+          value={ov?.name ?? ""}
+          placeholder={raw?.name ?? p.name}
+          onChange={(v) => set({ name: v || undefined })}
+          width="100%"
+        />
       </Field>
       <Field label="Color">
-        <ColorInput value={p.color} swatches={WORKSPACE_COLORS} allowNone noneLabel="No color" onChange={(c) => set({ color: c })} />
+        <ColorInput
+          value={p.color}
+          swatches={WORKSPACE_COLORS}
+          allowNone
+          noneLabel="No color"
+          onChange={(c) => set({ color: c })}
+        />
       </Field>
       <Field label="Icon">
         <IconPicker value={p.icon ?? "terminal"} onChange={(icon) => set({ icon })} />
       </Field>
       <Field label="Starting folder">
-        <FolderInput value={ov?.cwd ?? ""} onChange={(v) => set({ cwd: v || undefined })} placeholder={raw?.cwd ?? "Default"} />
+        <FolderInput
+          value={ov?.cwd ?? ""}
+          onChange={(v) => set({ cwd: v || undefined })}
+          placeholder={raw?.cwd ?? "Default"}
+        />
       </Field>
       <Field label="Command" hint="Detected automatically. To change the program or its arguments, make a custom copy.">
         <code className="pe-code">{[p.command, formatArgs(p.args)].filter(Boolean).join(" ")}</code>
@@ -177,7 +266,11 @@ function OverrideEditor({ p, raw, onOpen }: { p: Profile; raw?: Profile; onOpen:
           <Icon name="copy" size={13} /> Copy as custom profile
         </button>
         <span className="grow" />
-        <button className="btn small subtle" disabled={!hasOverrides} onClick={() => updateSettings((s) => void delete s.profiles.overrides[p.id])}>
+        <button
+          className="btn small subtle"
+          disabled={!hasOverrides}
+          onClick={() => updateSettings((s) => void delete s.profiles.overrides[p.id])}
+        >
           <Icon name="undo" size={13} /> Reset to detected
         </button>
       </div>
@@ -261,7 +354,13 @@ function CustomEditor({ id }: { id: string }) {
         />
       </Field>
       <Field label="Color">
-        <ColorInput value={p.color} swatches={WORKSPACE_COLORS} allowNone noneLabel="No color" onChange={(c) => set({ color: c })} />
+        <ColorInput
+          value={p.color}
+          swatches={WORKSPACE_COLORS}
+          allowNone
+          noneLabel="No color"
+          onChange={(c) => set({ color: c })}
+        />
       </Field>
       <Field label="Icon">
         <IconPicker value={p.icon ?? "terminal"} onChange={(icon) => set({ icon })} />
@@ -296,10 +395,19 @@ function profileMenu(p: Profile, edit: () => void, onOpen: (id: string) => void)
       },
     },
     { label: "Make default", icon: "star", onSelect: () => setSetting("terminal.defaultProfile", p.id) },
-    { label: p.hidden ? "Show in menus" : "Hide from menus", icon: p.hidden ? "eye" : "eye-off", onSelect: () => toggleHidden(p.id) },
+    {
+      label: p.hidden ? "Show in menus" : "Hide from menus",
+      icon: p.hidden ? "eye" : "eye-off",
+      onSelect: () => toggleHidden(p.id),
+    },
     { label: "Edit…", icon: "pencil", onSelect: edit },
     { label: p.custom ? "Duplicate" : "Copy as custom profile", icon: "copy", onSelect: () => onOpen(addCustom(p)) },
-    ...(p.custom ? ([{ type: "separator" }, { label: "Delete", icon: "trash", danger: true, onSelect: () => deleteCustom(p) }] as MenuItem[]) : []),
+    ...(p.custom
+      ? ([
+          { type: "separator" },
+          { label: "Delete", icon: "trash", danger: true, onSelect: () => deleteCustom(p) },
+        ] as MenuItem[])
+      : []),
   ];
 }
 
@@ -336,7 +444,10 @@ function ProfileItem({
           ui.openMenu(e, profileMenu(p, onToggle, onOpen));
         }}
       >
-        <span className="profile-icon" style={color ? { color, background: `color-mix(in srgb, ${color} 16%, transparent)` } : undefined}>
+        <span
+          className="profile-icon"
+          style={color ? { color, background: `color-mix(in srgb, ${color} 16%, transparent)` } : undefined}
+        >
           <Icon name={p.icon ?? "terminal"} size={16} />
         </span>
         <div className="profile-info" onClick={onToggle}>
@@ -351,10 +462,18 @@ function ProfileItem({
           <div className="profile-cmd ellipsis">{[p.command, formatArgs(p.args)].filter(Boolean).join(" ")}</div>
         </div>
         <div className="profile-actions">
-          <button className={cx("icon-btn", isDefault && !isAuto && "on")} title={isDefault && !isAuto ? "This is the default profile" : "Make default"} onClick={() => setSetting("terminal.defaultProfile", p.id)}>
+          <button
+            className={cx("icon-btn", isDefault && !isAuto && "on")}
+            title={isDefault && !isAuto ? "This is the default profile" : "Make default"}
+            onClick={() => setSetting("terminal.defaultProfile", p.id)}
+          >
             <Icon name="star" size={14} />
           </button>
-          <button className="icon-btn" title={p.hidden ? "Hidden from menus — click to show" : "Shown in menus — click to hide"} onClick={() => toggleHidden(p.id)}>
+          <button
+            className="icon-btn"
+            title={p.hidden ? "Hidden from menus — click to show" : "Shown in menus — click to hide"}
+            onClick={() => toggleHidden(p.id)}
+          >
             <Icon name={p.hidden ? "eye-off" : "eye"} size={14} />
           </button>
           <button className={cx("icon-btn", open && "on")} title={open ? "Close editor" : "Edit"} onClick={onToggle}>
@@ -406,8 +525,14 @@ export function ProfilesSection() {
         desc="Click a profile to edit it. Hidden profiles stay usable but don't appear in menus."
         actions={
           <>
-            <button className="btn small" onClick={redetect} disabled={busy} title="Look again for installed shells (PowerShell, Git Bash, WSL distros…)">
-              <Icon name={busy ? "loader" : "refresh"} size={13} className={busy ? "spin" : undefined} /> Re-detect shells
+            <button
+              className="btn small"
+              onClick={redetect}
+              disabled={busy}
+              title="Look again for installed shells (PowerShell, Git Bash, WSL distros…)"
+            >
+              <Icon name={busy ? "loader" : "refresh"} size={13} className={busy ? "spin" : undefined} /> Re-detect
+              shells
             </button>
             <button className="btn small primary" onClick={() => setOpenId(addCustom())}>
               <Icon name="plus" size={13} /> Add profile
@@ -427,7 +552,9 @@ export function ProfilesSection() {
             onOpen={setOpenId}
           />
         ))}
-        {profiles.length === 0 && <div className="settings-empty small">No shells found. Try “Re-detect shells”, or add a profile.</div>}
+        {profiles.length === 0 && (
+          <div className="settings-empty small">No shells found. Try “Re-detect shells”, or add a profile.</div>
+        )}
       </Group>
     </Section>
   );

@@ -16,7 +16,9 @@
   border-radius: 13px;
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg) 70%, transparent);
-  transition: border-color 0.12s, box-shadow 0.12s;
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s;
 }
 .web-url:focus-within {
   border-color: var(--accent);

@@ -75,9 +75,7 @@ pub async fn shells_list(refresh: Option<bool>) -> Vec<Profile> {
             return list;
         }
     }
-    let list = tauri::async_runtime::spawn_blocking(detect)
-        .await
-        .unwrap_or_default();
+    let list = tauri::async_runtime::spawn_blocking(detect).await.unwrap_or_default();
     *cell.lock() = Some(list.clone());
     list
 }
@@ -91,28 +89,14 @@ fn detect() -> Vec<Profile> {
     }
     let winps = format!("{sysroot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
     if Path::new(&winps).exists() {
-        out.push(profile(
-            "powershell",
-            "Windows PowerShell",
-            &winps,
-            &[],
-            "powershell",
-            "#3a7bd5",
-        ));
+        out.push(profile("powershell", "Windows PowerShell", &winps, &[], "powershell", "#3a7bd5"));
     }
     let cmd = format!("{sysroot}\\System32\\cmd.exe");
     if Path::new(&cmd).exists() {
         out.push(profile("cmd", "Command Prompt", &cmd, &[], "cmd", "#9aa4b2"));
     }
     if let Some(bash) = find_git_bash() {
-        out.push(profile(
-            "git-bash",
-            "Git Bash",
-            &bash,
-            &["--login", "-i"],
-            "bash",
-            "#f05133",
-        ));
+        out.push(profile("git-bash", "Git Bash", &bash, &["--login", "-i"], "bash", "#f05133"));
     }
     for distro in wsl_distros() {
         let id = format!(
@@ -122,14 +106,7 @@ fn detect() -> Vec<Profile> {
                 .map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_lowercase() } else { '-' })
                 .collect::<String>()
         );
-        out.push(profile(
-            &id,
-            &format!("{distro} (WSL)"),
-            "wsl.exe",
-            &["-d", &distro],
-            "wsl",
-            "#e95420",
-        ));
+        out.push(profile(&id, &format!("{distro} (WSL)"), "wsl.exe", &["-d", &distro], "wsl", "#e95420"));
     }
     out
 }
@@ -147,11 +124,7 @@ fn profile(id: &str, name: &str, cmd: &str, args: &[&str], kind: &str, color: &s
 }
 
 fn find_in_path(exe: &str) -> Option<PathBuf> {
-    env::var_os("PATH").and_then(|paths| {
-        env::split_paths(&paths)
-            .map(|p| p.join(exe))
-            .find(|p| p.is_file())
-    })
+    env::var_os("PATH").and_then(|paths| env::split_paths(&paths).map(|p| p.join(exe)).find(|p| p.is_file()))
 }
 
 fn find_pwsh() -> Option<String> {
@@ -182,10 +155,7 @@ fn find_git_bash() -> Option<String> {
             candidates.push(root.join("bin").join("bash.exe"));
         }
     }
-    candidates
-        .into_iter()
-        .find(|p| p.is_file())
-        .map(|p| p.to_string_lossy().into_owned())
+    candidates.into_iter().find(|p| p.is_file()).map(|p| p.to_string_lossy().into_owned())
 }
 
 /// `wsl.exe -l -q` prints UTF-16LE. It can hang when WSL is broken, so bound it.
@@ -205,11 +175,7 @@ fn wsl_distros() -> Vec<String> {
     if !out.status.success() {
         return Vec::new();
     }
-    let units: Vec<u16> = out
-        .stdout
-        .chunks_exact(2)
-        .map(|c| u16::from_le_bytes([c[0], c[1]]))
-        .collect();
+    let units: Vec<u16> = out.stdout.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
     String::from_utf16_lossy(&units)
         .lines()
         .map(|l| l.trim().trim_matches('\u{feff}').to_string())
@@ -238,10 +204,7 @@ if (-not $global:__smInit) {
 const BASH_PROMPT_COMMAND: &str = r#"printf '\033]7;file://%s/%s\033\\' "${HOSTNAME:-localhost}" "$(cygpath -m "$PWD" 2>/dev/null || printf %s "${PWD#/}")""#;
 
 fn encode_ps(script: &str) -> String {
-    let utf16: Vec<u8> = script
-        .encode_utf16()
-        .flat_map(|u| u.to_le_bytes())
-        .collect();
+    let utf16: Vec<u8> = script.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
     base64::engine::general_purpose::STANDARD.encode(utf16)
 }
 
@@ -287,10 +250,7 @@ pub fn build_command(spec: &SpawnSpec, cwd: Option<&str>) -> CommandBuilder {
             }
             let wslenv = base_var("WSLENV").unwrap_or_default();
             let extra = "TERM_PROGRAM:COLORTERM";
-            cmd.env(
-                "WSLENV",
-                if wslenv.is_empty() { extra.to_string() } else { format!("{wslenv}:{extra}") },
-            );
+            cmd.env("WSLENV", if wslenv.is_empty() { extra.to_string() } else { format!("{wslenv}:{extra}") });
             cmd.args(&spec.args);
         }
         _ => cmd.args(&spec.args),
@@ -306,12 +266,7 @@ pub fn build_command(spec: &SpawnSpec, cwd: Option<&str>) -> CommandBuilder {
         // (the remembered folder came from terminal output: never a network path)
         .filter(|d| crate::vt::acceptable_cwd(d) && is_windows_path(d) && Path::new(d).is_dir())
         .map(PathBuf::from)
-        .or_else(|| {
-            spec.cwd
-                .as_deref()
-                .filter(|d| Path::new(d).is_dir())
-                .map(PathBuf::from)
-        })
+        .or_else(|| spec.cwd.as_deref().filter(|d| Path::new(d).is_dir()).map(PathBuf::from))
         .or_else(|| base_var("USERPROFILE").map(PathBuf::from));
     if let Some(dir) = dir {
         cmd.cwd(dir);

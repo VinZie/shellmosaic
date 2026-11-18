@@ -27,7 +27,18 @@ import {
   type TabItem,
 } from "../../shared";
 import { useActivity, useNow, useSnapshot, useUsage } from "./data";
-import { errorKind, isLive, runAgents, runRequests, runTasks, STATE_LABEL, trustPending, untilText, type Usage, type UsageWindow } from "./lib";
+import {
+  errorKind,
+  isLive,
+  runAgents,
+  runRequests,
+  runTasks,
+  STATE_LABEL,
+  trustPending,
+  untilText,
+  type Usage,
+  type UsageWindow,
+} from "./lib";
 import { openMerge } from "./Merge";
 import { ALL_TABS, DEFAULT_PREFS, normalizePrefs, TAB_LABELS, type Prefs, type TabId } from "./prefs";
 import { RunHeader } from "./RunHeader";
@@ -64,7 +75,10 @@ function Orchestrator({ ctx }: { ctx: PaneContext }) {
   if (!canRead) {
     return (
       <Message icon={<ShieldAlert size={28} />} title="Orchestrator can't see your agents" tone="warning">
-        <p>It needs “See your Claude Code agents”. Allow it for Orchestrator in Settings → Plugins, then reopen this pane.</p>
+        <p>
+          It needs “See your Claude Code agents”. Allow it for Orchestrator in Settings → Plugins, then reopen this
+          pane.
+        </p>
       </Message>
     );
   }
@@ -74,7 +88,8 @@ function Orchestrator({ ctx }: { ctx: PaneContext }) {
 function Connected({ ctx }: { ctx: PaneContext }) {
   const canManage = ctx.grantedPermissions.includes("agents.manage");
   const { snap, error, refresh } = useSnapshot(ctx.visible);
-  const argTab = typeof ctx.args?.tab === "string" && ALL_TABS.includes(ctx.args.tab as TabId) ? (ctx.args.tab as TabId) : null;
+  const argTab =
+    typeof ctx.args?.tab === "string" && ALL_TABS.includes(ctx.args.tab as TabId) ? (ctx.args.tab as TabId) : null;
   const [pane, savePane] = usePaneState<PaneState>(ctx, { runId: null, tab: argTab });
 
   if (!snap) {
@@ -82,12 +97,20 @@ function Connected({ ctx }: { ctx: PaneContext }) {
     if (errorKind(error) === "unsupported") {
       return (
         <Message icon={<Bot size={28} />} title="This Shellmosaic can't run agents yet" tone="warning">
-          <p>The Orchestrator needs Shellmosaic 0.4.0 or newer (this is {ctx.appVersion || "an older version"}). Update Shellmosaic, then reopen this pane.</p>
+          <p>
+            The Orchestrator needs Shellmosaic 0.4.0 or newer (this is {ctx.appVersion || "an older version"}). Update
+            Shellmosaic, then reopen this pane.
+          </p>
         </Message>
       );
     }
     return (
-      <Message icon={<Bot size={28} />} title="Couldn't read the Orchestrator's state" tone="danger" actions={<Button onClick={refresh}>Try again</Button>}>
+      <Message
+        icon={<Bot size={28} />}
+        title="Couldn't read the Orchestrator's state"
+        tone="danger"
+        actions={<Button onClick={refresh}>Try again</Button>}
+      >
         <p className="sm-selectable">{errorText(error)}</p>
       </Message>
     );
@@ -125,7 +148,9 @@ function UsageBanner({ usage, routing, now }: { usage: Usage | null; routing: Ro
   return (
     <Banner tone={hard ? "danger" : "warning"} icon={<Gauge size={15} />}>
       {Math.round(worst.w.pct)}% of the {worst.name} plan limit is used:{" "}
-      {hard ? "no new workers start; tasks wait for an idle one." : "workers get at most Sonnet (Opus tasks run on Sonnet)."}
+      {hard
+        ? "no new workers start; tasks wait for an idle one."
+        : "workers get at most Sonnet (Opus tasks run on Sonnet)."}
       {resets}
     </Banner>
   );
@@ -214,9 +239,31 @@ function RunView({
   const render = (id: TabId) => {
     switch (id) {
       case "agents":
-        return <AgentsTab snap={snap} run={run} canManage={canManage} side={prefs.details} selected={agentSel} onSelect={setAgentSel} onShowTask={showTask} now={now} />;
+        return (
+          <AgentsTab
+            snap={snap}
+            run={run}
+            canManage={canManage}
+            side={prefs.details}
+            selected={agentSel}
+            onSelect={setAgentSel}
+            onShowTask={showTask}
+            now={now}
+          />
+        );
       case "tasks":
-        return <TasksTab snap={snap} run={run} canManage={canManage} side={prefs.details} selected={taskSel} onSelect={setTaskSel} onShowAgent={showAgent} now={now} />;
+        return (
+          <TasksTab
+            snap={snap}
+            run={run}
+            canManage={canManage}
+            side={prefs.details}
+            selected={taskSel}
+            onSelect={setTaskSel}
+            onShowAgent={showAgent}
+            now={now}
+          />
+        );
       case "activity":
         return <ActivityTab snap={snap} run={run} items={activity} active={tab === "activity"} />;
       case "requests":
@@ -229,22 +276,37 @@ function RunView({
   const stopped = run.status === "stopped";
   return (
     <>
-      <RunHeader run={run} lead={lead} leadTrusting={!!lead && trustPending(snap, lead)} routing={snap.routing} usage={usage} canManage={canManage} now={now} onBack={onBack} />
+      <RunHeader
+        run={run}
+        lead={lead}
+        leadTrusting={!!lead && trustPending(snap, lead)}
+        routing={snap.routing}
+        usage={usage}
+        canManage={canManage}
+        now={now}
+        onBack={onBack}
+      />
       {stopped && (
         <Banner tone="info">
-          This team was stopped{agents.length ? "" : " and its agents are gone"}. Its tasks, activity and branches are kept: merge what's on orch/integration, or start a new team to continue.
+          This team was stopped{agents.length ? "" : " and its agents are gone"}. Its tasks, activity and branches are
+          kept: merge what's on orch/integration, or start a new team to continue.
         </Banner>
       )}
       {!stopped && <UsageBanner usage={usage} routing={snap.routing} now={now} />}
       {!canManage && !stopped && (
         <Banner tone="info" icon={<ShieldAlert size={15} />}>
-          Read-only: to give the team work, answer requests or change routing, allow “Start, stop and instruct Claude Code agents” in Settings → Plugins.
+          Read-only: to give the team work, answer requests or change routing, allow “Start, stop and instruct Claude
+          Code agents” in Settings → Plugins.
         </Banner>
       )}
       <div className="orc-tabbar">
         <Tabs items={items} active={tab} onChange={(id) => go(id as TabId)} />
         <div className="orc-tabbar-end">
-          <IconButton title="Tabs and layout" on={!!settingsAt} onClick={(e) => setSettingsAt(settingsAt ? null : e.currentTarget)}>
+          <IconButton
+            title="Tabs and layout"
+            on={!!settingsAt}
+            onClick={(e) => setSettingsAt(settingsAt ? null : e.currentTarget)}
+          >
             <Settings2 size={15} />
           </IconButton>
         </div>
@@ -270,7 +332,11 @@ function RunView({
         </span>
         {pending > 0 && <span className="sm-warning-text">· {pending} waiting for you</span>}
         <span className="sm-grow" />
-        {cost > 0 && <span title="What the sessions would cost at API prices (Claude Code's own estimate); your plan's usage is the meter above">≈ ${cost.toFixed(2)} at API prices</span>}
+        {cost > 0 && (
+          <span title="What the sessions would cost at API prices (Claude Code's own estimate); your plan's usage is the meter above">
+            ≈ ${cost.toFixed(2)} at API prices
+          </span>
+        )}
       </Footer>
       <Popover anchor={settingsAt} onClose={closeSettings} width={Math.min(300, window.innerWidth - 8)}>
         <TabSettings prefs={prefs} onChange={setPrefs} />

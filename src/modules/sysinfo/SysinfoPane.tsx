@@ -97,7 +97,19 @@ function coresText(s: SysSnapshot): string {
   return s.physicalCores ? `${s.physicalCores} cores · ${n} logical` : `${n} logical cores`;
 }
 
-function Card({ icon, title, meta, className, children }: { icon: string; title: string; meta?: string; className?: string; children?: ReactNode }) {
+function Card({
+  icon,
+  title,
+  meta,
+  className,
+  children,
+}: {
+  icon: string;
+  title: string;
+  meta?: string;
+  className?: string;
+  children?: ReactNode;
+}) {
   return (
     <section className={cx("card sysinfo-card", className)}>
       <header className="sysinfo-card-head">
@@ -115,7 +127,19 @@ function Card({ icon, title, meta, className, children }: { icon: string; title:
 }
 
 /** A number with a small unit over a dim label; `big` for the card's headline figure. */
-function Stat({ value, unit, label, big, dot }: { value: ReactNode; unit?: string; label: string; big?: boolean; dot?: string }) {
+function Stat({
+  value,
+  unit,
+  label,
+  big,
+  dot,
+}: {
+  value: ReactNode;
+  unit?: string;
+  label: string;
+  big?: boolean;
+  dot?: string;
+}) {
   return (
     <div className={cx("sysinfo-stat", big && "big")}>
       <span className="sysinfo-stat-value">
@@ -151,7 +175,10 @@ function Cores({ cores }: { cores: number[] }) {
         const v = clamp(c, 0, 100);
         return (
           <div key={i} className="sysinfo-core" title={`CPU ${i}: ${Math.round(v)}%`}>
-            <div className={cx("sysinfo-core-fill", v >= 90 && "warning")} style={{ transform: `scaleY(${v / 100})` }} />
+            <div
+              className={cx("sysinfo-core-fill", v >= 90 && "warning")}
+              style={{ transform: `scaleY(${v / 100})` }}
+            />
           </div>
         );
       })}
@@ -273,7 +300,11 @@ const driveLabel = (mount: string) => mount.replace(/^([a-z]:)\\$/i, "$1");
 function DisksCard({ h }: { h: History }) {
   const disks = h.disks;
   return (
-    <Card icon="hard-drive" title="Disks" meta={disks ? `${disks.length} volume${disks.length === 1 ? "" : "s"}` : undefined}>
+    <Card
+      icon="hard-drive"
+      title="Disks"
+      meta={disks ? `${disks.length} volume${disks.length === 1 ? "" : "s"}` : undefined}
+    >
       {!disks ? (
         <div className="dim">Reading drives…</div>
       ) : !disks.length ? (
@@ -285,7 +316,11 @@ function DisksCard({ h }: { h: History }) {
             const p = d.total ? (used / d.total) * 100 : 0;
             const level = usageLevel(p);
             return (
-              <div key={d.mount + d.name} className="sysinfo-disk" title={`${d.name || d.mount} — ${size(used)} used of ${size(d.total)}`}>
+              <div
+                key={d.mount + d.name}
+                className="sysinfo-disk"
+                title={`${d.name || d.mount} — ${size(used)} used of ${size(d.total)}`}
+              >
                 <div className="sysinfo-disk-head">
                   <span className="sysinfo-disk-mount">{driveLabel(d.mount)}</span>
                   {d.name && <span className="dim ellipsis">{d.name}</span>}
@@ -440,9 +475,18 @@ function sysinfoMenu(pane: Pane): MenuItem[] {
       label: "Cards",
       icon: "layout-grid",
       submenu: [
-        ...CARDS.map<MenuItem>((c) => ({ label: c.name, checked: !hidden.includes(c.id), onSelect: () => toggle(c.id) })),
+        ...CARDS.map<MenuItem>((c) => ({
+          label: c.name,
+          checked: !hidden.includes(c.id),
+          onSelect: () => toggle(c.id),
+        })),
         { type: "separator" },
-        { label: "Show all", icon: "eye", disabled: !hidden.length, onSelect: () => setPaneMeta(pane.id, { hidden: [] }) },
+        {
+          label: "Show all",
+          icon: "eye",
+          disabled: !hidden.length,
+          onSelect: () => setPaneMeta(pane.id, { hidden: [] }),
+        },
       ],
     },
   ];

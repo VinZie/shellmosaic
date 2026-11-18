@@ -43,7 +43,7 @@ impl SysMon {
 impl Inner {
     /// Refresh processes at most every 500 ms (CPU% needs two samples anyway).
     fn refresh_procs(&mut self) {
-        let due = self.last_procs.map_or(true, |t| t.elapsed().as_millis() >= 500);
+        let due = self.last_procs.is_none_or(|t| t.elapsed().as_millis() >= 500);
         if due {
             self.sys.refresh_processes(ProcessesToUpdate::All, true);
             self.last_procs = Some(Instant::now());
@@ -102,7 +102,7 @@ fn task_counts() -> Option<(usize, usize)> {
         let mut info: PERFORMANCE_INFORMATION = std::mem::zeroed();
         let size = std::mem::size_of::<PERFORMANCE_INFORMATION>() as u32;
         info.cb = size;
-        (K32GetPerformanceInfo(&mut info, size) != 0).then(|| (info.ProcessCount as usize, info.ThreadCount as usize))
+        (K32GetPerformanceInfo(&mut info, size) != 0).then_some((info.ProcessCount as usize, info.ThreadCount as usize))
     }
 }
 
@@ -122,7 +122,7 @@ fn snapshot(mon: &SysMon, with_disks: Option<bool>) -> Snapshot {
     g.nets.refresh(true);
     g.last_net = Instant::now();
     let (mut rx, mut tx, mut rx_total, mut tx_total) = (0u64, 0u64, 0u64, 0u64);
-    for (_, data) in g.nets.iter() {
+    for data in g.nets.values() {
         rx += data.received();
         tx += data.transmitted();
         rx_total += data.total_received();
@@ -244,10 +244,7 @@ fn kill(mon: &SysMon, pid: u32, tree: Option<bool>) -> Result<(), String> {
             return Err("refusing to end this tree: Shellmosaic runs inside it".into());
         }
         drop(g);
-        let out = hidden_command("taskkill")
-            .args(["/PID", &pid.to_string(), "/T", "/F"])
-            .output()
-            .s()?;
+        let out = hidden_command("taskkill").args(["/PID", &pid.to_string(), "/T", "/F"]).output().s()?;
         if !out.status.success() {
             return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
         }
@@ -282,20 +279,14 @@ pub async fn net_sockets(app: AppHandle) -> Result<Vec<SocketInfo>, String> {
 
 fn sockets(mon: &SysMon) -> Result<Vec<SocketInfo>, String> {
     use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo};
-    let sockets = get_sockets_info(
-        AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6,
-        ProtocolFlags::TCP | ProtocolFlags::UDP,
-    )
-    .s()?;
+    let sockets =
+        get_sockets_info(AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6, ProtocolFlags::TCP | ProtocolFlags::UDP)
+            .s()?;
 
     let names: HashMap<u32, String> = {
         let mut g = mon.inner.lock();
         g.refresh_procs();
-        g.sys
-            .processes()
-            .values()
-            .map(|p| (p.pid().as_u32(), p.name().to_string_lossy().into_owned()))
-            .collect()
+        g.sys.processes().values().map(|p| (p.pid().as_u32(), p.name().to_string_lossy().into_owned())).collect()
     };
 
     Ok(sockets

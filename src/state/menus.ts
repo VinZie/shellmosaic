@@ -27,10 +27,16 @@ export const GRADIENTS: { name: string; css: string }[] = [
   { name: "Ember", css: "radial-gradient(circle at 80% 90%, #ff7a3d 0%, #6b1f1f 40%, #160b0b 100%)" },
   { name: "Mono", css: "linear-gradient(135deg, #22252b 0%, #121418 100%)" },
   { name: "Candy", css: "linear-gradient(120deg, #ff6ec7 0%, #7873f5 50%, #4ade80 100%)" },
-  { name: "Grid", css: "linear-gradient(#ffffff0a 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, #ffffff0a 1px, transparent 1px) 0 0 / 24px 24px, #0e1116" },
+  {
+    name: "Grid",
+    css: "linear-gradient(#ffffff0a 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, #ffffff0a 1px, transparent 1px) 0 0 / 24px 24px, #0e1116",
+  },
 ];
 
-function backgroundMenu(target: { kind: "workspace" | "tab" | "global"; id?: Id }, current?: Background | null): MenuItem[] {
+function backgroundMenu(
+  target: { kind: "workspace" | "tab" | "global"; id?: Id },
+  current?: Background | null,
+): MenuItem[] {
   return [
     {
       label: "Choose image…",
@@ -68,7 +74,11 @@ export function tabMenu(tabId: Id): MenuItem[] {
   return [
     { label: "Rename…", icon: "pencil", shortcut: "F2", onSelect: () => A.renameTab(tabId) },
     { type: "swatches", colors: TAB_COLORS, value: tab.color ?? null, onSelect: (c) => A.setTabColor(tabId, c) },
-    { label: tab.pinned ? "Unpin tab" : "Pin tab", icon: tab.pinned ? "pin-off" : "pin", onSelect: () => A.togglePinTab(tabId) },
+    {
+      label: tab.pinned ? "Unpin tab" : "Pin tab",
+      icon: tab.pinned ? "pin-off" : "pin",
+      onSelect: () => A.togglePinTab(tabId),
+    },
     { label: "Duplicate tab", icon: "copy", onSelect: () => A.duplicateTab(tabId) },
     sep,
     {
@@ -91,11 +101,20 @@ export function tabMenu(tabId: Id): MenuItem[] {
     sep,
     { label: "Add pane", icon: "layout-grid", submenu: moduleItems((id) => A.addModule(id, { tabId })) },
     { label: "Background", icon: "image", submenu: backgroundMenu({ kind: "tab", id: tabId }, tab.background) },
-    { label: "Equalize pane sizes", icon: "columns-2", disabled: leaves(tab.root).length < 2, onSelect: () => A.equalizeTab(tabId) },
+    {
+      label: "Equalize pane sizes",
+      icon: "columns-2",
+      disabled: leaves(tab.root).length < 2,
+      onSelect: () => A.equalizeTab(tabId),
+    },
     sep,
     { label: "Close tab", icon: "x", shortcut: shortcutLabel("tab.close"), onSelect: () => A.closeTab(tabId) },
     { label: "Close other tabs", disabled: ws.tabs.length < 2, onSelect: () => A.closeOtherTabs(tabId) },
-    { label: "Close tabs to the right", disabled: idx === ws.tabs.length - 1, onSelect: () => A.closeTabsToRight(tabId) },
+    {
+      label: "Close tabs to the right",
+      disabled: idx === ws.tabs.length - 1,
+      onSelect: () => A.closeTabsToRight(tabId),
+    },
   ];
 }
 
@@ -117,12 +136,25 @@ export function workspaceMenu(wsId: Id): MenuItem[] {
     { label: "New tab", icon: "plus", onSelect: () => A.newTab("terminal", {}, wsId) },
     sep,
     { label: "Rename…", icon: "pencil", onSelect: () => A.renameWorkspace(wsId) },
-    { label: "Icon & color…", icon: "palette", onSelect: () => ui.openDialog({ kind: "workspace", workspaceId: wsId }) },
+    {
+      label: "Icon & color…",
+      icon: "palette",
+      onSelect: () => ui.openDialog({ kind: "workspace", workspaceId: wsId }),
+    },
     { label: "Background", icon: "image", submenu: backgroundMenu({ kind: "workspace", id: wsId }, ws.background) },
     { label: "Duplicate workspace", icon: "copy", onSelect: () => A.duplicateWorkspace(wsId) },
-    { label: elsewhere ? "Focus window" : "Open in new window", icon: "app-window", onSelect: () => A.popoutWorkspace(wsId) },
+    {
+      label: elsewhere ? "Focus window" : "Open in new window",
+      icon: "app-window",
+      onSelect: () => A.popoutWorkspace(wsId),
+    },
     sep,
-    { label: "Move up", icon: "chevron-up", disabled: i <= 0, onSelect: () => commit((d) => M.reorderWorkspace(d, wsId, i - 1)) },
+    {
+      label: "Move up",
+      icon: "chevron-up",
+      disabled: i <= 0,
+      onSelect: () => commit((d) => M.reorderWorkspace(d, wsId, i - 1)),
+    },
     {
       label: "Move down",
       icon: "chevron-down",
@@ -167,14 +199,18 @@ export function paneMenu(paneId: Id): MenuItem[] {
     },
     ...(def?.menu ? [sep, ...def.menu(pane, tab.id)] : []),
     sep,
-    ...(pane.module === "agent" ? [] : [{ label: "Change module", icon: "layout-grid", submenu: moduleItems((id) => A.changeModule(paneId, id)) }]),
+    ...(pane.module === "agent"
+      ? []
+      : [{ label: "Change module", icon: "layout-grid", submenu: moduleItems((id) => A.changeModule(paneId, id)) }]),
     { label: "Rename pane…", icon: "pencil", onSelect: () => A.renamePane(paneId) },
     { label: "Move to new tab", icon: "square", disabled: count < 2, onSelect: () => A.movePaneToNewTab(paneId) },
     {
       label: "Move to tab",
       icon: "arrow-right",
       disabled: ws.tabs.length < 2,
-      submenu: ws.tabs.filter((t) => t !== tab.id).map<MenuItem>((t) => ({ label: A.tabLabel(t), onSelect: () => A.movePaneToTab(paneId, t) })),
+      submenu: ws.tabs
+        .filter((t) => t !== tab.id)
+        .map<MenuItem>((t) => ({ label: A.tabLabel(t), onSelect: () => A.movePaneToTab(paneId, t) })),
     },
     {
       label: "Move to workspace",
@@ -216,8 +252,18 @@ export async function terminalMenu(paneId: Id): Promise<MenuItem[]> {
     { label: "Clear", icon: "eraser", shortcut: shortcutLabel("term.clear"), onSelect: () => e?.term.clear() },
     { label: "Save output to file…", icon: "save", onSelect: () => saveOutput(paneId) },
     sep,
-    { label: "Open folder in Files", icon: "folder-open", disabled: !cwd, onSelect: () => cwd && A.openFilesAt(cwd, paneId) },
-    { label: "Open folder in Explorer", icon: "external-link", disabled: !cwd, onSelect: () => cwd && revealItemInDir(cwd) },
+    {
+      label: "Open folder in Files",
+      icon: "folder-open",
+      disabled: !cwd,
+      onSelect: () => cwd && A.openFilesAt(cwd, paneId),
+    },
+    {
+      label: "Open folder in Explorer",
+      icon: "external-link",
+      disabled: !cwd,
+      onSelect: () => cwd && revealItemInDir(cwd),
+    },
     { label: "Copy working directory", icon: "clipboard-copy", disabled: !cwd, onSelect: () => cwd && writeText(cwd) },
     sep,
     ...(agent
@@ -244,7 +290,11 @@ export async function terminalMenu(paneId: Id): Promise<MenuItem[]> {
       label: "Pane theme",
       icon: "palette",
       submenu: [
-        { label: "Follow app theme", checked: !pane?.meta.theme, onSelect: () => A.setPaneMeta(paneId, { theme: null }) },
+        {
+          label: "Follow app theme",
+          checked: !pane?.meta.theme,
+          onSelect: () => A.setPaneMeta(paneId, { theme: null }),
+        },
         sep,
         ...allThemes().map<MenuItem>((th) => ({
           label: th.name,
@@ -257,9 +307,17 @@ export async function terminalMenu(paneId: Id): Promise<MenuItem[]> {
       label: "Pane font size",
       icon: "type",
       submenu: [
-        { label: "Follow settings", checked: !pane?.meta.fontSize, onSelect: () => A.setPaneMeta(paneId, { fontSize: null }) },
+        {
+          label: "Follow settings",
+          checked: !pane?.meta.fontSize,
+          onSelect: () => A.setPaneMeta(paneId, { fontSize: null }),
+        },
         sep,
-        ...fontSizes.map<MenuItem>((n) => ({ label: `${n}px`, checked: pane?.meta.fontSize === n, onSelect: () => A.setPaneMeta(paneId, { fontSize: n }) })),
+        ...fontSizes.map<MenuItem>((n) => ({
+          label: `${n}px`,
+          checked: pane?.meta.fontSize === n,
+          onSelect: () => A.setPaneMeta(paneId, { fontSize: n }),
+        })),
       ],
     },
     sep,
@@ -270,7 +328,10 @@ export async function terminalMenu(paneId: Id): Promise<MenuItem[]> {
 async function saveOutput(paneId: Id) {
   try {
     const text = await ipc.ptyText(paneId, 2 * 1024 * 1024);
-    const path = await saveDialog({ defaultPath: "terminal-output.txt", filters: [{ name: "Text", extensions: ["txt", "log"] }] });
+    const path = await saveDialog({
+      defaultPath: "terminal-output.txt",
+      filters: [{ name: "Text", extensions: ["txt", "log"] }],
+    });
     if (!path) return;
     await ipc.fsWriteText(path, text);
     ui.toast("Output saved", "success");
@@ -306,6 +367,11 @@ export function moduleBarMenu(): MenuItem[] {
     { label: "Customize module bar…", icon: "sliders", onSelect: () => ui.openSettings("modules") },
     { label: "Browse plugins…", icon: "puzzle", onSelect: () => ui.openSettings("plugins") },
     sep,
-    { label: "Hide module bar", icon: "eye-off", shortcut: shortcutLabel("view.moduleBar"), onSelect: () => A.toggleModuleBar() },
+    {
+      label: "Hide module bar",
+      icon: "eye-off",
+      shortcut: shortcutLabel("view.moduleBar"),
+      onSelect: () => A.toggleModuleBar(),
+    },
   ];
 }

@@ -48,7 +48,11 @@ impl SftpConns {
 
 /// POSIX join for remote paths.
 fn rjoin(dir: &str, name: &str) -> String {
-    if dir.ends_with('/') { format!("{dir}{name}") } else { format!("{dir}/{name}") }
+    if dir.ends_with('/') {
+        format!("{dir}{name}")
+    } else {
+        format!("{dir}/{name}")
+    }
 }
 
 /// `dir\name`, or `dir\name (2)` … when that exists already.
@@ -74,9 +78,15 @@ fn mode_string(perms: Option<u32>) -> String {
     let bit = |mask: u32, c: char| if m & mask != 0 { c } else { '-' };
     format!(
         "{kind}{}{}{}{}{}{}{}{}{}",
-        bit(0o400, 'r'), bit(0o200, 'w'), bit(0o100, 'x'),
-        bit(0o040, 'r'), bit(0o020, 'w'), bit(0o010, 'x'),
-        bit(0o004, 'r'), bit(0o002, 'w'), bit(0o001, 'x'),
+        bit(0o400, 'r'),
+        bit(0o200, 'w'),
+        bit(0o100, 'x'),
+        bit(0o040, 'r'),
+        bit(0o020, 'w'),
+        bit(0o010, 'x'),
+        bit(0o004, 'r'),
+        bit(0o002, 'w'),
+        bit(0o001, 'x'),
     )
 }
 
@@ -94,7 +104,8 @@ pub async fn sftp_connect(app: AppHandle, pane_id: String, host_id: String) -> R
     // (the same host only: the pane may have been pointed at another one)
     if let Some(c) = existing.filter(|c| c.host_id == host_id) {
         if let Ok(home) = c.sftp.canonicalize(".").await {
-            let host_name = app.state::<crate::vault::Vault>().host(&host_id).map(|h| h.name.clone()).unwrap_or_default();
+            let host_name =
+                app.state::<crate::vault::Vault>().host(&host_id).map(|h| h.name.clone()).unwrap_or_default();
             return Ok(SftpInfo { home, host_name });
         }
     }
@@ -138,7 +149,11 @@ pub async fn sftp_list(app: AppHandle, pane_id: String, path: String) -> Result<
         let full = rjoin(&path, &name);
         let is_link = meta.is_symlink();
         // a link's own attributes say "link": ask where it points to show folders as folders
-        let is_dir = if is_link { c.sftp.metadata(full.as_str()).await.map(|m| m.is_dir()).unwrap_or(false) } else { meta.is_dir() };
+        let is_dir = if is_link {
+            c.sftp.metadata(full.as_str()).await.map(|m| m.is_dir()).unwrap_or(false)
+        } else {
+            meta.is_dir()
+        };
         out.push(RemoteEntry {
             name,
             path: full,
@@ -235,7 +250,13 @@ fn start_transfer(app: &AppHandle) -> (u64, Arc<AtomicBool>) {
     (id, flag)
 }
 
-fn finish_transfer(app: &AppHandle, id: u64, ch: &Channel<serde_json::Value>, result: Result<(usize, usize), String>, cancel: &AtomicBool) {
+fn finish_transfer(
+    app: &AppHandle,
+    id: u64,
+    ch: &Channel<serde_json::Value>,
+    result: Result<(usize, usize), String>,
+    cancel: &AtomicBool,
+) {
     app.state::<SftpConns>().transfers.lock().remove(&id);
     let _ = ch.send(match result {
         Err(e) if e == CANCELLED && cancel.load(Ordering::Relaxed) => json!({ "t": "cancelled" }),
@@ -267,7 +288,13 @@ pub async fn sftp_download(
     Ok(id)
 }
 
-async fn download(sftp: &SftpSession, paths: &[String], dir: &Path, ch: &Channel<serde_json::Value>, cancel: &AtomicBool) -> Result<(usize, usize), String> {
+async fn download(
+    sftp: &SftpSession,
+    paths: &[String],
+    dir: &Path,
+    ch: &Channel<serde_json::Value>,
+    cancel: &AtomicBool,
+) -> Result<(usize, usize), String> {
     // plan first (sizes for the progress bar); links are skipped, never followed
     let mut files: Vec<(String, PathBuf, u64)> = Vec::new();
     let mut dirs: Vec<PathBuf> = Vec::new();
@@ -372,7 +399,14 @@ pub async fn sftp_upload(
     Ok(id)
 }
 
-fn plan_local(local: &Path, remote: &str, files: &mut Vec<(PathBuf, String, u64)>, dirs: &mut Vec<String>, skipped: &mut usize, depth: usize) -> Result<(), String> {
+fn plan_local(
+    local: &Path,
+    remote: &str,
+    files: &mut Vec<(PathBuf, String, u64)>,
+    dirs: &mut Vec<String>,
+    skipped: &mut usize,
+    depth: usize,
+) -> Result<(), String> {
     if depth > 32 {
         return Err("folders nested too deeply".into());
     }
@@ -395,7 +429,14 @@ fn plan_local(local: &Path, remote: &str, files: &mut Vec<(PathBuf, String, u64)
     Ok(())
 }
 
-async fn upload(sftp: &SftpSession, paths: &[String], remote_dir: &str, overwrite: bool, ch: &Channel<serde_json::Value>, cancel: &AtomicBool) -> Result<(usize, usize), String> {
+async fn upload(
+    sftp: &SftpSession,
+    paths: &[String],
+    remote_dir: &str,
+    overwrite: bool,
+    ch: &Channel<serde_json::Value>,
+    cancel: &AtomicBool,
+) -> Result<(usize, usize), String> {
     let mut files = Vec::new();
     let mut dirs = Vec::new();
     let mut skipped = 0;

@@ -24,7 +24,9 @@
   color: var(--text);
   cursor: pointer;
   flex: 0 1 auto;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
 }
 .pi-picker-btn:hover,
 .pi-picker-btn.open {

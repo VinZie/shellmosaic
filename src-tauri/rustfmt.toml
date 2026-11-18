@@ -1,0 +1,3 @@
+# Wide lines and "Max" heuristics keep rustfmt close to the hand-written style.
+max_width = 120
+use_small_heuristics = "Max"

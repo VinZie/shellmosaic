@@ -32,7 +32,7 @@ const loadToken = (pid: number) => sm.process.token(pid);
 /** Privileges that turn a foothold into SYSTEM (or close to it). */
 const NOTABLE: Record<string, string> = {
   SeDebugPrivilege: "Open any process, including SYSTEM ones",
-  SeImpersonatePrivilege: "Impersonate tokens handed to it (the \"potato\" family)",
+  SeImpersonatePrivilege: 'Impersonate tokens handed to it (the "potato" family)',
   SeAssignPrimaryTokenPrivilege: "Start processes with another token",
   SeTcbPrivilege: "Act as part of the operating system",
   SeLoadDriverPrivilege: "Load kernel drivers",
@@ -96,11 +96,31 @@ function TokenBody({ token }: { token: ProcToken }) {
 
   const s = q.trim().toLowerCase();
   const groups = useMemo(
-    () => (s ? token.groups.filter((g) => g.name?.toLowerCase().includes(s) || g.sid.toLowerCase().includes(s) || g.flags.some((f) => f.toLowerCase().includes(s))) : token.groups),
+    () =>
+      s
+        ? token.groups.filter(
+            (g) =>
+              g.name?.toLowerCase().includes(s) ||
+              g.sid.toLowerCase().includes(s) ||
+              g.flags.some((f) => f.toLowerCase().includes(s)),
+          )
+        : token.groups,
     [token.groups, s],
   );
-  const privs = useMemo(() => (s ? token.privileges.filter((p) => p.name.toLowerCase().includes(s) || p.description?.toLowerCase().includes(s)) : token.privileges), [token.privileges, s]);
-  const caps = useMemo(() => (s ? token.capabilities.filter((c) => c.name?.toLowerCase().includes(s) || c.sid.toLowerCase().includes(s)) : token.capabilities), [token.capabilities, s]);
+  const privs = useMemo(
+    () =>
+      s
+        ? token.privileges.filter((p) => p.name.toLowerCase().includes(s) || p.description?.toLowerCase().includes(s))
+        : token.privileges,
+    [token.privileges, s],
+  );
+  const caps = useMemo(
+    () =>
+      s
+        ? token.capabilities.filter((c) => c.name?.toLowerCase().includes(s) || c.sid.toLowerCase().includes(s))
+        : token.capabilities,
+    [token.capabilities, s],
+  );
 
   const info: KV[] = [
     { label: "User", value: token.user ?? token.userSid },
@@ -121,14 +141,31 @@ function TokenBody({ token }: { token: ProcToken }) {
     },
     { label: "Session", value: token.sessionId },
     { label: "Elevation", value: `${token.elevated ? "Elevated" : "Not elevated"} (${token.elevationType} token)` },
-    { label: "Token type", value: token.tokenType === "primary" ? "Primary" : `Impersonation${token.impersonationLevel ? ` (${token.impersonationLevel})` : ""}` },
+    {
+      label: "Token type",
+      value:
+        token.tokenType === "primary"
+          ? "Primary"
+          : `Impersonation${token.impersonationLevel ? ` (${token.impersonationLevel})` : ""}`,
+    },
     { label: "Logon ID", value: token.logonId, mono: true },
     { label: "Token ID", value: token.tokenId, mono: true },
     { label: "Source", value: token.source ?? "—", muted: !token.source },
-    { label: "Virtualization", value: token.virtualizationEnabled ? "Enabled" : token.virtualizationAllowed ? "Allowed, not enabled" : "Not allowed" },
+    {
+      label: "Virtualization",
+      value: token.virtualizationEnabled
+        ? "Enabled"
+        : token.virtualizationAllowed
+          ? "Allowed, not enabled"
+          : "Not allowed",
+    },
     {
       label: "UI access",
-      value: token.uiAccess ? <span className="sm-warning-text">Yes: may drive windows of higher integrity</span> : "No",
+      value: token.uiAccess ? (
+        <span className="sm-warning-text">Yes: may drive windows of higher integrity</span>
+      ) : (
+        "No"
+      ),
       copyText: token.uiAccess ? "Yes" : "No",
     },
     {
@@ -179,7 +216,15 @@ function TokenBody({ token }: { token: ProcToken }) {
           </span>
         ),
       },
-      { id: "attributes", label: "Attributes", width: 100, mono: true, hidden: true, sort: (g) => g.attributes, text: (g) => hex(g.attributes) },
+      {
+        id: "attributes",
+        label: "Attributes",
+        width: 100,
+        mono: true,
+        hidden: true,
+        sort: (g) => g.attributes,
+        text: (g) => hex(g.attributes),
+      },
     ],
     [],
   );
@@ -194,7 +239,10 @@ function TokenBody({ token }: { token: ProcToken }) {
         text: (p) => p.name,
         render: (p) =>
           NOTABLE[p.name] && !p.removed ? (
-            <span className={p.enabled ? "pi-cell-flag sm-warning-text" : "pi-cell-flag"} title={`Notable for privilege escalation: ${NOTABLE[p.name]}`}>
+            <span
+              className={p.enabled ? "pi-cell-flag sm-warning-text" : "pi-cell-flag"}
+              title={`Notable for privilege escalation: ${NOTABLE[p.name]}`}
+            >
               <TriangleAlert size={12} className={p.enabled ? undefined : "pi-icon-dim"} />
               <span className="sm-cell-text">{p.name}</span>
             </span>
@@ -213,7 +261,13 @@ function TokenBody({ token }: { token: ProcToken }) {
           return <Chip tone={tone}>{label}</Chip>;
         },
       },
-      { id: "description", label: "Description", width: 260, sort: (p) => p.description, text: (p) => p.description ?? "" },
+      {
+        id: "description",
+        label: "Description",
+        width: 260,
+        sort: (p) => p.description,
+        text: (p) => p.description ?? "",
+      },
     ],
     [],
   );
@@ -238,63 +292,100 @@ function TokenBody({ token }: { token: ProcToken }) {
           <Section title="Token">
             <KeyValues rows={info} labelWidth={118} />
           </Section>
-          <Section title="Privileges" actions={<span className="pi-section-note">{enabledPrivs} of {token.privileges.length} enabled</span>}>
+          <Section
+            title="Privileges"
+            actions={
+              <span className="pi-section-note">
+                {enabledPrivs} of {token.privileges.length} enabled
+              </span>
+            }
+          >
             <StaticTable count={privs.length}>
-              
-                <Table
-                  columns={privCols}
-                  rows={privs}
-                  rowKey={privKey}
-                  columnState={pcols}
-                  onColumnState={setPcols}
-                  rowClass={(p) => (p.removed ? "pi-muted" : null)}
-                  defaultSort={{ id: "status", desc: false }}
-                  onContextMenu={(at, sel) =>
-                    openMenu(at, [
-                      { label: "Copy name", icon: <Copy size={14} />, onSelect: () => copy(sel.map((p) => p.name).join("\n"), "name") },
-                      { label: "Copy description", icon: <Copy size={14} />, disabled: !sel[0]?.description, onSelect: () => copy(sel.map((p) => p.description ?? "").join("\n"), "description") },
-                    ])
-                  }
-                  multi
-                  empty={s ? "No privilege matches" : "No privileges"}
-                />
+              <Table
+                columns={privCols}
+                rows={privs}
+                rowKey={privKey}
+                columnState={pcols}
+                onColumnState={setPcols}
+                rowClass={(p) => (p.removed ? "pi-muted" : null)}
+                defaultSort={{ id: "status", desc: false }}
+                onContextMenu={(at, sel) =>
+                  openMenu(at, [
+                    {
+                      label: "Copy name",
+                      icon: <Copy size={14} />,
+                      onSelect: () => copy(sel.map((p) => p.name).join("\n"), "name"),
+                    },
+                    {
+                      label: "Copy description",
+                      icon: <Copy size={14} />,
+                      disabled: !sel[0]?.description,
+                      onSelect: () => copy(sel.map((p) => p.description ?? "").join("\n"), "description"),
+                    },
+                  ])
+                }
+                multi
+                empty={s ? "No privilege matches" : "No privileges"}
+              />
             </StaticTable>
           </Section>
-          <Section className="pi-wide" title="Groups" actions={<span className="pi-section-note">{formatNumber(token.groups.length)}</span>}>
+          <Section
+            className="pi-wide"
+            title="Groups"
+            actions={<span className="pi-section-note">{formatNumber(token.groups.length)}</span>}
+          >
             <StaticTable count={groups.length}>
-              
-                <Table
-                  columns={groupCols}
-                  rows={groups}
-                  rowKey={groupKey}
-                  columnState={gcols}
-                  onColumnState={setGcols}
-                  rowClass={(g) => (g.flags.includes("DenyOnly") ? "pi-muted" : null)}
-                  onContextMenu={(at, sel) =>
-                    openMenu(at, [
-                      { label: "Copy name", icon: <Copy size={14} />, onSelect: () => copy(sel.map((g) => g.name ?? g.sid).join("\n"), "name") },
-                      { label: "Copy SID", icon: <Copy size={14} />, onSelect: () => copy(sel.map((g) => g.sid).join("\n"), "SID") },
-                    ])
-                  }
-                  multi
-                  empty={s ? "No group matches" : "No groups"}
-                />
+              <Table
+                columns={groupCols}
+                rows={groups}
+                rowKey={groupKey}
+                columnState={gcols}
+                onColumnState={setGcols}
+                rowClass={(g) => (g.flags.includes("DenyOnly") ? "pi-muted" : null)}
+                onContextMenu={(at, sel) =>
+                  openMenu(at, [
+                    {
+                      label: "Copy name",
+                      icon: <Copy size={14} />,
+                      onSelect: () => copy(sel.map((g) => g.name ?? g.sid).join("\n"), "name"),
+                    },
+                    {
+                      label: "Copy SID",
+                      icon: <Copy size={14} />,
+                      onSelect: () => copy(sel.map((g) => g.sid).join("\n"), "SID"),
+                    },
+                  ])
+                }
+                multi
+                empty={s ? "No group matches" : "No groups"}
+              />
             </StaticTable>
           </Section>
           {token.capabilities.length > 0 && (
-            <Section className="pi-wide" title="Capabilities" actions={<span className="pi-section-note">{formatNumber(token.capabilities.length)}</span>}>
+            <Section
+              className="pi-wide"
+              title="Capabilities"
+              actions={<span className="pi-section-note">{formatNumber(token.capabilities.length)}</span>}
+            >
               <StaticTable count={caps.length}>
-                
-                  <Table
-                    columns={capCols}
-                    rows={caps}
-                    rowKey={capKey}
-                    columnState={ccols}
-                    onColumnState={setCcols}
-                    onContextMenu={(at, sel) => openMenu(at, [{ label: "Copy SID", icon: <Copy size={14} />, onSelect: () => copy(sel.map((c) => c.sid).join("\n"), "SID") }])}
-                    multi
-                    empty="No capability matches"
-                  />
+                <Table
+                  columns={capCols}
+                  rows={caps}
+                  rowKey={capKey}
+                  columnState={ccols}
+                  onColumnState={setCcols}
+                  onContextMenu={(at, sel) =>
+                    openMenu(at, [
+                      {
+                        label: "Copy SID",
+                        icon: <Copy size={14} />,
+                        onSelect: () => copy(sel.map((c) => c.sid).join("\n"), "SID"),
+                      },
+                    ])
+                  }
+                  multi
+                  empty="No capability matches"
+                />
               </StaticTable>
             </Section>
           )}

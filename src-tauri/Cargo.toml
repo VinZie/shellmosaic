@@ -3,7 +3,8 @@ name = "shellmosaic"
 version = "0.4.1"
 description = "A modular, workspace-based terminal for Windows"
 edition = "2021"
-rust-version = "1.80"
+# Option::is_none_or needs 1.82
+rust-version = "1.82"
 # src/bin/shellmosaic-agent.rs is the Orchestrator's hook/MCP shim; the app is this one
 default-run = "shellmosaic"
 
@@ -81,6 +82,12 @@ windows-sys = { version = "0.61", features = [
 
 # Unoptimized key derivation takes seconds (vault unlock, encrypted SSH keys) and
 # makes debug builds feel broken; optimize just the crypto crates.
+[lints.clippy]
+# Tauri commands and the agent model take many arguments by design, and
+# `Arc<dyn Fn(&[u8]) + Send + Sync>`-style types read fine inline.
+too_many_arguments = "allow"
+type_complexity = "allow"
+
 [profile.dev.package.argon2]
 opt-level = 3
 [profile.dev.package.blake2]

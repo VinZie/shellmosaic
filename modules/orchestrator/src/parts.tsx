@@ -1,7 +1,19 @@
 // Small pieces the views share: state chips, difficulty, the usage meter.
 import { Bot, Crown } from "lucide-react";
 import { Chip, cx, formatAgo, type Agent, type AgentState, type Routing, type TaskStatus } from "../../shared";
-import { DIFFICULTY_LABEL, SLOW_START_HINT, STATE_HINT, STATE_LABEL, STATE_TONE, TASK_LABEL, TASK_TONE, untilText, usageLevel, type Usage, type UsageWindow } from "./lib";
+import {
+  DIFFICULTY_LABEL,
+  SLOW_START_HINT,
+  STATE_HINT,
+  STATE_LABEL,
+  STATE_TONE,
+  TASK_LABEL,
+  TASK_TONE,
+  untilText,
+  usageLevel,
+  type Usage,
+  type UsageWindow,
+} from "./lib";
 
 /** `slow`: it has been starting for a while (see `slowStart`). */
 export function StateChip({ state, slow }: { state: AgentState; slow?: boolean }) {
@@ -20,7 +32,11 @@ export function TaskChip({ status }: { status: TaskStatus }) {
 export function AgentName({ agent }: { agent: Agent }) {
   return (
     <span className="orc-agent-name">
-      {agent.role === "lead" ? <Crown size={13} className="orc-lead-icon" /> : <Bot size={13} className="orc-worker-icon" />}
+      {agent.role === "lead" ? (
+        <Crown size={13} className="orc-lead-icon" />
+      ) : (
+        <Bot size={13} className="orc-worker-icon" />
+      )}
       <span className="sm-ellipsis">{agent.name}</span>
     </span>
   );
@@ -69,7 +85,10 @@ export function UsageMeter({ usage, routing, now }: { usage: Usage | null; routi
       </div>
     );
   }
-  const src = usage.source === "agents" ? `as the agents reported it ${formatAgo(usage.at, now)}` : `from your Claude account, ${formatAgo(usage.at, now)}`;
+  const src =
+    usage.source === "agents"
+      ? `as the agents reported it ${formatAgo(usage.at, now)}`
+      : `from your Claude account, ${formatAgo(usage.at, now)}`;
   return (
     <div className="orc-usage" aria-label={`Plan usage ${src}`}>
       {usage.fiveHour && <Bar label="5 h" w={usage.fiveHour} routing={routing} now={now} />}

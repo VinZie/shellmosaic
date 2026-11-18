@@ -18,13 +18,23 @@ interface ModuleStore {
   busy: Record<string, boolean>;
 }
 
-export const useModuleStore = create<ModuleStore>(() => ({ state: null, catalog: null, catalogError: null, loading: false, busy: {} }));
+export const useModuleStore = create<ModuleStore>(() => ({
+  state: null,
+  catalog: null,
+  catalogError: null,
+  loading: false,
+  busy: {},
+}));
 
 const set = (patch: Partial<ModuleStore>) => useModuleStore.setState(patch);
 
 /** "0.10.0" > "0.9.3"; pre-release suffixes are ignored. */
 export function versionAtLeast(have: string, need: string): boolean {
-  const parse = (v: string) => v.split(/[-+]/)[0].split(".").map((n) => parseInt(n, 10) || 0);
+  const parse = (v: string) =>
+    v
+      .split(/[-+]/)[0]
+      .split(".")
+      .map((n) => parseInt(n, 10) || 0);
   const a = parse(have);
   const b = parse(need);
   for (let i = 0; i < Math.max(a.length, b.length); i++) {
@@ -35,14 +45,20 @@ export function versionAtLeast(have: string, need: string): boolean {
   return true;
 }
 
-export const isNewer = (candidate: string, current: string) => candidate !== current && versionAtLeast(candidate, current);
+export const isNewer = (candidate: string, current: string) =>
+  candidate !== current && versionAtLeast(candidate, current);
 
 /** Installed modules the catalog has a newer (and compatible) version of. */
 export function availableUpdates(state: StoreState | null, catalog: Catalog | null): CatalogEntry[] {
   if (!state || !catalog) return [];
   return catalog.modules.filter((m) => {
     const have = state.installed[m.id];
-    return have && isNewer(m.version, have.version) && versionAtLeast(state.appVersion, m.minAppVersion) && !state.pending.some((p) => p.id === m.id);
+    return (
+      have &&
+      isNewer(m.version, have.version) &&
+      versionAtLeast(state.appVersion, m.minAppVersion) &&
+      !state.pending.some((p) => p.id === m.id)
+    );
   });
 }
 
@@ -132,13 +148,22 @@ export async function restartApp(opts: { elevated?: boolean; reason?: string } =
  * Open an optional module next to a pane, with arguments (e.g. {pid}). When it isn't
  * installed, point the user to where it can be.
  */
-export function openOptional(id: string, name: string, args: Record<string, unknown>, near: { tabId: string; paneId: string }) {
+export function openOptional(
+  id: string,
+  name: string,
+  args: Record<string, unknown>,
+  near: { tabId: string; paneId: string },
+) {
   if (useModules.getState().modules[`plugin:${id}`]) {
     addModule(`plugin:${id}`, { tabId: near.tabId, target: near.paneId, side: "right", meta: { args } });
     return;
   }
   const queued = useModuleStore.getState().state?.pending.some((p) => p.id === id && p.op === "install");
-  ui.toast(queued ? `${name} is installed when Shellmosaic restarts` : `${name} is an optional module: install it here`, "info", 5000);
+  ui.toast(
+    queued ? `${name} is installed when Shellmosaic restarts` : `${name} is an optional module: install it here`,
+    "info",
+    5000,
+  );
   ui.openSettings("optional-modules");
 }
 
@@ -184,9 +209,15 @@ export async function startModuleStore() {
     const installed = names("install");
     const removed = names("remove");
     const list = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}` : xs[0]);
-    if (installed.length) ui.toast(`Installed ${list(installed)}. Add ${installed.length > 1 ? "them" : "it"} from the module bar.`, "success", 6000);
+    if (installed.length)
+      ui.toast(
+        `Installed ${list(installed)}. Add ${installed.length > 1 ? "them" : "it"} from the module bar.`,
+        "success",
+        6000,
+      );
     if (removed.length) ui.toast(`Removed ${list(removed)}`, "info", 4000);
-    for (const r of done.filter((r) => !r.ok)) ui.toast(`Couldn't ${r.op} ${r.name}: ${r.error ?? "unknown error"}`, "error", 9000);
+    for (const r of done.filter((r) => !r.ok))
+      ui.toast(`Couldn't ${r.op} ${r.name}: ${r.error ?? "unknown error"}`, "error", 9000);
     ipc.storeAck().then(refreshStoreState, () => {});
   }
 
@@ -195,6 +226,11 @@ export async function startModuleStore() {
     if (!settings().updates.autoCheck) return;
     await loadCatalog();
     const n = availableUpdates(useModuleStore.getState().state, useModuleStore.getState().catalog).length;
-    if (n) ui.toast(`${n === 1 ? "An optional module has" : `${n} optional modules have`} an update: Settings → Optional modules`, "info", 8000);
+    if (n)
+      ui.toast(
+        `${n === 1 ? "An optional module has" : `${n} optional modules have`} an update: Settings → Optional modules`,
+        "info",
+        8000,
+      );
   }, 25_000);
 }

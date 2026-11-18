@@ -3,7 +3,18 @@
 // silently overwrite each other.
 import { useEffect, useState } from "react";
 import { RotateCcw, Save } from "lucide-react";
-import { Banner, Button, errorText, Grow, Section, Select, sm, Toolbar, type ModelChoice, type Routing } from "../../../shared";
+import {
+  Banner,
+  Button,
+  errorText,
+  Grow,
+  Section,
+  Select,
+  sm,
+  Toolbar,
+  type ModelChoice,
+  type Routing,
+} from "../../../shared";
 import { DIFFICULTY_LABEL, EFFORTS, MODEL_ALIASES, modelLabel, type Usage } from "../lib";
 
 const DEFAULT: Routing = {
@@ -21,11 +32,26 @@ const DEFAULT: Routing = {
   noHireAbove: 95,
 };
 
-const EXAMPLES = ["", "renames, typos, small mechanical fixes", "a small feature or a contained bug fix", "normal feature work across a few files", "tricky bugs, design work, many files", "hard problems where quality matters most"];
+const EXAMPLES = [
+  "",
+  "renames, typos, small mechanical fixes",
+  "a small feature or a contained bug fix",
+  "normal feature work across a few files",
+  "tricky bugs, design work, many files",
+  "hard problems where quality matters most",
+];
 
 const same = (a: Routing, b: Routing) => JSON.stringify(a) === JSON.stringify(b);
 
-function ModelPicker({ value, onChange, disabled }: { value: ModelChoice; onChange: (v: ModelChoice) => void; disabled?: boolean }) {
+function ModelPicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: ModelChoice;
+  onChange: (v: ModelChoice) => void;
+  disabled?: boolean;
+}) {
   const alias = MODEL_ALIASES.includes(value.model.toLowerCase());
   const [custom, setCustom] = useState(!alias);
   return (
@@ -49,9 +75,22 @@ function ModelPicker({ value, onChange, disabled }: { value: ModelChoice; onChan
         <option value="custom">Another model…</option>
       </select>
       {custom && (
-        <input className="sm-input mono orc-model-id" disabled={disabled} value={value.model} placeholder="claude-…" onChange={(e) => onChange({ ...value, model: e.target.value.trim() })} title="A full model id (as `claude --model` takes it)" />
+        <input
+          className="sm-input mono orc-model-id"
+          disabled={disabled}
+          value={value.model}
+          placeholder="claude-…"
+          onChange={(e) => onChange({ ...value, model: e.target.value.trim() })}
+          title="A full model id (as `claude --model` takes it)"
+        />
       )}
-      <select className="sm-input sm-select" disabled={disabled} value={value.effort} onChange={(e) => onChange({ ...value, effort: e.target.value })} title="Effort">
+      <select
+        className="sm-input sm-select"
+        disabled={disabled}
+        value={value.effort}
+        onChange={(e) => onChange({ ...value, effort: e.target.value })}
+        title="Effort"
+      >
         {EFFORTS.map((e) => (
           <option key={e} value={e}>
             {e} effort
@@ -82,7 +121,15 @@ function Percent({ value, onChange, disabled }: { value: number; onChange: (n: n
   );
 }
 
-export function RoutingTab({ routing, canManage, usage }: { routing: Routing; canManage: boolean; usage: Usage | null }) {
+export function RoutingTab({
+  routing,
+  canManage,
+  usage,
+}: {
+  routing: Routing;
+  canManage: boolean;
+  usage: Usage | null;
+}) {
   const [base, setBase] = useState(routing);
   const [draft, setDraft] = useState(routing);
   const [busy, setBusy] = useState(false);
@@ -102,7 +149,7 @@ export function RoutingTab({ routing, canManage, usage }: { routing: Routing; ca
 
   const invalid =
     draft.noHireAbove < draft.sonnetAbove
-      ? "\"No new workers\" has to be at or above \"Sonnet at most\"."
+      ? '"No new workers" has to be at or above "Sonnet at most".'
       : [draft.lead, ...draft.levels].some((c) => !c.model.trim())
         ? "Every row needs a model."
         : null;
@@ -126,7 +173,8 @@ export function RoutingTab({ routing, canManage, usage }: { routing: Routing; ca
   };
 
   const set = (patch: Partial<Routing>) => setDraft((d) => ({ ...d, ...patch }));
-  const setLevel = (i: number, c: ModelChoice) => setDraft((d) => ({ ...d, levels: d.levels.map((l, j) => (j === i ? c : l)) }));
+  const setLevel = (i: number, c: ModelChoice) =>
+    setDraft((d) => ({ ...d, levels: d.levels.map((l, j) => (j === i ? c : l)) }));
   const ro = !canManage;
   const now5 = usage?.fiveHour ? `${Math.round(usage.fiveHour.pct)}%` : "—";
   const now7 = usage?.sevenDay ? `${Math.round(usage.sevenDay.pct)}%` : "—";
@@ -141,7 +189,13 @@ export function RoutingTab({ routing, canManage, usage }: { routing: Routing; ca
           Revert
         </Button>
         <Grow />
-        <Button small kind="subtle" disabled={ro || same(draft, DEFAULT)} onClick={() => setDraft(DEFAULT)} title="The routing Shellmosaic starts with">
+        <Button
+          small
+          kind="subtle"
+          disabled={ro || same(draft, DEFAULT)}
+          onClick={() => setDraft(DEFAULT)}
+          title="The routing Shellmosaic starts with"
+        >
           <RotateCcw size={13} /> Defaults
         </Button>
       </Toolbar>
@@ -171,7 +225,9 @@ export function RoutingTab({ routing, canManage, usage }: { routing: Routing; ca
           <div className="orc-route-row">
             <span className="orc-route-name">The lead</span>
             <ModelPicker value={draft.lead} onChange={(c) => set({ lead: c })} disabled={ro} />
-            <span className="sm-dim orc-route-note">plans, assigns and reviews; applies to teams started from now on</span>
+            <span className="sm-dim orc-route-note">
+              plans, assigns and reviews; applies to teams started from now on
+            </span>
           </div>
         </Section>
         <Section title="Workers, by task difficulty">
@@ -185,7 +241,8 @@ export function RoutingTab({ routing, canManage, usage }: { routing: Routing; ca
             </div>
           ))}
           <p className="sm-dim orc-route-foot">
-            The lead rates each task when it creates it. A follow-up keeps the model of the conversation it continues. A task that has failed twice (failed, blocked or sent back) runs one level up when it's retried.
+            The lead rates each task when it creates it. A follow-up keeps the model of the conversation it continues. A
+            task that has failed twice (failed, blocked or sent back) runs one level up when it's retried.
           </p>
         </Section>
         <Section title="Team">
@@ -193,7 +250,9 @@ export function RoutingTab({ routing, canManage, usage }: { routing: Routing; ca
             <span className="orc-route-name">Workers at most</span>
             <Select
               value={String(draft.maxWorkers)}
-              onChange={(v) => set({ maxWorkers: Number(v), maxOpusWorkers: Math.min(draft.maxOpusWorkers, Number(v)) })}
+              onChange={(v) =>
+                set({ maxWorkers: Number(v), maxOpusWorkers: Math.min(draft.maxOpusWorkers, Number(v)) })
+              }
               options={[1, 2, 3].map((n) => ({ value: String(n), label: String(n) }))}
             />
             <span className="sm-dim orc-route-note">besides the lead</span>
@@ -203,7 +262,10 @@ export function RoutingTab({ routing, canManage, usage }: { routing: Routing; ca
             <Select
               value={String(draft.maxOpusWorkers)}
               onChange={(v) => set({ maxOpusWorkers: Number(v) })}
-              options={Array.from({ length: draft.maxWorkers + 1 }, (_, n) => ({ value: String(n), label: n === 0 ? "None" : String(n) }))}
+              options={Array.from({ length: draft.maxWorkers + 1 }, (_, n) => ({
+                value: String(n),
+                label: n === 0 ? "None" : String(n),
+              }))}
             />
             <span className="sm-dim orc-route-note">more Opus tasks run on Sonnet meanwhile</span>
           </div>
@@ -221,7 +283,12 @@ export function RoutingTab({ routing, canManage, usage }: { routing: Routing; ca
           </div>
           <p className="sm-dim orc-route-foot">
             Now: 5-hour {now5} · week {now7}
-            {usage ? (usage.source === "agents" ? " (as the agents last reported it)" : " (from your Claude account)") : " (no agent has reported it yet)"}. The lead stays on {modelLabel(draft.lead.model)}.
+            {usage
+              ? usage.source === "agents"
+                ? " (as the agents last reported it)"
+                : " (from your Claude account)"
+              : " (no agent has reported it yet)"}
+            . The lead stays on {modelLabel(draft.lead.model)}.
           </p>
         </Section>
       </div>

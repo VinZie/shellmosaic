@@ -2,11 +2,25 @@
 // links to other modules. Every action refreshes the inspector and says how it went.
 import { useState } from "react";
 import { Copy, Cpu, FolderOpen, Gauge, Hash, ListTree, Network, Pause, Play, RefreshCw, Terminal } from "lucide-react";
-import { Button, copy, errorText, openModal, sm, type MenuItem, type PriorityClass, type ProcOverview } from "../../../shared";
+import {
+  Button,
+  copy,
+  errorText,
+  openModal,
+  sm,
+  type MenuItem,
+  type PriorityClass,
+  type ProcOverview,
+} from "../../../shared";
 import { maskBits, PRIORITIES, priorityLabel } from "../lib/util";
 
 /** Run an action, toast the outcome, then refresh. */
-export async function act(failed: string, done: string, fn: () => Promise<unknown>, after?: () => void): Promise<boolean> {
+export async function act(
+  failed: string,
+  done: string,
+  fn: () => Promise<unknown>,
+  after?: () => void,
+): Promise<boolean> {
   let ok = false;
   try {
     const r = await fn();
@@ -38,7 +52,11 @@ export async function openModule(target: Parameters<typeof sm.ui.openModule>[0])
 }
 
 export async function suspendProcess(pid: number, name: string, after: () => void) {
-  const ok = await sm.ui.confirm(`Suspend ${name} (${pid})?`, "Suspending a process freezes it and anything waiting on it. Resume it from here when you're done.", { okLabel: "Suspend" });
+  const ok = await sm.ui.confirm(
+    `Suspend ${name} (${pid})?`,
+    "Suspending a process freezes it and anything waiting on it. Resume it from here when you're done.",
+    { okLabel: "Suspend" },
+  );
   if (ok) await act(`Couldn't suspend ${name}`, `Suspended ${name} (${pid})`, () => sm.process.suspend(pid), after);
 }
 
@@ -55,10 +73,27 @@ async function setPriority(pid: number, name: string, p: PriorityClass, after: (
     );
     if (!ok) return;
   }
-  await act(`Couldn't change the priority of ${name}`, `${name}: priority ${priorityLabel(p).toLowerCase()}`, () => sm.process.setPriority(pid, p), after);
+  await act(
+    `Couldn't change the priority of ${name}`,
+    `${name}: priority ${priorityLabel(p).toLowerCase()}`,
+    () => sm.process.setPriority(pid, p),
+    after,
+  );
 }
 
-function AffinityDialog({ pid, name, ov, close, after }: { pid: number; name: string; ov: ProcOverview; close: () => void; after: () => void }) {
+function AffinityDialog({
+  pid,
+  name,
+  ov,
+  close,
+  after,
+}: {
+  pid: number;
+  name: string;
+  ov: ProcOverview;
+  close: () => void;
+  after: () => void;
+}) {
   const fallback = Array.from({ length: Math.max(1, navigator.hardwareConcurrency || 1) }, (_, i) => i);
   const cpus = ov.systemAffinity ? maskBits(ov.systemAffinity) : fallback;
   const [sel, setSel] = useState<Set<number>>(() => new Set(ov.affinity ? maskBits(ov.affinity) : cpus));
@@ -78,7 +113,12 @@ function AffinityDialog({ pid, name, ov, close, after }: { pid: number; name: st
         e.preventDefault();
         if (!sel.size || busy) return;
         setBusy(true);
-        const ok = await act(`Couldn't change the affinity of ${name}`, `${name} may now run on ${sel.size} of ${cpus.length} CPUs`, () => sm.process.setAffinity(pid, mask.toString()), after);
+        const ok = await act(
+          `Couldn't change the affinity of ${name}`,
+          `${name} may now run on ${sel.size} of ${cpus.length} CPUs`,
+          () => sm.process.setAffinity(pid, mask.toString()),
+          after,
+        );
         setBusy(false);
         if (ok) close();
       }}
@@ -125,7 +165,14 @@ export function openAffinity(pid: number, name: string, ov: ProcOverview, after:
 }
 
 /** The toolbar's "…" menu. */
-export function processMenu(a: { pid: number; name: string; ov: ProcOverview | null; canControl: boolean; refresh: () => void; after: () => void }): MenuItem[] {
+export function processMenu(a: {
+  pid: number;
+  name: string;
+  ov: ProcOverview | null;
+  canControl: boolean;
+  refresh: () => void;
+  after: () => void;
+}): MenuItem[] {
   const { pid, name, ov, after } = a;
   const items: MenuItem[] = [{ label: "Refresh", icon: <RefreshCw size={14} />, hint: "F5", onSelect: a.refresh }];
   if (a.canControl) {
@@ -137,20 +184,52 @@ export function processMenu(a: { pid: number; name: string; ov: ProcOverview | n
       {
         label: "Priority",
         icon: <Gauge size={14} />,
-        submenu: PRIORITIES.map((p) => ({ label: p.label, checked: ov?.priorityClass === p.id, onSelect: () => setPriority(pid, name, p.id, after) })),
+        submenu: PRIORITIES.map((p) => ({
+          label: p.label,
+          checked: ov?.priorityClass === p.id,
+          onSelect: () => setPriority(pid, name, p.id, after),
+        })),
       },
-      { label: "Affinity…", icon: <Cpu size={14} />, disabled: !ov, onSelect: () => ov && openAffinity(pid, name, ov, after) },
+      {
+        label: "Affinity…",
+        icon: <Cpu size={14} />,
+        disabled: !ov,
+        onSelect: () => ov && openAffinity(pid, name, ov, after),
+      },
     );
   }
   items.push(
     { separator: true },
-    { label: "Open file location", icon: <FolderOpen size={14} />, disabled: !ov?.path, onSelect: () => reveal(ov?.path) },
-    { label: "Show in Processes", icon: <ListTree size={14} />, onSelect: () => openModule({ module: "processes", filter: `pid:${pid}` }) },
-    { label: "Show its ports", icon: <Network size={14} />, onSelect: () => openModule({ module: "ports", filter: `pid:${pid}` }) },
+    {
+      label: "Open file location",
+      icon: <FolderOpen size={14} />,
+      disabled: !ov?.path,
+      onSelect: () => reveal(ov?.path),
+    },
+    {
+      label: "Show in Processes",
+      icon: <ListTree size={14} />,
+      onSelect: () => openModule({ module: "processes", filter: `pid:${pid}` }),
+    },
+    {
+      label: "Show its ports",
+      icon: <Network size={14} />,
+      onSelect: () => openModule({ module: "ports", filter: `pid:${pid}` }),
+    },
     { separator: true },
     { label: "Copy PID", icon: <Hash size={14} />, onSelect: () => copy(String(pid), "PID") },
-    { label: "Copy path", icon: <Copy size={14} />, disabled: !ov?.path, onSelect: () => ov?.path && copy(ov.path, "path") },
-    { label: "Copy command line", icon: <Terminal size={14} />, disabled: !ov?.commandLine, onSelect: () => ov?.commandLine && copy(ov.commandLine, "command line") },
+    {
+      label: "Copy path",
+      icon: <Copy size={14} />,
+      disabled: !ov?.path,
+      onSelect: () => ov?.path && copy(ov.path, "path"),
+    },
+    {
+      label: "Copy command line",
+      icon: <Terminal size={14} />,
+      disabled: !ov?.commandLine,
+      onSelect: () => ov?.commandLine && copy(ov.commandLine, "command line"),
+    },
   );
   return items;
 }

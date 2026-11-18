@@ -25,7 +25,11 @@ function fourcc(n: number): string | null {
   return bytes.every((b) => b >= 0x20 && b < 0x7f) ? String.fromCharCode(...bytes) : null;
 }
 
-type Check = { state: "running" } | { state: "ok"; ms: number } | { state: "problems"; lines: string[]; ms: number } | { state: "error"; message: string };
+type Check =
+  | { state: "running" }
+  | { state: "ok"; ms: number }
+  | { state: "problems"; lines: string[]; ms: number }
+  | { state: "error"; message: string };
 
 export function InfoTab() {
   const { db, schema } = useDb();
@@ -59,7 +63,11 @@ export function InfoTab() {
               <Button small kind="subtle" onClick={() => copy(db.path, "path")}>
                 <Copy size={12} /> Copy path
               </Button>
-              <Button small kind="subtle" onClick={() => sm.ui.reveal(db.path).catch((e) => sm.ui.notify(errorText(e), "error"))}>
+              <Button
+                small
+                kind="subtle"
+                onClick={() => sm.ui.reveal(db.path).catch((e) => sm.ui.notify(errorText(e), "error"))}
+              >
                 <FolderSearch size={12} /> Show in Explorer
               </Button>
             </>
@@ -75,7 +83,11 @@ export function InfoTab() {
                 copyText: null,
               },
               { label: "Access", value: db.writable ? "Changes allowed (read-write)" : "Read-only", copyText: null },
-              { label: "Size", value: `${formatBytes(db.size)} (${formatNumber(db.size)} bytes)`, copyText: String(db.size) },
+              {
+                label: "Size",
+                value: `${formatBytes(db.size)} (${formatNumber(db.size)} bytes)`,
+                copyText: String(db.size),
+              },
             ]}
           />
         </Section>
@@ -95,7 +107,12 @@ export function InfoTab() {
                 value: wal ? `${db.journalMode} — recent changes may still be in ${db.file}-wal` : db.journalMode,
                 copyText: db.journalMode,
               },
-              { label: "user_version", value: String(db.userVersion), mono: true, title: "Set by the application, usually its schema version" },
+              {
+                label: "user_version",
+                value: String(db.userVersion),
+                mono: true,
+                title: "Set by the application, usually its schema version",
+              },
               {
                 label: "application_id",
                 value: (
@@ -109,12 +126,19 @@ export function InfoTab() {
               },
               {
                 label: "Free pages",
-                value: db.freelistCount ? `${formatNumber(db.freelistCount)} (${formatBytes(db.freelistCount * db.pageSize)}) — may still hold deleted data` : "0",
+                value: db.freelistCount
+                  ? `${formatNumber(db.freelistCount)} (${formatBytes(db.freelistCount * db.pageSize)}) — may still hold deleted data`
+                  : "0",
                 copyText: String(db.freelistCount),
               },
               {
                 label: "Objects",
-                value: [pluralize(n("table"), "table"), pluralize(n("view"), "view"), pluralize(n("index"), "index", "indexes"), pluralize(n("trigger"), "trigger")].join(" · "),
+                value: [
+                  pluralize(n("table"), "table"),
+                  pluralize(n("view"), "view"),
+                  pluralize(n("index"), "index", "indexes"),
+                  pluralize(n("trigger"), "trigger"),
+                ].join(" · "),
                 copyText: null,
               },
             ]}
@@ -128,7 +152,11 @@ export function InfoTab() {
             </Button>
           }
         >
-          {!check && <div className="sqlb-note">Runs PRAGMA quick_check: reads every page and checks the b-trees (it doesn't change anything).</div>}
+          {!check && (
+            <div className="sqlb-note">
+              Runs PRAGMA quick_check: reads every page and checks the b-trees (it doesn't change anything).
+            </div>
+          )}
           {check?.state === "running" && (
             <div className="sqlb-check">
               <LoaderCircle size={14} className="sm-spin" /> Checking…

@@ -146,7 +146,11 @@ impl OscScanner {
 pub fn acceptable_cwd(p: &str) -> bool {
     // (Windows reads "/" as "\", so "//host" and "/\host" are network paths too)
     let n = p.replace('/', "\\");
-    !p.is_empty() && p.len() <= 1024 && !p.chars().any(char::is_control) && !n.starts_with("\\\\") && !n.starts_with("\\??\\")
+    !p.is_empty()
+        && p.len() <= 1024
+        && !p.chars().any(char::is_control)
+        && !n.starts_with("\\\\")
+        && !n.starts_with("\\??\\")
 }
 
 pub fn parse_file_url(url: &str) -> Option<String> {
@@ -327,9 +331,7 @@ impl Screen {
 
     fn clear(&mut self, y: usize, from: usize, to: usize) {
         let to = to.min(self.cols);
-        for x in from.min(to)..to {
-            self.cells[y][x] = ' ';
-        }
+        self.cells[y][from.min(to)..to].fill(' ');
     }
 
     fn csi(&mut self, params: &str, f: char) {

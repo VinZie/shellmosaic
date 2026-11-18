@@ -23,7 +23,11 @@ export async function checkForUpdates(opts: { manual?: boolean } = {}): Promise<
     }
     // a skipped version only comes back when the user checks by hand
     if (!opts.manual && settings().updates.skipped === update.version) return;
-    const choice = await ui.askUpdate({ current: update.currentVersion, version: update.version, notes: update.body ?? "" });
+    const choice = await ui.askUpdate({
+      current: update.currentVersion,
+      version: update.version,
+      notes: update.body ?? "",
+    });
     if (choice === "skip") setSetting("updates.skipped", update.version);
     else if (choice === "update") await install(update);
   } catch (e) {

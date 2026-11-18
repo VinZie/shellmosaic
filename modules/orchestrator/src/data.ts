@@ -77,7 +77,9 @@ export function useActivity(runId: string | null, lastSeq: number): AgentActivit
         let after = seen.current;
         for (let page = 0; page < 20; page++) {
           // the first page: the run's newest events; after that, everything newer than the last one
-          const list = await sm.agents.activity(first && page === 0 ? { runId: run, limit: 2000, latest: true } : { runId: run, after, limit: 1000 });
+          const list = await sm.agents.activity(
+            first && page === 0 ? { runId: run, limit: 2000, latest: true } : { runId: run, after, limit: 1000 },
+          );
           if (current.current !== run) return;
           if (list.length) {
             after = list[list.length - 1].seq;

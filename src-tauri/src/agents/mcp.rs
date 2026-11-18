@@ -256,7 +256,8 @@ fn handle(msg: Value, tx: &mpsc::UnboundedSender<String>, host: &Arc<dyn ToolHos
                 if calls.lock().remove(&key).is_none() {
                     return;
                 }
-                let result = complete(json!({ "content": [{ "type": "text", "text": out.text }], "isError": out.is_error }));
+                let result =
+                    complete(json!({ "content": [{ "type": "text", "text": out.text }], "isError": out.is_error }));
                 let _ = tx.send(reply(id, result));
             });
             return;
@@ -405,7 +406,8 @@ mod tests {
         let ping = json!({ "jsonrpc": "2.0", "id": 8, "method": "ping" });
         cw.write_all(format!("{ping}\n").as_bytes()).await.unwrap();
         // the cancelled call never answers: the next line is the ping's
-        let line = tokio::time::timeout(Duration::from_secs(5), read_line(&mut cr, MAX_LINE)).await.unwrap().unwrap().unwrap();
+        let line =
+            tokio::time::timeout(Duration::from_secs(5), read_line(&mut cr, MAX_LINE)).await.unwrap().unwrap().unwrap();
         let r: Value = serde_json::from_slice(&line).unwrap();
         assert_eq!(r["id"], 8);
     }

@@ -48,8 +48,10 @@ fn refuse_special(pid: u32) -> Result<(), String> {
 /// Refuse to stop a critical process (csrss, wininit, …): Windows bugchecks when one
 /// ends, and freezes when one stops running. Also refuses when that can't be checked.
 fn refuse_critical(pid: u32, verb: &str) -> Result<(), String> {
-    let name = Snapshot::take().ok().and_then(|s| s.name(pid).map(str::to_string)).unwrap_or_else(|| format!("Process {pid}"));
-    let (h, _) = nt::open_process(pid, &[PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION]).map_err(error)?;
+    let name =
+        Snapshot::take().ok().and_then(|s| s.name(pid).map(str::to_string)).unwrap_or_else(|| format!("Process {pid}"));
+    let (h, _) =
+        nt::open_process(pid, &[PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION]).map_err(error)?;
     match nt::query_process::<u32>(h.0, class::PROCESS_BREAK_ON_TERMINATION) {
         Ok(0) => Ok(()),
         Ok(_) => Err(format!("{name} is critical to Windows: {verb} it would freeze or crash the system.")),
@@ -76,9 +78,8 @@ pub fn process_control(pid: u32, action: &str, value: Option<&str>) -> Result<()
             win_result(&h, unsafe { SetPriorityClass(h.0, class) })
         }
         "affinity" => {
-            let mask: usize = value
-                .and_then(|v| v.trim().parse().ok())
-                .ok_or("The affinity must be a decimal processor mask.")?;
+            let mask: usize =
+                value.and_then(|v| v.trim().parse().ok()).ok_or("The affinity must be a decimal processor mask.")?;
             if mask == 0 {
                 return Err("Choose at least one processor.".into());
             }

@@ -93,7 +93,11 @@ export function Inspector({
             const c = row[col.index];
             const why = editWhy(col.index);
             return (
-              <div key={col.index} className={cx("sqlb-field", col.index === activeIndex && "active")} onMouseDown={() => onActivate(col.index)}>
+              <div
+                key={col.index}
+                className={cx("sqlb-field", col.index === activeIndex && "active")}
+                onMouseDown={() => onActivate(col.index)}
+              >
                 <div className="sqlb-field-head">
                   {col.pk && <KeyRound size={11} className="sqlb-key" />}
                   <span className="sqlb-field-name">{col.name}</span>
@@ -104,7 +108,16 @@ export function Inspector({
                     <IconButton title={why ?? "Edit the value"} disabled={!!why} onClick={() => onEdit(col.index)}>
                       <Pencil size={12} />
                     </IconButton>
-                    <IconButton title={isBlob(c) ? "Copy the hex shown" : "Copy the value"} onClick={() => copyOut(cellText(c), isBlob(c) ? "hex" : "value", isLongText(c) || (isBlob(c) && c.length > 256))}>
+                    <IconButton
+                      title={isBlob(c) ? "Copy the hex shown" : "Copy the value"}
+                      onClick={() =>
+                        copyOut(
+                          cellText(c),
+                          isBlob(c) ? "hex" : "value",
+                          isLongText(c) || (isBlob(c) && c.length > 256),
+                        )
+                      }
+                    >
                       <Copy size={12} />
                     </IconButton>
                   </span>
@@ -149,7 +162,11 @@ function FieldValue({ c, name, wide }: { c: Cell; name: string; wide: boolean })
           … show all {formatNumber(s.length)} characters
         </button>
       )}
-      {isLongText(c) && <div className="sqlb-fv-hint">The first {formatNumber(s.length)} of {formatNumber(c.length)} characters (the rest isn't loaded)</div>}
+      {isLongText(c) && (
+        <div className="sqlb-fv-hint">
+          The first {formatNumber(s.length)} of {formatNumber(c.length)} characters (the rest isn't loaded)
+        </div>
+      )}
     </div>
   );
 }

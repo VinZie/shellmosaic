@@ -6,11 +6,17 @@
 /// characters and control characters become "_", as do trailing dots/spaces
 /// (Windows drops those, so "x." would collide with "x"); device names get a "_".
 pub fn safe_local_name(name: &str) -> String {
-    let mut s: String = name
-        .chars()
-        .map(|c| if c.is_control() || matches!(c, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|') { '_' } else { c })
-        .take(200)
-        .collect();
+    let mut s: String =
+        name.chars()
+            .map(|c| {
+                if c.is_control() || matches!(c, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|') {
+                    '_'
+                } else {
+                    c
+                }
+            })
+            .take(200)
+            .collect();
     while s.ends_with('.') || s.ends_with(' ') {
         s.pop();
         s.push('_');
@@ -20,7 +26,9 @@ pub fn safe_local_name(name: &str) -> String {
     }
     let stem = s.split('.').next().unwrap_or("").trim_end().to_ascii_uppercase();
     let reserved = matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$")
-        || (stem.len() == 4 && (stem.starts_with("COM") || stem.starts_with("LPT")) && stem.as_bytes()[3].is_ascii_digit());
+        || (stem.len() == 4
+            && (stem.starts_with("COM") || stem.starts_with("LPT"))
+            && stem.as_bytes()[3].is_ascii_digit());
     if reserved {
         s.insert(0, '_');
     }
@@ -33,7 +41,22 @@ mod tests {
 
     #[test]
     fn hostile_names_stay_inside_the_folder() {
-        for hostile in ["..\\..\\evil.exe", "../x", "..", ".", "", "C:x", "a/b", "\\\\host\\share", "CON.txt", "com1", "nul", "x. ", "\u{1b}[31m", "a:stream"] {
+        for hostile in [
+            "..\\..\\evil.exe",
+            "../x",
+            "..",
+            ".",
+            "",
+            "C:x",
+            "a/b",
+            "\\\\host\\share",
+            "CON.txt",
+            "com1",
+            "nul",
+            "x. ",
+            "\u{1b}[31m",
+            "a:stream",
+        ] {
             let s = safe_local_name(hostile);
             assert!(!s.is_empty() && s != "." && s != "..", "{hostile:?} -> {s:?}");
             assert!(!s.contains(['/', '\\', ':']), "{hostile:?} -> {s:?}");

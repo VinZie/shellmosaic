@@ -8,8 +8,8 @@ use windows_sys::Win32::Foundation::{HANDLE, LUID};
 use windows_sys::Win32::Security::{
     GetTokenInformation, LookupPrivilegeDisplayNameW, LookupPrivilegeNameW, TokenAppContainerSid, TokenCapabilities,
     TokenElevation, TokenElevationType, TokenGroups, TokenImpersonationLevel, TokenIntegrityLevel, TokenIsAppContainer,
-    TokenOwner, TokenPrimaryGroup, TokenPrivileges, TokenSessionId, TokenSource, TokenStatistics, TokenType, TokenUIAccess,
-    TokenUser, TokenVirtualizationAllowed, TokenVirtualizationEnabled, PSID, SE_PRIVILEGE_ENABLED,
+    TokenOwner, TokenPrimaryGroup, TokenPrivileges, TokenSessionId, TokenSource, TokenStatistics, TokenType,
+    TokenUIAccess, TokenUser, TokenVirtualizationAllowed, TokenVirtualizationEnabled, PSID, SE_PRIVILEGE_ENABLED,
     SE_PRIVILEGE_ENABLED_BY_DEFAULT, SE_PRIVILEGE_REMOVED, TOKEN_INFORMATION_CLASS, TOKEN_QUERY, TOKEN_QUERY_SOURCE,
 };
 use windows_sys::Win32::System::Threading::{OpenProcessToken, PROCESS_QUERY_LIMITED_INFORMATION};
@@ -289,8 +289,9 @@ fn privileges(tok: HANDLE) -> Vec<TokenPrivilege> {
             let mut desc = [0u16; 256];
             let mut dlen = desc.len() as u32;
             let mut lang = 0u32;
-            let described =
-                unsafe { LookupPrivilegeDisplayNameW(std::ptr::null(), name.as_ptr(), desc.as_mut_ptr(), &mut dlen, &mut lang) } != 0;
+            let described = unsafe {
+                LookupPrivilegeDisplayNameW(std::ptr::null(), name.as_ptr(), desc.as_mut_ptr(), &mut dlen, &mut lang)
+            } != 0;
             Some(TokenPrivilege {
                 name: from_wide(&name),
                 description: described.then(|| from_wide(&desc)).filter(|d| !d.is_empty()),

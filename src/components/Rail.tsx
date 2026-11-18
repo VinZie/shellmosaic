@@ -22,7 +22,13 @@ function RailItem({ wsId, index }: { wsId: string; index: number }) {
   const active = owner === label;
   const elsewhere = !!owner && owner !== label;
   const dropMode =
-    dragTarget?.payload?.kind === "workspace" ? (dragTarget.target?.kind === "workspace" && dragTarget.target.before ? "before" : "after") : dragTarget ? "into" : null;
+    dragTarget?.payload?.kind === "workspace"
+      ? dragTarget.target?.kind === "workspace" && dragTarget.target.before
+        ? "before"
+        : "after"
+      : dragTarget
+        ? "into"
+        : null;
   const shortcut = index < 9 ? shortcutLabel(`workspace.goto.${index + 1}`) : "";
 
   return (
@@ -77,12 +83,20 @@ export function Rail() {
         {order.map((id, i) => (
           <RailItem key={id} wsId={id} index={i} />
         ))}
-        <button className="rail-add" onClick={() => A.newWorkspace({ edit: true })} title={`New workspace (${shortcutLabel("workspace.new")})`}>
+        <button
+          className="rail-add"
+          onClick={() => A.newWorkspace({ edit: true })}
+          title={`New workspace (${shortcutLabel("workspace.new")})`}
+        >
           <Icon name="plus" size={18} />
         </button>
       </div>
       <div className="rail-spacer" data-tauri-drag-region />
-      <button className="rail-btn" onClick={() => ui.openSettings()} title={`Settings (${shortcutLabel("settings.open")})`}>
+      <button
+        className="rail-btn"
+        onClick={() => ui.openSettings()}
+        title={`Settings (${shortcutLabel("settings.open")})`}
+      >
         <Icon name="settings" size={18} />
       </button>
     </nav>

@@ -60,7 +60,8 @@ const DEV_PORTS: [number, string][] = [
   [8888, "Jupyter"],
 ];
 
-const SYSTEM_PROCESS = /^(system|idle|svchost|lsass|wininit|services|spoolsv|smss|csrss|winlogon|searchindexer|explorer|msedgewebview2|shellmosaic)(\.exe)?$/i;
+const SYSTEM_PROCESS =
+  /^(system|idle|svchost|lsass|wininit|services|spoolsv|smss|csrss|winlogon|searchindexer|explorer|msedgewebview2|shellmosaic)(\.exe)?$/i;
 
 const home = () => settings().modules.web.home;
 const isWeb = (u: string) => /^https?:\/\//i.test(u);
@@ -209,7 +210,11 @@ function WebPane({ pane, tabId, visible }: ModuleProps) {
         setPhase("open");
         const queued = openTarget.current;
         openTarget.current = null;
-        if (queued) ipc.webNavigate(id, queued).then((u) => patchLive(id, { url: u }), (e) => ui.toast(errorText(e), "error"));
+        if (queued)
+          ipc.webNavigate(id, queued).then(
+            (u) => patchLive(id, { url: u }),
+            (e) => ui.toast(errorText(e), "error"),
+          );
       },
       (e) => {
         phaseRef.current = "error";
@@ -312,7 +317,11 @@ function WebPane({ pane, tabId, visible }: ModuleProps) {
 
   const setZoom = (z: number) => setPaneMeta(id, { zoom: Math.abs(z - 1) < 0.001 ? null : clamp(z, 0.25, 5) });
   const stepZoom = (dir: 1 | -1) =>
-    setZoom(dir > 0 ? ZOOMS.find((z) => z > zoom + 0.001) ?? 5 : [...ZOOMS].reverse().find((z) => z < zoom - 0.001) ?? 0.25);
+    setZoom(
+      dir > 0
+        ? (ZOOMS.find((z) => z > zoom + 0.001) ?? 5)
+        : ([...ZOOMS].reverse().find((z) => z < zoom - 0.001) ?? 0.25),
+    );
   const zoomLabel = `${Math.round(zoom * 100)}%`;
 
   const anchorOf = (e: React.MouseEvent) => {
@@ -324,7 +333,12 @@ function WebPane({ pane, tabId, visible }: ModuleProps) {
     const at = anchorOf(e);
     const build = (open: Map<number, string> | null): MenuItem[] => {
       const known = new Set(DEV_PORTS.map(([p]) => p));
-      const extra = open ? [...open.keys()].filter((p) => !known.has(p)).sort((a, b) => a - b).slice(0, 10) : [];
+      const extra = open
+        ? [...open.keys()]
+            .filter((p) => !known.has(p))
+            .sort((a, b) => a - b)
+            .slice(0, 10)
+        : [];
       const item = (port: number, hint: string): MenuItem => {
         const proc = open?.get(port);
         const up = proc !== undefined;
@@ -339,13 +353,18 @@ function WebPane({ pane, tabId, visible }: ModuleProps) {
       return [
         { type: "header", label: open ? "Localhost" : "Localhost · checking ports…" },
         ...DEV_PORTS.map(([p, h]) => item(p, h)),
-        ...(extra.length ? [{ type: "header", label: "Also listening" } as MenuItem, ...extra.map((p) => item(p, ""))] : []),
+        ...(extra.length
+          ? [{ type: "header", label: "Also listening" } as MenuItem, ...extra.map((p) => item(p, ""))]
+          : []),
         { type: "separator" },
         {
           label: "Other port…",
           icon: "plus",
           onSelect: async () => {
-            const v = await ui.prompt("Open localhost", "", { placeholder: "Port, e.g. 5173 or 5173/docs", okLabel: "Open" });
+            const v = await ui.prompt("Open localhost", "", {
+              placeholder: "Port, e.g. 5173 or 5173/docs",
+              okLabel: "Open",
+            });
             const t = v?.trim().replace(/^:/, "");
             if (t) go(/^\d/.test(t) ? `http://localhost:${t}` : t);
           },
@@ -428,7 +447,11 @@ function WebPane({ pane, tabId, visible }: ModuleProps) {
         <button className="icon-btn" title="Forward" disabled={phase !== "open"} onClick={() => act("forward")}>
           <Icon name="arrow-right" size={15} />
         </button>
-        <button className="icon-btn" title={loading ? "Stop" : "Reload"} onClick={() => act(loading ? "stop" : "reload")}>
+        <button
+          className="icon-btn"
+          title={loading ? "Stop" : "Reload"}
+          onClick={() => act(loading ? "stop" : "reload")}
+        >
           <Icon name={loading ? "x" : "rotate-cw"} size={14} />
         </button>
         {!narrow && (
@@ -473,7 +496,11 @@ function WebPane({ pane, tabId, visible }: ModuleProps) {
             <button className="icon-btn" title="Zoom out" disabled={zoom <= 0.25} onClick={() => stepZoom(-1)}>
               <Icon name="zoom-out" size={14} />
             </button>
-            <button className={cx("web-zoom-label", zoom !== 1 && "changed")} title="Reset zoom" onClick={() => setZoom(1)}>
+            <button
+              className={cx("web-zoom-label", zoom !== 1 && "changed")}
+              title="Reset zoom"
+              onClick={() => setZoom(1)}
+            >
               {zoomLabel}
             </button>
             <button className="icon-btn" title="Zoom in" disabled={zoom >= 5} onClick={() => stepZoom(1)}>
@@ -524,7 +551,12 @@ export const webModule: ModuleDef = {
       { label: "Open in browser", icon: "external-link", disabled: !isWeb(url), onSelect: () => openExternal(url) },
       { label: "Copy URL", icon: "copy", onSelect: () => copyUrl(url) },
       { label: "Set as home page", icon: "home", onSelect: () => setHome(url) },
-      { label: "Reset zoom", icon: "search", disabled: !pane.meta.zoom, onSelect: () => setPaneMeta(pane.id, { zoom: null }) },
+      {
+        label: "Reset zoom",
+        icon: "search",
+        disabled: !pane.meta.zoom,
+        onSelect: () => setPaneMeta(pane.id, { zoom: null }),
+      },
     ];
   },
   onRemove: (paneId) => {

@@ -101,7 +101,8 @@ function TerminalPreview() {
         </div>
         <div>
           {"  "}
-          <span style={{ color: c.green }}>new file:</span> <span style={{ background: c.selectionBackground }}>README.md</span>
+          <span style={{ color: c.green }}>new file:</span>{" "}
+          <span style={{ background: c.selectionBackground }}>README.md</span>
         </div>
         <div>
           {prompt}
@@ -124,7 +125,16 @@ function TerminalPreview() {
           {[c.black, c.red, c.green, c.yellow, c.blue, c.magenta, c.cyan, c.white].map((x, i) => (
             <i key={i} style={{ background: x }} />
           ))}
-          {[c.brightBlack, c.brightRed, c.brightGreen, c.brightYellow, c.brightBlue, c.brightMagenta, c.brightCyan, c.brightWhite].map((x, i) => (
+          {[
+            c.brightBlack,
+            c.brightRed,
+            c.brightGreen,
+            c.brightYellow,
+            c.brightBlue,
+            c.brightMagenta,
+            c.brightCyan,
+            c.brightWhite,
+          ].map((x, i) => (
             <i key={`b${i}`} style={{ background: x }} />
           ))}
         </div>
@@ -136,7 +146,12 @@ function TerminalPreview() {
 function FontFamilyRow() {
   const v = useSetting<string>("terminal.fontFamily");
   return (
-    <Row label="Font family" desc="Must be installed on this PC. List fallbacks with commas; quote names with spaces." keywords="typeface monospace font nerd" stack>
+    <Row
+      label="Font family"
+      desc="Must be installed on this PC. List fallbacks with commas; quote names with spaces."
+      keywords="typeface monospace font nerd"
+      stack
+    >
       <FontField value={v} onChange={(x) => setSetting("terminal.fontFamily", x)} picks={MONO_FONTS} />
     </Row>
   );
@@ -144,18 +159,56 @@ function FontFamilyRow() {
 
 export function TerminalSection() {
   return (
-    <Section id="terminal" title="Terminal" icon="square-terminal" desc="Fonts, cursor, clipboard and behavior of every terminal." onReset={() => resetSettings("terminal")} resetHint="Font, cursor, clipboard and other terminal settings go back to their defaults (including the default profile).">
+    <Section
+      id="terminal"
+      title="Terminal"
+      icon="square-terminal"
+      desc="Fonts, cursor, clipboard and behavior of every terminal."
+      onReset={() => resetSettings("terminal")}
+      resetHint="Font, cursor, clipboard and other terminal settings go back to their defaults (including the default profile)."
+    >
       <Searchable label="Preview" keywords="font sample terminal colors">
         <TerminalPreview />
       </Searchable>
 
       <Group title="Font">
         <FontFamilyRow />
-        <SliderSetting path="terminal.fontSize" label="Font size" desc="Ctrl+= and Ctrl+- change it on the fly." min={8} max={32} step={1} format={px} keywords="text size zoom" />
-        <SliderSetting path="terminal.lineHeight" label="Line height" min={1} max={2} step={0.05} format={(v) => v.toFixed(2)} keywords="spacing rows" />
-        <SliderSetting path="terminal.letterSpacing" label="Letter spacing" min={-2} max={8} step={1} format={px} keywords="character spacing tracking" />
+        <SliderSetting
+          path="terminal.fontSize"
+          label="Font size"
+          desc="Ctrl+= and Ctrl+- change it on the fly."
+          min={8}
+          max={32}
+          step={1}
+          format={px}
+          keywords="text size zoom"
+        />
+        <SliderSetting
+          path="terminal.lineHeight"
+          label="Line height"
+          min={1}
+          max={2}
+          step={0.05}
+          format={(v) => v.toFixed(2)}
+          keywords="spacing rows"
+        />
+        <SliderSetting
+          path="terminal.letterSpacing"
+          label="Letter spacing"
+          min={-2}
+          max={8}
+          step={1}
+          format={px}
+          keywords="character spacing tracking"
+        />
         <SelectSetting path="terminal.fontWeight" label="Font weight" options={WEIGHTS} keywords="thin light regular" />
-        <SelectSetting path="terminal.fontWeightBold" label="Bold font weight" desc="Weight used for bold text." options={WEIGHTS} keywords="bold heavy" />
+        <SelectSetting
+          path="terminal.fontWeightBold"
+          label="Bold font weight"
+          desc="Weight used for bold text."
+          options={WEIGHTS}
+          keywords="bold heavy"
+        />
       </Group>
 
       <Group title="Cursor">
@@ -173,19 +226,43 @@ export function TerminalSection() {
       </Group>
 
       <Group title="Scrolling">
-        <NumberSetting path="terminal.scrollback" label="Scrollback" desc="Lines of history kept per terminal. More lines use more memory." min={0} max={500000} step={1000} suffix="lines" width={110} keywords="history buffer lines" />
+        <NumberSetting
+          path="terminal.scrollback"
+          label="Scrollback"
+          desc="Lines of history kept per terminal. More lines use more memory."
+          min={0}
+          max={500000}
+          step={1000}
+          suffix="lines"
+          width={110}
+          keywords="history buffer lines"
+        />
       </Group>
 
       <Group title="Clipboard & mouse">
-        <ToggleSetting path="terminal.copyOnSelect" label="Copy on select" desc="Selecting text copies it right away." keywords="clipboard selection" />
-        <ToggleSetting path="terminal.trimSelection" label="Trim trailing spaces when copying" keywords="whitespace clipboard copy" />
+        <ToggleSetting
+          path="terminal.copyOnSelect"
+          label="Copy on select"
+          desc="Selecting text copies it right away."
+          keywords="clipboard selection"
+        />
+        <ToggleSetting
+          path="terminal.trimSelection"
+          label="Trim trailing spaces when copying"
+          keywords="whitespace clipboard copy"
+        />
         <ToggleSetting
           path="terminal.ctrlCCopies"
           label="Ctrl+C copies the selection"
           desc="Only while text is selected. Without a selection Ctrl+C still interrupts the running program."
           keywords="clipboard interrupt shortcut"
         />
-        <ToggleSetting path="terminal.ctrlVPastes" label="Ctrl+V pastes" desc="Turn off to send Ctrl+V to the program instead. The Paste shortcut (Keybindings) keeps working." keywords="clipboard shortcut" />
+        <ToggleSetting
+          path="terminal.ctrlVPastes"
+          label="Ctrl+V pastes"
+          desc="Turn off to send Ctrl+V to the program instead. The Paste shortcut (Keybindings) keeps working."
+          keywords="clipboard shortcut"
+        />
         <SelectSetting
           path="terminal.imagePaste"
           label="Ctrl+V with an image"
@@ -201,10 +278,19 @@ export function TerminalSection() {
           options={[
             { value: "menu", label: "Menu" },
             { value: "paste", label: "Paste" },
-            { value: "copyPaste", label: "Copy or paste", title: "Copies the selection if there is one, otherwise pastes" },
+            {
+              value: "copyPaste",
+              label: "Copy or paste",
+              title: "Copies the selection if there is one, otherwise pastes",
+            },
           ]}
         />
-        <ToggleSetting path="terminal.confirmMultilinePaste" label="Confirm multi-line pastes" desc="Ask before pasting text with line breaks, which may run several commands at once." keywords="paste safety newline" />
+        <ToggleSetting
+          path="terminal.confirmMultilinePaste"
+          label="Confirm multi-line pastes"
+          desc="Ask before pasting text with line breaks, which may run several commands at once."
+          keywords="paste safety newline"
+        />
       </Group>
 
       <Group title="Keyboard">
@@ -236,7 +322,12 @@ export function TerminalSection() {
       </Group>
 
       <Group title="Rendering">
-        <ToggleSetting path="terminal.webgl" label="GPU rendering (WebGL)" desc="Faster drawing for busy output. Turn off if you see glitches." keywords="webgl performance gpu acceleration renderer" />
+        <ToggleSetting
+          path="terminal.webgl"
+          label="GPU rendering (WebGL)"
+          desc="Faster drawing for busy output. Turn off if you see glitches."
+          keywords="webgl performance gpu acceleration renderer"
+        />
         <SliderSetting
           path="terminal.minimumContrastRatio"
           label="Minimum contrast"
@@ -247,8 +338,22 @@ export function TerminalSection() {
           format={(v) => (v <= 1 ? "Off" : `${v.toFixed(1)} : 1`)}
           keywords="accessibility readability colors"
         />
-        <ToggleSetting path="terminal.drawBoldTextInBrightColors" label="Bold text in bright colors" desc="Show bold colored text in the bright variant of its color." keywords="ansi bright bold" />
-        <SliderSetting path="terminal.padding" label="Padding" desc="Space between the terminal text and the pane edge." min={0} max={24} step={1} format={px} keywords="margin inset" />
+        <ToggleSetting
+          path="terminal.drawBoldTextInBrightColors"
+          label="Bold text in bright colors"
+          desc="Show bold colored text in the bright variant of its color."
+          keywords="ansi bright bold"
+        />
+        <SliderSetting
+          path="terminal.padding"
+          label="Padding"
+          desc="Space between the terminal text and the pane edge."
+          min={0}
+          max={24}
+          step={1}
+          format={px}
+          keywords="margin inset"
+        />
       </Group>
 
       <Group title="Shell & links">
@@ -259,7 +364,12 @@ export function TerminalSection() {
           desc="Lets Shellmosaic follow the current folder and command results in PowerShell, cmd and bash. Applies to new terminals."
           keywords="cwd folder osc prompt tracking"
         />
-        <ToggleSetting path="terminal.inheritCwd" label="New splits open in the same folder" desc="A new terminal split starts in the folder of the terminal you split from." keywords="cwd directory inherit split" />
+        <ToggleSetting
+          path="terminal.inheritCwd"
+          label="New splits open in the same folder"
+          desc="A new terminal split starts in the folder of the terminal you split from."
+          keywords="cwd directory inherit split"
+        />
         <ToggleSetting
           path="terminal.freshEnvironment"
           label="Fresh Windows environment for new shells"

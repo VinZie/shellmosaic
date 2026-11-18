@@ -56,7 +56,13 @@ function agentGrid(panes: string[]): LayoutNode {
   if (panes.length === 1) return leaf(panes[0]);
   if (panes.length === 2) return { kind: "split", id: uid(), dir: "row", children: panes.map(leaf), sizes: [0.5, 0.5] };
   const [lead, ...rest] = panes;
-  const workers: LayoutNode = { kind: "split", id: uid(), dir: "col", children: rest.map(leaf), sizes: rest.map(() => 1 / rest.length) };
+  const workers: LayoutNode = {
+    kind: "split",
+    id: uid(),
+    dir: "col",
+    children: rest.map(leaf),
+    sizes: rest.map(() => 1 / rest.length),
+  };
   return { kind: "split", id: uid(), dir: "row", children: [leaf(lead), workers], sizes: [0.5, 0.5] };
 }
 
@@ -113,9 +119,16 @@ function attention(req: AgentRequest, agentName: string) {
   const agent = useAgents.getState().snap?.agents.find((a) => a.id === req.agentId);
   const run = agent ? runOfAgent(agent) : undefined;
   if (run && !ownsWorkspace(run.workspaceId)) return;
-  ui.toast(`${agentName} asks to ${req.summary}. Answer in its pane or in the Orchestrator's Requests.`, "warning", 8000);
+  ui.toast(
+    `${agentName} asks to ${req.summary}. Answer in its pane or in the Orchestrator's Requests.`,
+    "warning",
+    8000,
+  );
   if (agent) ui.setBadge(agent.paneId, "bell");
-  if (!document.hasFocus()) getCurrentWindow().requestUserAttention(UserAttentionType.Informational).catch(() => {});
+  if (!document.hasFocus())
+    getCurrentWindow()
+      .requestUserAttention(UserAttentionType.Informational)
+      .catch(() => {});
 }
 
 /** Listen to the Orchestrator (each window). */
@@ -123,10 +136,13 @@ export async function startAgents() {
   await Promise.all([
     listen<number>("agents://changed", () => refreshAgents()),
     listen<AgentPaneRequest>("agents://pane", (e) => {
-      if (e.payload.op === "add") placePane(e.payload).catch((err) => ui.toast(`Couldn't place the agent's pane: ${errorText(err)}`, "error"));
+      if (e.payload.op === "add")
+        placePane(e.payload).catch((err) => ui.toast(`Couldn't place the agent's pane: ${errorText(err)}`, "error"));
       else removePane(e.payload.paneId);
     }),
-    listen<{ request: AgentRequest; agentName: string }>("agents://attention", (e) => attention(e.payload.request, e.payload.agentName)),
+    listen<{ request: AgentRequest; agentName: string }>("agents://attention", (e) =>
+      attention(e.payload.request, e.payload.agentName),
+    ),
     listen<{ text: string; kind: "info" | "success" | "warning" | "error" }>("agents://notice", (e) => {
       if (getState().label === "main") ui.toast(e.payload.text, e.payload.kind ?? "info", 6000);
     }),

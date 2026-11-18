@@ -19,7 +19,8 @@ import "./styles/app.css";
 
 let freshStartDone = false;
 // a reloaded window (e.g. "Reload window" after an error) is not a new session: its shells are still running
-const reloaded = (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type === "reload";
+const reloaded =
+  (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type === "reload";
 
 /** Make sure this window has a workspace to show (and the app has at least one). */
 function seed(m: Model) {
@@ -77,9 +78,14 @@ async function boot() {
     <ErrorBoundary
       name="Shellmosaic"
       fallback={(err) => (
-        <div className="empty-state" style={{ position: "fixed", inset: 0, background: "var(--bg)", color: "var(--text)" }}>
+        <div
+          className="empty-state"
+          style={{ position: "fixed", inset: 0, background: "var(--bg)", color: "var(--text)" }}
+        >
           <h2 style={{ fontSize: 14 }}>Shellmosaic hit an error</h2>
-          <p className="dim selectable" style={{ maxWidth: 520 }}>{err.message}</p>
+          <p className="dim selectable" style={{ maxWidth: 520 }}>
+            {err.message}
+          </p>
           <button className="btn primary" onClick={() => location.reload()}>
             Reload window
           </button>

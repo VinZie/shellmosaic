@@ -7,7 +7,15 @@ import { Icon } from "../lib/icons";
 import { errorText, ipc } from "../lib/ipc";
 import { cx, parseColor, toHex6 } from "../lib/util";
 import { setSetting, settings, useSettings } from "../state/settings";
-import { allThemes, completeTheme, findTheme, useThemes, type TermColors, type Theme, type UiColors } from "../state/themes";
+import {
+  allThemes,
+  completeTheme,
+  findTheme,
+  useThemes,
+  type TermColors,
+  type Theme,
+  type UiColors,
+} from "../state/themes";
 import { ui, useUi } from "../state/ui";
 import "./theme-editor.css";
 
@@ -40,11 +48,18 @@ const TERM_TOKENS: { key: keyof TermColors; label: string; hint: string }[] = [
 
 const ANSI_NAMES = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"] as const;
 const ANSI_SHORT = ["BLK", "RED", "GRN", "YEL", "BLU", "MAG", "CYN", "WHT"];
-type AnsiKey = Extract<keyof TermColors, (typeof ANSI_NAMES)[number] | `bright${Capitalize<(typeof ANSI_NAMES)[number]>}`>;
+type AnsiKey = Extract<
+  keyof TermColors,
+  (typeof ANSI_NAMES)[number] | `bright${Capitalize<(typeof ANSI_NAMES)[number]>}`
+>;
 const ansiKey = (i: number, bright: boolean): AnsiKey =>
   (bright ? `bright${ANSI_NAMES[i][0].toUpperCase()}${ANSI_NAMES[i].slice(1)}` : ANSI_NAMES[i]) as AnsiKey;
-const ansiLabel = (i: number, bright: boolean) => `${bright ? "Bright " : ""}${ANSI_NAMES[i]}`.replace(/^./, (c) => c.toUpperCase());
-const ALL_ANSI: AnsiKey[] = [...ANSI_NAMES.map((_, i) => ansiKey(i, false)), ...ANSI_NAMES.map((_, i) => ansiKey(i, true))];
+const ansiLabel = (i: number, bright: boolean) =>
+  `${bright ? "Bright " : ""}${ANSI_NAMES[i]}`.replace(/^./, (c) => c.toUpperCase());
+const ALL_ANSI: AnsiKey[] = [
+  ...ANSI_NAMES.map((_, i) => ansiKey(i, false)),
+  ...ANSI_NAMES.map((_, i) => ansiKey(i, true)),
+];
 
 /** #rgb, #rgba, #rrggbb, #rrggbbaa, rgb(…) or rgba(…) with sane components. */
 export function isThemeColor(input: string): boolean {
@@ -62,7 +77,12 @@ export function isThemeColor(input: string): boolean {
 function keepAlpha(hex6: string, prev: string): string {
   const a = parseColor(prev)?.[3] ?? 1;
   if (a >= 1) return hex6;
-  return hex6 + Math.round(a * 255).toString(16).padStart(2, "0");
+  return (
+    hex6 +
+    Math.round(a * 255)
+      .toString(16)
+      .padStart(2, "0")
+  );
 }
 
 function uniqueThemeId(seed: string): string {
@@ -122,11 +142,19 @@ function Drawer({ themeId }: { themeId: string | null }) {
   useEffect(() => rootRef.current?.focus({ preventScroll: true }), []);
 
   const setUi = (key: keyof UiColors, v: string) => setDraft((d) => ({ ...d, ui: { ...d.ui, [key]: v } }));
-  const setTerm = (key: keyof TermColors, v: string) => setDraft((d) => ({ ...d, terminal: { ...d.terminal, [key]: v } }));
+  const setTerm = (key: keyof TermColors, v: string) =>
+    setDraft((d) => ({ ...d, terminal: { ...d.terminal, [key]: v } }));
 
   const cancel = async () => {
     if (busy) return;
-    if (dirty && !(await ui.confirm("Discard changes?", "Your edits to this theme haven't been saved.", { okLabel: "Discard", danger: true }))) return;
+    if (
+      dirty &&
+      !(await ui.confirm("Discard changes?", "Your edits to this theme haven't been saved.", {
+        okLabel: "Discard",
+        danger: true,
+      }))
+    )
+      return;
     close();
   };
 
@@ -187,7 +215,8 @@ function Drawer({ themeId }: { themeId: string | null }) {
         <div className="grow te-head-text">
           <h3>Theme editor</h3>
           <div className="te-sub ellipsis" title={`themes/${draft.id}.json`}>
-            {initial.builtin ? `Based on ${initial.base.name}` : `Editing ${initial.base.name}`} · <span className="mono">{draft.id}</span>
+            {initial.builtin ? `Based on ${initial.base.name}` : `Editing ${initial.base.name}`} ·{" "}
+            <span className="mono">{draft.id}</span>
           </div>
         </div>
         {dirty && <span className="chip accent">Unsaved</span>}
@@ -229,7 +258,11 @@ function Drawer({ themeId }: { themeId: string | null }) {
             <label className="field-label">Type</label>
             <div className="segmented">
               {(["dark", "light"] as const).map((t) => (
-                <button key={t} className={cx(draft.type === t && "on")} onClick={() => setDraft((d) => ({ ...d, type: t }))}>
+                <button
+                  key={t}
+                  className={cx(draft.type === t && "on")}
+                  onClick={() => setDraft((d) => ({ ...d, type: t }))}
+                >
                   <Icon name={t === "dark" ? "moon" : "sun"} size={12} style={{ marginRight: 5, verticalAlign: -2 }} />
                   {t}
                 </button>
@@ -247,15 +280,37 @@ function Drawer({ themeId }: { themeId: string | null }) {
           </div>
         </div>
 
-        <Group title="Interface" icon="layout-grid" open={openGroups.ui} onToggle={() => setOpenGroups((g) => ({ ...g, ui: !g.ui }))}>
+        <Group
+          title="Interface"
+          icon="layout-grid"
+          open={openGroups.ui}
+          onToggle={() => setOpenGroups((g) => ({ ...g, ui: !g.ui }))}
+        >
           {UI_TOKENS.map((tok) => (
-            <ColorRow key={tok.key} label={tok.label} hint={tok.hint} value={draft.ui[tok.key]} onChange={(v) => setUi(tok.key, v)} />
+            <ColorRow
+              key={tok.key}
+              label={tok.label}
+              hint={tok.hint}
+              value={draft.ui[tok.key]}
+              onChange={(v) => setUi(tok.key, v)}
+            />
           ))}
         </Group>
 
-        <Group title="Terminal" icon="square-terminal" open={openGroups.term} onToggle={() => setOpenGroups((g) => ({ ...g, term: !g.term }))}>
+        <Group
+          title="Terminal"
+          icon="square-terminal"
+          open={openGroups.term}
+          onToggle={() => setOpenGroups((g) => ({ ...g, term: !g.term }))}
+        >
           {TERM_TOKENS.map((tok) => (
-            <ColorRow key={tok.key} label={tok.label} hint={tok.hint} value={draft.terminal[tok.key]} onChange={(v) => setTerm(tok.key, v)} />
+            <ColorRow
+              key={tok.key}
+              label={tok.label}
+              hint={tok.hint}
+              value={draft.terminal[tok.key]}
+              onChange={(v) => setTerm(tok.key, v)}
+            />
           ))}
           <div className="te-subhead">ANSI colors</div>
           <div className="te-ansi">
@@ -282,14 +337,24 @@ function Drawer({ themeId }: { themeId: string | null }) {
         <button className="btn subtle" onClick={cancel} disabled={busy}>
           Cancel
         </button>
-        <button className="btn subtle" title="Undo all changes since the editor opened" disabled={!dirty || busy} onClick={() => setDraft(initial.draft)}>
+        <button
+          className="btn subtle"
+          title="Undo all changes since the editor opened"
+          disabled={!dirty || busy}
+          onClick={() => setDraft(initial.draft)}
+        >
           <Icon name="undo" size={14} /> Reset
         </button>
         <span className="grow" />
         <button className="btn" title="Save a copy as a .json file" onClick={onExport} disabled={busy}>
           <Icon name="share" size={14} /> Export…
         </button>
-        <button className="btn primary" onClick={onSave} disabled={!nameOk || busy} title={nameOk ? "Save and use this theme" : "Give the theme a name first"}>
+        <button
+          className="btn primary"
+          onClick={onSave}
+          disabled={!nameOk || busy}
+          title={nameOk ? "Save and use this theme" : "Give the theme a name first"}
+        >
           <Icon name="save" size={14} /> Save
         </button>
       </footer>
@@ -297,7 +362,19 @@ function Drawer({ themeId }: { themeId: string | null }) {
   );
 }
 
-function Group({ title, icon, open, onToggle, children }: { title: string; icon: string; open: boolean; onToggle: () => void; children: ReactNode }) {
+function Group({
+  title,
+  icon,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  icon: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
   return (
     <section className="te-group">
       <button className="te-group-head" onClick={onToggle} aria-expanded={open}>
@@ -310,7 +387,17 @@ function Group({ title, icon, open, onToggle, children }: { title: string; icon:
   );
 }
 
-function ColorRow({ label, hint, value, onChange }: { label: string; hint?: string; value: string; onChange: (v: string) => void }) {
+function ColorRow({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   const [text, setText] = useState(value);
   const [editing, setEditing] = useState(false);
   useEffect(() => {
@@ -354,7 +441,17 @@ function ColorRow({ label, hint, value, onChange }: { label: string; hint?: stri
   );
 }
 
-function AnsiRow({ bright, t, selected, onSelect }: { bright: boolean; t: TermColors; selected: AnsiKey; onSelect: (k: AnsiKey) => void }) {
+function AnsiRow({
+  bright,
+  t,
+  selected,
+  onSelect,
+}: {
+  bright: boolean;
+  t: TermColors;
+  selected: AnsiKey;
+  onSelect: (k: AnsiKey) => void;
+}) {
   return (
     <>
       <span className="te-ansi-row-label">{bright ? "Bright" : "Normal"}</span>
@@ -381,7 +478,8 @@ function TerminalPreview({ t }: { t: TermColors }) {
   return (
     <div className="te-term" style={{ background: t.background, color: t.foreground }} aria-hidden>
       <div>
-        {c(t.green, "dev@mosaic")} {c(t.blue, "~/projects/app")} {c(t.magenta, "(main)")} {c(t.brightBlack, "$")} git status
+        {c(t.green, "dev@mosaic")} {c(t.blue, "~/projects/app")} {c(t.magenta, "(main)")} {c(t.brightBlack, "$")} git
+        status
       </div>
       <div>
         On branch {c(t.cyan, "main")}, ahead by {c(t.yellow, "2")} commits
@@ -389,10 +487,11 @@ function TerminalPreview({ t }: { t: TermColors }) {
       <div>{c(t.red, "  modified:   src/server.ts")}</div>
       <div>{c(t.green, "  new file:   docs/README.md")}</div>
       <div>
-        {c(t.brightRed, "× 1 error")}  {c(t.brightYellow, "! 3 warnings")}  {c(t.brightGreen, "✓ built in 1.2s")}
+        {c(t.brightRed, "× 1 error")} {c(t.brightYellow, "! 3 warnings")} {c(t.brightGreen, "✓ built in 1.2s")}
       </div>
       <div>
-        {c(t.brightBlue, "→")} {c(t.brightCyan, "http://localhost:5173")} {c(t.brightMagenta, "[vite]")} {c(t.white, "ready")}
+        {c(t.brightBlue, "→")} {c(t.brightCyan, "http://localhost:5173")} {c(t.brightMagenta, "[vite]")}{" "}
+        {c(t.white, "ready")}
       </div>
       <div>
         {c(t.brightBlack, "$")} <span style={{ background: t.selectionBackground }}>npm run</span> buil

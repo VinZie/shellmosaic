@@ -55,7 +55,10 @@ async fn run(args: Vec<String>) -> i32 {
 }
 
 fn var(name: &str) -> Result<String, String> {
-    std::env::var(name).ok().filter(|v| !v.is_empty()).ok_or_else(|| format!("{name} isn't set: this session wasn't started by Shellmosaic"))
+    std::env::var(name)
+        .ok()
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| format!("{name} isn't set: this session wasn't started by Shellmosaic"))
 }
 
 fn hello(mode: &str, arg: &str) -> Result<String, String> {

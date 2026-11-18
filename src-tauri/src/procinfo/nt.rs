@@ -262,7 +262,11 @@ pub fn utf16_bytes(b: &[u8]) -> String {
 
 /// Run an NtQuery* call that reports the size it needs, growing the buffer (up to `max`)
 /// until the answer fits. Err is the final NTSTATUS.
-pub fn query_var(initial: usize, max: usize, mut call: impl FnMut(*mut c_void, u32, &mut u32) -> i32) -> Result<Buf, i32> {
+pub fn query_var(
+    initial: usize,
+    max: usize,
+    mut call: impl FnMut(*mut c_void, u32, &mut u32) -> i32,
+) -> Result<Buf, i32> {
     let mut size = initial.min(max);
     for _ in 0..12 {
         let mut buf = Buf::new(size);
@@ -290,7 +294,8 @@ pub fn query_var(initial: usize, max: usize, mut call: impl FnMut(*mut c_void, u
 /// A fixed-size NtQueryInformationProcess answer.
 pub fn query_process<T: Plain>(h: HANDLE, class: i32) -> Result<T, i32> {
     let mut v = T::default();
-    let st = unsafe { NtQueryInformationProcess(h, class, (&mut v as *mut T).cast(), size_of::<T>() as u32, null_mut()) };
+    let st =
+        unsafe { NtQueryInformationProcess(h, class, (&mut v as *mut T).cast(), size_of::<T>() as u32, null_mut()) };
     if st < 0 {
         Err(st)
     } else {
@@ -301,7 +306,8 @@ pub fn query_process<T: Plain>(h: HANDLE, class: i32) -> Result<T, i32> {
 /// A fixed-size NtQueryInformationThread answer.
 pub fn query_thread<T: Plain>(h: HANDLE, class: i32) -> Result<T, i32> {
     let mut v = T::default();
-    let st = unsafe { NtQueryInformationThread(h, class, (&mut v as *mut T).cast(), size_of::<T>() as u32, null_mut()) };
+    let st =
+        unsafe { NtQueryInformationThread(h, class, (&mut v as *mut T).cast(), size_of::<T>() as u32, null_mut()) };
     if st < 0 {
         Err(st)
     } else {
@@ -327,9 +333,7 @@ pub fn open_process(pid: u32, rights: &[u32]) -> Result<(Handle, u32), u32> {
 
 /// Open thread `tid` with the first of `rights` Windows grants.
 pub fn open_thread(tid: u32, rights: &[u32]) -> Option<(Handle, u32)> {
-    rights
-        .iter()
-        .find_map(|&r| Handle::new(unsafe { OpenThread(r, 0, tid) }).map(|h| (h, r)))
+    rights.iter().find_map(|&r| Handle::new(unsafe { OpenThread(r, 0, tid) }).map(|h| (h, r)))
 }
 
 /// Up to 1 MB of another process's memory; None unless all of it could be read.
@@ -375,10 +379,7 @@ impl Pebs {
             .ok()
             .map(|b| b.peb_base_address as u64)
             .filter(|&p| p != 0);
-        let wow64 = query_process::<usize>(h, class::PROCESS_WOW64)
-            .ok()
-            .map(|p| p as u64)
-            .filter(|&p| p != 0);
+        let wow64 = query_process::<usize>(h, class::PROCESS_WOW64).ok().map(|p| p as u64).filter(|&p| p != 0);
         Self { native, wow64 }
     }
 }
@@ -517,7 +518,11 @@ pub fn image_nt_path(pid: u32) -> Option<String> {
     let mut buf = vec![0u16; 32_767];
     let mut info = ProcessIdInfo {
         process_id: pid as usize,
-        image_name: UnicodeString { length: 0, maximum_length: (buf.len() * 2) as u16, buffer: buf.as_mut_ptr() as usize },
+        image_name: UnicodeString {
+            length: 0,
+            maximum_length: (buf.len() * 2) as u16,
+            buffer: buf.as_mut_ptr() as usize,
+        },
     };
     let st = unsafe {
         let len = size_of::<ProcessIdInfo>() as u32;

@@ -41,7 +41,10 @@ function comparator(sort: Sort) {
   return (a: ProcInfo, b: ProcInfo) => {
     const va = val(a);
     const vb = val(b);
-    const c = typeof va === "number" && typeof vb === "number" ? va - vb : String(va).localeCompare(String(vb), undefined, { numeric: true });
+    const c =
+      typeof va === "number" && typeof vb === "number"
+        ? va - vb
+        : String(va).localeCompare(String(vb), undefined, { numeric: true });
     return sort.desc ? -c : c;
   };
 }
@@ -54,13 +57,20 @@ function matcher(q: string): ((p: ProcInfo) => boolean) | null {
   if (pid) return (p) => String(p.pid) === pid[1];
   const numeric = /^\d+$/.test(s);
   return (p) =>
-    (numeric && String(p.pid).startsWith(s)) || p.name.toLowerCase().includes(s) || (!!p.exe && p.exe.toLowerCase().includes(s));
+    (numeric && String(p.pid).startsWith(s)) ||
+    p.name.toLowerCase().includes(s) ||
+    (!!p.exe && p.exe.toLowerCase().includes(s));
 }
 
 const flatRow = (p: ProcInfo): Row => ({ ...p, depth: 0, kids: 0, collapsed: false, treeCpu: p.cpu, treeMem: p.mem });
 
 /** Order processes as a parent/child tree; siblings sorted by `sort`. */
-function buildTree(procs: ProcInfo[], sort: Sort, collapsed: Set<number>, match: ((p: ProcInfo) => boolean) | null): Row[] {
+function buildTree(
+  procs: ProcInfo[],
+  sort: Sort,
+  collapsed: Set<number>,
+  match: ((p: ProcInfo) => boolean) | null,
+): Row[] {
   const byPid = new Map(procs.map((p) => [p.pid, p]));
   const parentOf = (p: ProcInfo) => (p.ppid != null && p.ppid !== p.pid ? byPid.get(p.ppid) : undefined);
 
@@ -115,7 +125,10 @@ function CpuCell({ value, title }: { value: number; title?: string }) {
   return (
     <span className="processes-cpu" title={title}>
       <span className="processes-cpu-track">
-        <span className={cx("processes-cpu-fill", v >= 80 ? "danger" : v >= 50 && "warning")} style={{ width: `${v}%` }} />
+        <span
+          className={cx("processes-cpu-fill", v >= 80 ? "danger" : v >= 50 && "warning")}
+          style={{ width: `${v}%` }}
+        />
       </span>
       <span className="processes-cpu-val">{value.toFixed(1)}</span>
     </span>
@@ -153,7 +166,10 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
     const list = procs ?? [];
     return (match ? list.filter(match) : list).map(flatRow);
   }, [procs, match]);
-  const rows = useMemo(() => (tree ? buildTree(procs ?? [], sort, collapsed, match) : flat), [tree, procs, sort, collapsed, match, flat]);
+  const rows = useMemo(
+    () => (tree ? buildTree(procs ?? [], sort, collapsed, match) : flat),
+    [tree, procs, sort, collapsed, match, flat],
+  );
 
   const byPid = useMemo(() => new Map((procs ?? []).map((p) => [p.pid, p])), [procs]);
 
@@ -180,7 +196,8 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
       {
         label: "Inspect",
         icon: "microscope",
-        onSelect: () => openOptional("process-inspector", "Process Inspector", { pid: p.pid }, { tabId, paneId: pane.id }),
+        onSelect: () =>
+          openOptional("process-inspector", "Process Inspector", { pid: p.pid }, { tabId, paneId: pane.id }),
       },
       { type: "separator" },
       { label: "End process", icon: "x", danger: true, shortcut: "Del", onSelect: () => end(p) },
@@ -188,9 +205,19 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
       { type: "separator" },
       { label: "Copy PID", icon: "hash", onSelect: () => copyText(String(p.pid), "PID") },
       { label: "Copy name", icon: "copy", onSelect: () => copyText(p.name, "name") },
-      { label: "Copy path", icon: "clipboard-copy", disabled: !p.exe, onSelect: () => p.exe && copyText(p.exe, "path") },
+      {
+        label: "Copy path",
+        icon: "clipboard-copy",
+        disabled: !p.exe,
+        onSelect: () => p.exe && copyText(p.exe, "path"),
+      },
       { type: "separator" },
-      { label: "Open file location", icon: "folder-open", disabled: !p.exe, onSelect: () => p.exe && revealPath(p.exe) },
+      {
+        label: "Open file location",
+        icon: "folder-open",
+        disabled: !p.exe,
+        onSelect: () => p.exe && revealPath(p.exe),
+      },
       {
         label: "Show its ports",
         icon: "network",
@@ -200,7 +227,11 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
     if (tree && p.kids > 0) {
       items.push(
         { type: "separator" },
-        { label: p.collapsed ? "Expand" : "Collapse", icon: p.collapsed ? "chevron-right" : "chevron-down", onSelect: () => toggle(p.pid) },
+        {
+          label: p.collapsed ? "Expand" : "Collapse",
+          icon: p.collapsed ? "chevron-right" : "chevron-down",
+          onSelect: () => toggle(p.pid),
+        },
       );
     }
     ui.openMenu(e, items);
@@ -222,7 +253,11 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
       label: `Name${arrow("name")}`,
       value: sortValue.name,
       render: (p) => (
-        <span className="processes-name" style={tree ? { paddingLeft: p.depth * 14 } : undefined} title={p.exe ?? p.name}>
+        <span
+          className="processes-name"
+          style={tree ? { paddingLeft: p.depth * 14 } : undefined}
+          title={p.exe ?? p.name}
+        >
           {tree &&
             (p.kids > 0 ? (
               <button
@@ -244,7 +279,14 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
         </span>
       ),
     },
-    { key: "pid", label: `PID${arrow("pid")}`, num: true, width: 72, value: sortValue.pid, render: (p) => <span className="dim">{p.pid}</span> },
+    {
+      key: "pid",
+      label: `PID${arrow("pid")}`,
+      num: true,
+      width: 72,
+      value: sortValue.pid,
+      render: (p) => <span className="dim">{p.pid}</span>,
+    },
     {
       key: "cpu",
       label: `CPU %${arrow("cpu")}`,
@@ -261,7 +303,9 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
       width: 92,
       value: sortValue.mem,
       render: (p) => (
-        <span title={p.collapsed ? "Including child processes" : undefined}>{formatBytes(p.collapsed ? p.treeMem : p.mem)}</span>
+        <span title={p.collapsed ? "Including child processes" : undefined}>
+          {formatBytes(p.collapsed ? p.treeMem : p.mem)}
+        </span>
       ),
     },
     {
@@ -351,7 +395,11 @@ function ProcessesPane({ pane, tabId, visible }: ModuleProps) {
           </>
         )}
         <div className="toolbar-sep" />
-        <button className={cx("icon-btn", paused && "on")} title={paused ? "Resume updates" : "Pause updates"} onClick={() => setPaused((p) => !p)}>
+        <button
+          className={cx("icon-btn", paused && "on")}
+          title={paused ? "Resume updates" : "Pause updates"}
+          onClick={() => setPaused((p) => !p)}
+        >
           <Icon name={paused ? "play" : "pause"} size={14} />
         </button>
         <button className="icon-btn" title="Refresh now" onClick={load}>

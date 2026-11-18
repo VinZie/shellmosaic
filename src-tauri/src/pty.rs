@@ -74,14 +74,8 @@ struct Session {
 }
 
 enum Backend {
-    Local {
-        master: Mutex<Option<Box<dyn MasterPty + Send>>>,
-        killer: Mutex<Box<dyn ChildKiller + Send + Sync>>,
-    },
-    Ssh {
-        size: watch::Sender<(u16, u16)>,
-        kill: Arc<Notify>,
-    },
+    Local { master: Mutex<Option<Box<dyn MasterPty + Send>>>, killer: Mutex<Box<dyn ChildKiller + Send + Sync>> },
+    Ssh { size: watch::Sender<(u16, u16)>, kill: Arc<Notify> },
 }
 
 impl Session {
@@ -165,10 +159,8 @@ fn send_json(ch: &Channel<InvokeResponseBody>, value: serde_json::Value) -> bool
 
 impl PtyManager {
     pub fn new(app: AppHandle, dir: PathBuf) -> Self {
-        let meta = fs::read(dir.join("meta.json"))
-            .ok()
-            .and_then(|b| serde_json::from_slice(&b).ok())
-            .unwrap_or_default();
+        let meta =
+            fs::read(dir.join("meta.json")).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
         Self {
             app,
             dir,
@@ -288,14 +280,21 @@ impl PtyManager {
         let output: Arc<dyn Fn(&[u8]) + Send + Sync> = {
             let (s, app) = (session.clone(), app.clone());
             // (no cwd tracking: a remote folder means nothing to the local Files/Git panes)
-            Arc::new(move |chunk: &[u8]| on_output(&s, &app, &mut osc.lock(), chunk, cap.load(Ordering::Relaxed), false))
+            Arc::new(move |chunk: &[u8]| {
+                on_output(&s, &app, &mut osc.lock(), chunk, cap.load(Ordering::Relaxed), false)
+            })
         };
         let s = session.clone();
-        ssh::start_terminal(app.clone(), host_id.to_string(), TermIo { output, input: input_rx, size: size_rx, kill }, move |code| {
-            *s.exit_code.lock() = code;
-            s.input.lock().take();
-            on_exit(&s, &app, code);
-        });
+        ssh::start_terminal(
+            app.clone(),
+            host_id.to_string(),
+            TermIo { output, input: input_rx, size: size_rx, kill },
+            move |code| {
+                *s.exit_code.lock() = code;
+                s.input.lock().take();
+                on_exit(&s, &app, code);
+            },
+        );
         session
     }
 
@@ -329,7 +328,13 @@ impl PtyManager {
         for (k, v) in &spec.env {
             cmd.env(k, v);
         }
-        let local = LocalSpec { id: pane_id, profile_id: "agent", command: &spec.program, cwd: Some(spec.cwd.clone()), persist: false };
+        let local = LocalSpec {
+            id: pane_id,
+            profile_id: "agent",
+            command: &spec.program,
+            cwd: Some(spec.cwd.clone()),
+            persist: false,
+        };
         let session = self.start_local(local, cmd, spec.cols.max(2), spec.rows.max(1), Vec::new(), None)?;
         let pid = session.pid;
         self.sessions.lock().insert(pane_id.to_string(), session);
@@ -338,14 +343,18 @@ impl PtyManager {
         Ok(pid)
     }
 
-    fn start_local(&self, l: LocalSpec<'_>, cmd: portable_pty::CommandBuilder, cols: u16, rows: u16, ring: Vec<u8>, restored: Option<Restored>) -> Result<Arc<Session>, String> {
+    fn start_local(
+        &self,
+        l: LocalSpec<'_>,
+        cmd: portable_pty::CommandBuilder,
+        cols: u16,
+        rows: u16,
+        ring: Vec<u8>,
+        restored: Option<Restored>,
+    ) -> Result<Arc<Session>, String> {
         let pty = native_pty_system();
-        let pair = pty
-            .openpty(PtySize { rows, cols, pixel_width: 0, pixel_height: 0 })
-            .s()?;
-        let mut child = pair.slave.spawn_command(cmd).map_err(|e| {
-            format!("failed to start {}: {e}", l.command)
-        })?;
+        let pair = pty.openpty(PtySize { rows, cols, pixel_width: 0, pixel_height: 0 }).s()?;
+        let mut child = pair.slave.spawn_command(cmd).map_err(|e| format!("failed to start {}: {e}", l.command))?;
         drop(pair.slave);
 
         let reader = pair.master.try_clone_reader().s()?;
@@ -700,8 +709,7 @@ pub fn pty_text(mgr: State<'_, PtyManager>, pane_id: String, max_bytes: Option<u
 /// Apply user settings: scrollback ring size and whether scrollback is saved to disk.
 #[tauri::command]
 pub fn pty_configure(mgr: State<'_, PtyManager>, ring_bytes: usize, persist_scrollback: bool) {
-    mgr.ring_cap
-        .store(ring_bytes.clamp(64 * 1024, 64 * 1024 * 1024), Ordering::Relaxed);
+    mgr.ring_cap.store(ring_bytes.clamp(64 * 1024, 64 * 1024 * 1024), Ordering::Relaxed);
     // wait out a running persist: it would write .bin files back after we delete them
     let _persisting = mgr.persisting.lock();
     let was = mgr.persist_scrollback.swap(persist_scrollback, Ordering::Relaxed);
@@ -715,4 +723,3 @@ pub fn pty_configure(mgr: State<'_, PtyManager>, ring_bytes: usize, persist_scro
         }
     }
 }
-

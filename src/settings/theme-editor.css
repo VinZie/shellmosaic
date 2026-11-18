@@ -257,7 +257,9 @@
 }
 .te-ansi-cell.selected {
   border-color: transparent;
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--accent);
 }
 
 .te-foot {

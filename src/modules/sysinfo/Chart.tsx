@@ -231,7 +231,12 @@ export function Chart({
   }
 
   return (
-    <div ref={wrapRef} className={cx("sysinfo-chart", className)} onPointerMove={onPointerMove} onPointerLeave={() => setHover(null)}>
+    <div
+      ref={wrapRef}
+      className={cx("sysinfo-chart", className)}
+      onPointerMove={onPointerMove}
+      onPointerLeave={() => setHover(null)}
+    >
       <canvas ref={canvasRef} />
       {children}
       {tip}

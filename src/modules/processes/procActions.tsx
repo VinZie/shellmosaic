@@ -47,8 +47,8 @@ export async function confirmEndProcess(p: { pid: number; name?: string | null }
   const ok = await ui.confirm(
     tree ? "End process tree?" : "End process?",
     <>
-      <b>{name}</b> (PID {p.pid}){tree ? " and every process it started" : ""} will be terminated immediately. Unsaved work
-      in {tree ? "them" : "it"} will be lost.
+      <b>{name}</b> (PID {p.pid}){tree ? " and every process it started" : ""} will be terminated immediately. Unsaved
+      work in {tree ? "them" : "it"} will be lost.
     </>,
     { okLabel: tree ? "End process tree" : "End process", danger: true },
   );

@@ -41,7 +41,13 @@ function themeJson(t: Theme): Theme {
 
 async function duplicateTheme(t: Theme, name = `${t.name} copy`): Promise<Theme | undefined> {
   const taken = new Set(allThemes().map((x) => x.id));
-  const copy: Theme = { ...structuredClone(t), id: uniqueId(slug(name), taken), name, author: undefined, source: "user" };
+  const copy: Theme = {
+    ...structuredClone(t),
+    id: uniqueId(slug(name), taken),
+    name,
+    author: undefined,
+    source: "user",
+  };
   return attempt(async () => {
     await ipc.themeSave(themeJson(copy));
     await refreshThemes();
@@ -93,14 +99,22 @@ function pickColors(raw: unknown, base: object, bad: string[]): Record<string, s
 }
 
 async function importTheme() {
-  const file = await open({ multiple: false, title: "Import theme", filters: [{ name: "Theme (JSON)", extensions: ["json"] }] });
+  const file = await open({
+    multiple: false,
+    title: "Import theme",
+    filters: [{ name: "Theme (JSON)", extensions: ["json"] }],
+  });
   if (!file || Array.isArray(file)) return;
   const raw = (await attempt(() => ipc.themeReadFile(file))) as Record<string, unknown> | undefined;
   if (!raw) return;
   let id = slug(String(raw.id ?? raw.name ?? basename(file).replace(/\.json$/i, "")));
   const existing = useThemes.getState().user.find((t) => t.id === id);
   if (existing) {
-    const replace = await ui.confirm(`Replace “${existing.name}”?`, `You already have a theme with the id “${id}”. Importing replaces it.`, { okLabel: "Replace" });
+    const replace = await ui.confirm(
+      `Replace “${existing.name}”?`,
+      `You already have a theme with the id “${id}”. Importing replaces it.`,
+      { okLabel: "Replace" },
+    );
     if (!replace) return;
   } else if (BUILTIN_THEMES.some((t) => t.id === id)) {
     id = uniqueId(`${id}-imported`, new Set(allThemes().map((t) => t.id)));
@@ -123,7 +137,12 @@ async function importTheme() {
   });
   if (!ok) return;
   setSetting("theme", id);
-  if (bad.length) ui.toast(`Imported “${theme.name}”. ${bad.length} invalid color${bad.length === 1 ? "" : "s"} (${bad.join(", ")}) use the defaults.`, "warning", 6000);
+  if (bad.length)
+    ui.toast(
+      `Imported “${theme.name}”. ${bad.length} invalid color${bad.length === 1 ? "" : "s"} (${bad.join(", ")}) use the defaults.`,
+      "warning",
+      6000,
+    );
   else ui.toast(`Imported and applied “${theme.name}”`, "success");
 }
 
@@ -185,13 +204,15 @@ export function ThemePreview({ t }: { t: Theme }) {
         </div>
         <div className="tp-term" style={{ background: c.background, color: c.foreground, borderColor: u.border }}>
           <div>
-            <span style={{ color: c.green }}>$</span> <span style={{ color: c.blue }}>~/code</span> <span style={{ color: c.magenta }}>git</span> status
+            <span style={{ color: c.green }}>$</span> <span style={{ color: c.blue }}>~/code</span>{" "}
+            <span style={{ color: c.magenta }}>git</span> status
           </div>
           <div>
             <span style={{ color: c.red }}>modified:</span> <span style={{ color: c.yellow }}>app.ts</span>
           </div>
           <div>
-            <span style={{ color: c.cyan }}>ready</span> in 1.2s<span className="tp-cursor" style={{ background: c.cursor }} />
+            <span style={{ color: c.cyan }}>ready</span> in 1.2s
+            <span className="tp-cursor" style={{ background: c.cursor }} />
           </div>
           <div className="tp-ansi">
             {[c.red, c.green, c.yellow, c.blue, c.magenta, c.cyan, c.white, c.brightBlack].map((x, i) => (
@@ -280,7 +301,9 @@ function ThemeGallery() {
   const [filter, setFilter] = useState<ThemeFilter>("all");
   // allThemes() reads the theme store; `user` is the part that changes
   const themes = useMemo(() => allThemes(), [user]);
-  const shown = q ? themes : themes.filter((t) => filter === "all" || (filter === "mine" ? t.source === "user" : t.type === filter));
+  const shown = q
+    ? themes
+    : themes.filter((t) => filter === "all" || (filter === "mine" ? t.source === "user" : t.type === filter));
   return (
     <>
       {!q && (
@@ -307,7 +330,9 @@ function ThemeGallery() {
         ))}
         {!q && shown.length === 0 && (
           <div className="settings-empty small">
-            {filter === "mine" ? "No themes of your own yet. Use “New theme” or duplicate one you like." : "No themes here."}
+            {filter === "mine"
+              ? "No themes of your own yet. Use “New theme” or duplicate one you like."
+              : "No themes here."}
           </div>
         )}
       </div>
@@ -331,7 +356,11 @@ function AccentRow() {
     <ColorSetting
       path="appearance.accent"
       label="Accent color"
-      desc={accent ? "Overrides the theme's accent for buttons, focus rings and active items. ✕ goes back to the theme's." : "Using the theme's own accent. Pick a color to override it."}
+      desc={
+        accent
+          ? "Overrides the theme's accent for buttons, focus rings and active items. ✕ goes back to the theme's."
+          : "Using the theme's own accent. Pick a color to override it."
+      }
       keywords="highlight color tint override"
       swatches={WORKSPACE_COLORS}
       allowNone
@@ -343,7 +372,12 @@ function AccentRow() {
 function UiFontRow() {
   const v = useSetting<string>("appearance.uiFont");
   return (
-    <Row label="Interface font" desc="Font for menus, tabs and panels. Any installed font works; list fallbacks with commas." keywords="typeface ui font family" stack>
+    <Row
+      label="Interface font"
+      desc="Font for menus, tabs and panels. Any installed font works; list fallbacks with commas."
+      keywords="typeface ui font family"
+      stack
+    >
       <FontField value={v} onChange={(x) => setSetting("appearance.uiFont", x)} picks={UI_FONTS} />
     </Row>
   );
@@ -368,13 +402,21 @@ export function AppearanceSection() {
         plain
         actions={
           <>
-            <button className="btn small primary" onClick={newTheme} title="Copy the current theme and open it in the editor">
+            <button
+              className="btn small primary"
+              onClick={newTheme}
+              title="Copy the current theme and open it in the editor"
+            >
               <Icon name="plus" size={13} /> New theme
             </button>
             <button className="btn small" onClick={importTheme}>
               <Icon name="import" size={13} /> Import…
             </button>
-            <button className="btn small subtle" onClick={() => openInDataDir("themes")} title="Theme files are plain JSON — edit them in any editor">
+            <button
+              className="btn small subtle"
+              onClick={() => openInDataDir("themes")}
+              title="Theme files are plain JSON — edit them in any editor"
+            >
               <Icon name="folder-open" size={13} /> Themes folder
             </button>
           </>
@@ -389,7 +431,15 @@ export function AppearanceSection() {
 
       <Group title="Interface">
         <UiFontRow />
-        <SliderSetting path="appearance.uiFontSize" label="Interface font size" min={11} max={17} step={1} format={px} keywords="text size zoom" />
+        <SliderSetting
+          path="appearance.uiFontSize"
+          label="Interface font size"
+          min={11}
+          max={17}
+          step={1}
+          format={px}
+          keywords="text size zoom"
+        />
         <SegmentedSetting
           path="appearance.density"
           label="Density"
@@ -401,9 +451,31 @@ export function AppearanceSection() {
             { value: "spacious", label: "Spacious" },
           ]}
         />
-        <SliderSetting path="appearance.radius" label="Corner roundness" desc="Radius of panes, buttons and menus." min={0} max={16} step={1} format={px} keywords="radius rounded corners" />
-        <SliderSetting path="appearance.paneGap" label="Gap between panes" min={0} max={20} step={1} format={px} keywords="spacing gutter split" />
-        <ToggleSetting path="appearance.animations" label="Animations" desc="Subtle motion for menus, magnify and hover effects." keywords="motion transitions reduce" />
+        <SliderSetting
+          path="appearance.radius"
+          label="Corner roundness"
+          desc="Radius of panes, buttons and menus."
+          min={0}
+          max={16}
+          step={1}
+          format={px}
+          keywords="radius rounded corners"
+        />
+        <SliderSetting
+          path="appearance.paneGap"
+          label="Gap between panes"
+          min={0}
+          max={20}
+          step={1}
+          format={px}
+          keywords="spacing gutter split"
+        />
+        <ToggleSetting
+          path="appearance.animations"
+          label="Animations"
+          desc="Subtle motion for menus, magnify and hover effects."
+          keywords="motion transitions reduce"
+        />
       </Group>
 
       <Group title="Tabs & panes">
@@ -417,7 +489,12 @@ export function AppearanceSection() {
             { value: "block", label: "Block" },
           ]}
         />
-        <ToggleSetting path="appearance.showTabIcons" label="Show tab icons" desc="The module or custom icon next to each tab name." keywords="tabs icons" />
+        <ToggleSetting
+          path="appearance.showTabIcons"
+          label="Show tab icons"
+          desc="The module or custom icon next to each tab name."
+          keywords="tabs icons"
+        />
         <SegmentedSetting
           path="appearance.paneHeaders"
           label="Terminal pane headers"
@@ -463,7 +540,13 @@ export function AppearanceSection() {
             { value: "hidden", label: "Hidden" },
           ]}
         />
-        <ToggleSetting path="appearance.moduleBarLabels" label="Module bar labels" desc="Show names under the module icons." keywords="text names" disabled={moduleBar === "hidden"} />
+        <ToggleSetting
+          path="appearance.moduleBarLabels"
+          label="Module bar labels"
+          desc="Show names under the module icons."
+          keywords="text names"
+          disabled={moduleBar === "hidden"}
+        />
       </Group>
     </Section>
   );

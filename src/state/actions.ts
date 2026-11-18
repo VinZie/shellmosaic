@@ -309,11 +309,19 @@ function autoSide(paneId: Id | null | undefined): Side | undefined {
 
 export async function addModule(
   moduleId: string,
-  opts: { tabId?: Id; target?: Id | null; side?: Side; outer?: boolean; meta?: Record<string, any>; newTab?: boolean } = {},
+  opts: {
+    tabId?: Id;
+    target?: Id | null;
+    side?: Side;
+    outer?: boolean;
+    meta?: Record<string, any>;
+    newTab?: boolean;
+  } = {},
 ) {
   const tab = opts.tabId ? model().tabs[opts.tabId] : activeTab();
   const target = opts.target ?? tab?.focused ?? null;
-  const cwd = settings().terminal.inheritCwd || moduleId !== "terminal" ? knownCwd(target) ?? tabCwd(tab?.id) : undefined;
+  const cwd =
+    settings().terminal.inheritCwd || moduleId !== "terminal" ? (knownCwd(target) ?? tabCwd(tab?.id)) : undefined;
   const spec = paneSpec(moduleId, opts.meta, cwd);
   if (!tab || opts.newTab) {
     const ws = currentWorkspace();
@@ -373,7 +381,8 @@ export function changeModule(paneId: Id, moduleId: string) {
   const pane = model().panes[paneId];
   if (!pane || pane.module === moduleId) return;
   // (its agent lives in the backend: removing it goes through the Orchestrator)
-  if (pane.module === "agent" && agentOfPane(paneId)) return ui.toast("An agent's pane can't become something else: close it to remove the agent.", "info");
+  if (pane.module === "agent" && agentOfPane(paneId))
+    return ui.toast("An agent's pane can't become something else: close it to remove the agent.", "info");
   const cwd = knownCwd(paneId) ?? tabCwd();
   getModule(pane.module)?.onRemove?.(paneId, pane);
   commit((m) => M.changePaneModule(m, paneId, paneSpec(moduleId, {}, cwd)));
@@ -436,13 +445,17 @@ export function focusDirection(dir: "left" | "right" | "up" | "down") {
  * `local` skips SSH sessions: for commands about this machine (local paths, git, tasks).
  */
 export function terminalTarget(tabId: Id, opts: { local?: boolean } = {}): Id | undefined {
-  const usable = (id: Id | undefined): id is Id => !!id && !!model().panes[id] && !(opts.local && model().panes[id].meta.ssh);
+  const usable = (id: Id | undefined): id is Id =>
+    !!id && !!model().panes[id] && !(opts.local && model().panes[id].meta.ssh);
   const last = ui.get().lastTerminal[tabId];
   return usable(last) ? last : terminalPanes(tabId).find(usable);
 }
 
 /** Type into the tab's terminal. Resolves false (after telling the user) when nothing was typed. */
-export async function sendToTerminal(text: string, opts: { tabId?: Id; enter?: boolean; local?: boolean } = {}): Promise<boolean> {
+export async function sendToTerminal(
+  text: string,
+  opts: { tabId?: Id; enter?: boolean; local?: boolean } = {},
+): Promise<boolean> {
   const tab = opts.tabId ? model().tabs[opts.tabId] : activeTab();
   if (!tab) return false;
   const target = terminalTarget(tab.id, { local: opts.local });
@@ -471,7 +484,11 @@ export async function sendToTerminal(text: string, opts: { tabId?: Id; enter?: b
 export function runInNewTerminal(command: string, opts: { tabId?: Id; cwd?: string; side?: Side } = {}) {
   const tab = opts.tabId ? model().tabs[opts.tabId] : activeTab();
   const cwd = opts.cwd ?? tabCwd(tab?.id);
-  return addModule("terminal", { tabId: tab?.id, side: opts.side ?? "bottom", meta: { run: command, ...(cwd ? { cwd } : {}) } });
+  return addModule("terminal", {
+    tabId: tab?.id,
+    side: opts.side ?? "bottom",
+    meta: { run: command, ...(cwd ? { cwd } : {}) },
+  });
 }
 
 export function openWebPane(url: string, nearPane?: Id) {
@@ -486,7 +503,12 @@ export function openFilesAt(path: string, nearPane?: Id) {
 
 export function openPreview(path: string, nearPane?: Id) {
   const tab = nearPane ? M.tabOfPane(model(), nearPane) : activeTab();
-  return addModule("files", { tabId: tab?.id, target: nearPane, side: "right", meta: { path, preview: path, follow: false } });
+  return addModule("files", {
+    tabId: tab?.id,
+    target: nearPane,
+    side: "right",
+    meta: { path, preview: path, follow: false },
+  });
 }
 
 export function terminalFontSize(delta: number | null) {

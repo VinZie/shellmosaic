@@ -2,7 +2,19 @@
 // box where you tell the lead what to do.
 import { useRef, useState } from "react";
 import { Bot, CircleStop, Copy, Ellipsis, FolderOpen, GitBranch, GitMerge, Play, Send, Trash2 } from "lucide-react";
-import { Button, Chip, copy, cx, IconButton, openMenu, sm, type Agent, type AgentRun, type MenuItem, type Routing } from "../../shared";
+import {
+  Button,
+  Chip,
+  copy,
+  cx,
+  IconButton,
+  openMenu,
+  sm,
+  type Agent,
+  type AgentRun,
+  type MenuItem,
+  type Routing,
+} from "../../shared";
 import { act, forgetTeam, resumeAgent, stopTeam } from "./actions";
 import { isBusy, isLive, TRUST_HINT, type Usage } from "./lib";
 import { openMerge } from "./Merge";
@@ -31,8 +43,22 @@ export function RunHeader({
   const active = run.status === "active";
   const more = (): MenuItem[] => [
     { label: "Copy repository path", icon: <Copy size={14} />, onSelect: () => copy(run.root, "path") },
-    { label: "Open the repository in Files", icon: <FolderOpen size={14} />, onSelect: () => act(() => sm.ui.openModule({ module: "files", path: run.root })) },
-    ...(canManage && !active ? [{ separator: true as const }, { label: "Forget this team…", icon: <Trash2 size={14} />, danger: true, onSelect: () => forgetTeam(run).then((ok) => ok && onBack?.()) }] : []),
+    {
+      label: "Open the repository in Files",
+      icon: <FolderOpen size={14} />,
+      onSelect: () => act(() => sm.ui.openModule({ module: "files", path: run.root })),
+    },
+    ...(canManage && !active
+      ? [
+          { separator: true as const },
+          {
+            label: "Forget this team…",
+            icon: <Trash2 size={14} />,
+            danger: true,
+            onSelect: () => forgetTeam(run).then((ok) => ok && onBack?.()),
+          },
+        ]
+      : []),
   ];
   return (
     <div className="orc-head">
@@ -46,13 +72,25 @@ export function RunHeader({
           {run.root}
         </span>
         {run.baseBranch && (
-          <Chip icon={<GitBranch size={11} />} title={`Your branch when the team started: approved work is merged into it`}>
+          <Chip
+            icon={<GitBranch size={11} />}
+            title={`Your branch when the team started: approved work is merged into it`}
+          >
             {run.baseBranch}
           </Chip>
         )}
         <span className="sm-grow" />
         <UsageMeter usage={usage} routing={routing} now={now} />
-        <Button small onClick={() => openMerge(run, canManage)} disabled={!run.baseBranch} title={run.baseBranch ? `See what orch/integration would bring into ${run.baseBranch}` : "The repository was on a detached HEAD"}>
+        <Button
+          small
+          onClick={() => openMerge(run, canManage)}
+          disabled={!run.baseBranch}
+          title={
+            run.baseBranch
+              ? `See what orch/integration would bring into ${run.baseBranch}`
+              : "The repository was on a detached HEAD"
+          }
+        >
           <GitMerge size={13} /> Merge into {run.baseBranch ?? "branch"}…
         </Button>
         {active && canManage && (
@@ -91,7 +129,10 @@ function Composer({ lead, trusting, canManage }: { lead: Agent | undefined; trus
   if (!live) {
     return (
       <div className="orc-composer stopped">
-        <span className="sm-dim">The lead isn't running{lead?.state === "exited" ? " (Claude Code ended)" : ""}. Resume it to continue its conversation.</span>
+        <span className="sm-dim">
+          The lead isn't running{lead?.state === "exited" ? " (Claude Code ended)" : ""}. Resume it to continue its
+          conversation.
+        </span>
         {lead && (
           <Button small kind="primary" onClick={() => resumeAgent(lead)}>
             <Play size={13} /> Resume the lead

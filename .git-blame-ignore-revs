@@ -1,0 +1,7 @@
+# Mechanical formatting commits, skipped by `git blame`
+# (git config blame.ignoreRevsFile .git-blame-ignore-revs; GitHub reads this file automatically)
+
+# style: format Rust code with rustfmt
+b6db9e0e7ab43a41e5d29de8b9442690635039c1
+# style: format frontend code with Prettier
+efddfa90c601efbb096029a6845f3c05c03a9028

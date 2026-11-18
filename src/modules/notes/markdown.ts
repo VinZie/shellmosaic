@@ -54,7 +54,9 @@ md.use({
       const key = `${codeKey}-${codes.size}`;
       codes.set(key, token.text);
       const lang = (token.lang ?? "").match(/^\S*/)?.[0] ?? "";
-      const run = runEnabled ? `<button type="button" class="notes-md-code-btn" data-act="run" title="Type into the terminal and press Enter">▶ Run</button>` : "";
+      const run = runEnabled
+        ? `<button type="button" class="notes-md-code-btn" data-act="run" title="Type into the terminal and press Enter">▶ Run</button>`
+        : "";
       return (
         `<div class="notes-md-code" data-code="${key}">` +
         `<div class="notes-md-code-bar"><span class="notes-md-code-lang">${esc(lang)}</span>${run}` +
@@ -161,7 +163,9 @@ export function handleMarkdownClick(
   if (btn && code !== undefined) {
     e.preventDefault();
     if (btn.dataset.act === "run") {
-      sendToTerminal(asTerminalInput(code), { tabId: ctx.tabId, enter: true }).catch((err) => ui.toast(errorText(err), "error"));
+      sendToTerminal(asTerminalInput(code), { tabId: ctx.tabId, enter: true }).catch((err) =>
+        ui.toast(errorText(err), "error"),
+      );
     } else if (btn.dataset.act === "copy") {
       writeText(code)
         .then(() => ui.toast("Copied to clipboard", "success", 1500))

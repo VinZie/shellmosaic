@@ -23,9 +23,10 @@ fn words(line: &str) -> String {
 pub fn trust_prompt(screen: &[String]) -> Option<TrustPrompt> {
     let lines: Vec<String> = screen.iter().map(|l| words(l)).collect();
     // older versions: "Yes, proceed" under "Do you trust the files in this folder?"
-    let yes = lines
-        .iter()
-        .position(|l| l.contains("yes, i trust this folder") || (l.ends_with("yes, proceed") && lines.iter().any(|x| x.contains("trust the files in this folder"))))?;
+    let yes = lines.iter().position(|l| {
+        l.contains("yes, i trust this folder")
+            || (l.ends_with("yes, proceed") && lines.iter().any(|x| x.contains("trust the files in this folder")))
+    })?;
     if !lines.iter().any(|l| l.contains("enter to confirm")) {
         return None;
     }
@@ -57,7 +58,8 @@ mod tests {
 
     #[test]
     fn other_screens_are_not_the_trust_prompt() {
-        let screen: Vec<String> = ["> Is it safe to trust this folder? Explain.", "", "  ? for shortcuts"].map(String::from).to_vec();
+        let screen: Vec<String> =
+            ["> Is it safe to trust this folder? Explain.", "", "  ? for shortcuts"].map(String::from).to_vec();
         assert_eq!(trust_prompt(&screen), None);
     }
 }

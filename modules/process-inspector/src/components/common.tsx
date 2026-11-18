@@ -120,7 +120,17 @@ export function ResourceView<T>({
 }
 
 /** A labelled switch for tab toolbars. */
-export function Toggle({ label, value, onChange, title }: { label: string; value: boolean; onChange: (v: boolean) => void; title?: string }) {
+export function Toggle({
+  label,
+  value,
+  onChange,
+  title,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  title?: string;
+}) {
   return (
     <label className="pi-toggle" title={title}>
       <Switch value={value} onChange={onChange} />

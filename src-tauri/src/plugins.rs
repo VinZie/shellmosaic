@@ -20,16 +20,13 @@ const SDK: &str = include_str!("../plugin-sdk/shellmosaic.js");
 
 /// Bundled plugins, by id: (file name, contents). Claude Usage, bundled in 0.2.1, is an optional
 /// module now (modules/claude-usage): existing installs keep it, new ones get it from the store.
-const EXAMPLES: &[(&str, &[(&str, &str)])] = &[
-    (
-        "command-board",
-        &[
-            ("manifest.json", include_str!("../plugin-sdk/examples/command-board/manifest.json")),
-            ("index.html", include_str!("../plugin-sdk/examples/command-board/index.html")),
-        ],
-    ),
-
-];
+const EXAMPLES: &[(&str, &[(&str, &str)])] = &[(
+    "command-board",
+    &[
+        ("manifest.json", include_str!("../plugin-sdk/examples/command-board/manifest.json")),
+        ("index.html", include_str!("../plugin-sdk/examples/command-board/index.html")),
+    ],
+)];
 
 pub const KNOWN_PERMISSIONS: &[&str] = &[
     "terminal.write",
@@ -141,12 +138,17 @@ pub async fn plugin_install_folder(app: AppHandle, src: String) -> Result<String
 }
 
 fn install_folder(paths: &Paths, src: PathBuf) -> Result<String, String> {
-    let v: Value = serde_json::from_slice(&fs::read(src.join("manifest.json")).map_err(|_| "folder has no manifest.json")?)
-        .map_err(|e| format!("manifest.json is not valid JSON: {e}"))?;
+    let v: Value =
+        serde_json::from_slice(&fs::read(src.join("manifest.json")).map_err(|_| "folder has no manifest.json")?)
+            .map_err(|e| format!("manifest.json is not valid JSON: {e}"))?;
     let id = safe_key(v.get("id").and_then(Value::as_str).ok_or("manifest needs an \"id\"")?)?;
     read_manifest(&src, &id).or_else(|e| {
         // folder name may differ from id when installing; only that check is relaxed
-        if e.contains("must match folder name") { Ok(v.clone()) } else { Err(e) }
+        if e.contains("must match folder name") {
+            Ok(v.clone())
+        } else {
+            Err(e)
+        }
     })?;
     let dest = paths.plugins().join(&id);
     if let (Ok(a), Ok(b)) = (src.canonicalize(), dest.canonicalize()) {
@@ -181,7 +183,9 @@ pub fn install_examples(paths: &Paths) {
     const HEADER: &str = "# Bundled plugins already installed. To get one back, delete its folder and its line here.\n";
     let marker = paths.plugins().join(".examples-installed");
     let mut done: Vec<String> = match fs::read_to_string(&marker) {
-        Ok(text) if text.starts_with('#') => text.lines().map(str::trim).filter(|l| safe_key(l).is_ok()).map(String::from).collect(),
+        Ok(text) if text.starts_with('#') => {
+            text.lines().map(str::trim).filter(|l| safe_key(l).is_ok()).map(String::from).collect()
+        }
         // 0.2's marker had no list: it only ever installed the command board
         Ok(_) => vec!["command-board".into()],
         Err(_) => Vec::new(),
@@ -276,7 +280,9 @@ fn serve(paths: &Paths, req: &Request<Vec<u8>>) -> Response<Vec<u8>> {
     }
     let dir = paths.plugins().join(id);
     let Ok(manifest) = read_manifest(&dir, id) else { return not_found() };
-    let (Ok(base), Ok(target)) = (dir.canonicalize(), dir.join(if rest.is_empty() { "index.html" } else { rest }).canonicalize()) else {
+    let (Ok(base), Ok(target)) =
+        (dir.canonicalize(), dir.join(if rest.is_empty() { "index.html" } else { rest }).canonicalize())
+    else {
         return not_found();
     };
     if !target.starts_with(&base) || !target.is_file() {
@@ -309,7 +315,11 @@ pub fn protocol<R: Runtime>(ctx: UriSchemeContext<'_, R>, req: Request<Vec<u8>>,
 /// `smbg`: the images in the backgrounds folder, by the random names `background_import`
 /// gives them — nothing else. (Replaces Tauri's asset protocol, which resolves any path,
 /// network shares included, before checking whether it's allowed.)
-pub fn background_protocol<R: Runtime>(ctx: UriSchemeContext<'_, R>, req: Request<Vec<u8>>, responder: UriSchemeResponder) {
+pub fn background_protocol<R: Runtime>(
+    ctx: UriSchemeContext<'_, R>,
+    req: Request<Vec<u8>>,
+    responder: UriSchemeResponder,
+) {
     if !from_app_window(ctx.webview_label()) {
         return responder.respond(forbidden());
     }
