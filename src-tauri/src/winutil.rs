@@ -11,9 +11,9 @@ use parking_lot::Mutex;
 use windows_sys::Win32::Foundation::{CloseHandle, GetLastError, LocalFree, HANDLE, INVALID_HANDLE_VALUE, LUID};
 use windows_sys::Win32::Security::Authorization::ConvertSidToStringSidW;
 use windows_sys::Win32::Security::{
-    AdjustTokenPrivileges, GetTokenInformation, ImpersonateSelf, LookupAccountSidW, LookupPrivilegeValueW, RevertToSelf,
-    SecurityImpersonation, TokenElevation, LUID_AND_ATTRIBUTES, PSID, SE_PRIVILEGE_ENABLED, SID_NAME_USE, TOKEN_ADJUST_PRIVILEGES,
-    TOKEN_ELEVATION, TOKEN_PRIVILEGES, TOKEN_QUERY,
+    AdjustTokenPrivileges, GetTokenInformation, ImpersonateSelf, LookupAccountSidW, LookupPrivilegeValueW,
+    RevertToSelf, SecurityImpersonation, TokenElevation, LUID_AND_ATTRIBUTES, PSID, SE_PRIVILEGE_ENABLED, SID_NAME_USE,
+    TOKEN_ADJUST_PRIVILEGES, TOKEN_ELEVATION, TOKEN_PRIVILEGES, TOKEN_QUERY,
 };
 use windows_sys::Win32::Storage::FileSystem::QueryDosDeviceW;
 use windows_sys::Win32::System::Threading::{GetCurrentProcess, GetCurrentThread, OpenProcessToken, OpenThreadToken};
@@ -113,7 +113,8 @@ pub fn is_elevated() -> bool {
         let tok = Handle(tok);
         let mut e = TOKEN_ELEVATION { TokenIsElevated: 0 };
         let mut len = 0u32;
-        GetTokenInformation(tok.0, TokenElevation, &mut e as *mut _ as _, size_of::<TOKEN_ELEVATION>() as u32, &mut len) != 0
+        GetTokenInformation(tok.0, TokenElevation, &mut e as *mut _ as _, size_of::<TOKEN_ELEVATION>() as u32, &mut len)
+            != 0
             && e.TokenIsElevated != 0
     })
 }
@@ -192,7 +193,8 @@ pub unsafe fn sid_name(sid: PSID) -> Option<String> {
     let mut domain = [0u16; 256];
     let (mut nl, mut dl) = (name.len() as u32, domain.len() as u32);
     let mut use_: SID_NAME_USE = 0;
-    let v = if LookupAccountSidW(null(), sid, name.as_mut_ptr(), &mut nl, domain.as_mut_ptr(), &mut dl, &mut use_) != 0 {
+    let v = if LookupAccountSidW(null(), sid, name.as_mut_ptr(), &mut nl, domain.as_mut_ptr(), &mut dl, &mut use_) != 0
+    {
         let (n, d) = (from_wide(&name), from_wide(&domain));
         Some(if d.is_empty() { n } else { format!("{d}\\{n}") })
     } else {

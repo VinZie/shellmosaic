@@ -14,18 +14,8 @@ pub struct Paths {
 
 impl Paths {
     pub fn new(app: &AppHandle) -> Self {
-        let root = app
-            .path()
-            .app_data_dir()
-            .expect("Shellmosaic needs an app data directory");
-        for dir in [
-            "themes",
-            "plugins",
-            "sessions",
-            "notes",
-            "backgrounds",
-            "plugin-data",
-        ] {
+        let root = app.path().app_data_dir().expect("Shellmosaic needs an app data directory");
+        for dir in ["themes", "plugins", "sessions", "notes", "backgrounds", "plugin-data"] {
             let _ = fs::create_dir_all(root.join(dir));
         }
         Self { root }
@@ -90,9 +80,7 @@ pub async fn blocking<T: Send + 'static>(f: impl FnOnce() -> T + Send + 'static)
 pub fn safe_key(s: &str) -> Result<String, String> {
     let ok = !s.is_empty()
         && s.len() <= 120
-        && s
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
+        && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
         && !s.starts_with('.');
     if ok {
         Ok(s.to_string())

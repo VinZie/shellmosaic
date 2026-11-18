@@ -184,7 +184,10 @@ impl State {
         }
         if let Some(p) = self.usage_pct() {
             if p >= self.routing.no_hire_above as f64 {
-                return Err(format!("Plan usage is at {p:.0}%: no new workers start above {}%. Reuse an idle worker.", self.routing.no_hire_above));
+                return Err(format!(
+                    "Plan usage is at {p:.0}%: no new workers start above {}%. Reuse an idle worker.",
+                    self.routing.no_hire_above
+                ));
             }
         }
         Ok(())
@@ -262,7 +265,9 @@ pub fn describe_tool(tool: &str, input: &Value) -> String {
     match tool {
         "Bash" | "PowerShell" => format!("run `{}`", short(&s("command"), 300)),
         "Write" => format!("create {}", s("file_path")),
-        "Edit" | "MultiEdit" | "NotebookEdit" => format!("edit {}", if s("file_path").is_empty() { s("notebook_path") } else { s("file_path") }),
+        "Edit" | "MultiEdit" | "NotebookEdit" => {
+            format!("edit {}", if s("file_path").is_empty() { s("notebook_path") } else { s("file_path") })
+        }
         "Read" => format!("read {}", s("file_path")),
         "WebFetch" => format!("fetch {}", s("url")),
         "WebSearch" => format!("search the web for \"{}\"", short(&s("query"), 120)),
@@ -334,7 +339,10 @@ impl Core {
     /// state.json from the last run. No agent process survives a restart: they're stopped
     /// until the user resumes them, and nothing is waiting for the open requests any more.
     fn load(dir: &Path) -> State {
-        let saved: Saved = std::fs::read(dir.join("state.json")).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
+        let saved: Saved = std::fs::read(dir.join("state.json"))
+            .ok()
+            .and_then(|b| serde_json::from_slice(&b).ok())
+            .unwrap_or_default();
         let mut st = State {
             seq: saved.seq,
             next_task: saved.next_task,
@@ -504,7 +512,9 @@ impl Core {
         let k = key.trim();
         st.agents
             .iter()
-            .find(|a| a.run_id == run && (a.id == k || a.slot.eq_ignore_ascii_case(k) || a.name.eq_ignore_ascii_case(k)))
+            .find(|a| {
+                a.run_id == run && (a.id == k || a.slot.eq_ignore_ascii_case(k) || a.name.eq_ignore_ascii_case(k))
+            })
             .cloned()
             .ok_or_else(|| format!("There's no agent \"{k}\" in this run."))
     }
@@ -528,7 +538,9 @@ impl Core {
         if self.cfg.elevated {
             return Err("Shellmosaic runs as administrator, and its agents would too. Restart Shellmosaic normally to use the Orchestrator.".into());
         }
-        if let Some(r) = self.st.lock().runs.iter().find(|r| r.workspace_id == workspace && r.status == RunStatus::Active) {
+        if let Some(r) =
+            self.st.lock().runs.iter().find(|r| r.workspace_id == workspace && r.status == RunStatus::Active)
+        {
             return Err(format!("This workspace already has a running team ({}).", r.name));
         }
         let repo = worktree::repo(Path::new(cwd))?;
@@ -638,7 +650,11 @@ impl Core {
                 q.answered_by = Some("stopped".into());
                 closed.push(q.id.clone());
             }
-            for t in st.tasks.iter_mut().filter(|t| t.run_id == run && matches!(t.status, TaskStatus::Assigned | TaskStatus::Working)) {
+            for t in st
+                .tasks
+                .iter_mut()
+                .filter(|t| t.run_id == run && matches!(t.status, TaskStatus::Assigned | TaskStatus::Working))
+            {
                 t.status = TaskStatus::Queued;
                 t.assignee = None;
             }
@@ -652,7 +668,11 @@ impl Core {
             self.host.panes(PaneRequest::Remove { pane_id: a.pane_id.clone() });
         }
         let root = PathBuf::from(&r.root);
-        let slots: Vec<(String, Vec<String>)> = agents.iter().filter(|a| a.role == Role::Worker).map(|a| (a.slot.clone(), self.branches_of(&a.id))).collect();
+        let slots: Vec<(String, Vec<String>)> = agents
+            .iter()
+            .filter(|a| a.role == Role::Worker)
+            .map(|a| (a.slot.clone(), self.branches_of(&a.id)))
+            .collect();
         self.rt.spawn_blocking(move || {
             for (slot, branches) in slots {
                 if worktree::all_merged(&root, &branches) {
@@ -716,7 +736,8 @@ impl Core {
         let files = launch::write_files(&self.cfg.dir.join("agents").join(&agent.id), &self.cfg.shim, &role)?;
         let resume = agent.transcript.as_deref().is_some_and(|t| Path::new(t).is_file());
         let token = hex(64);
-        let target = (agent.role == Role::Worker).then(|| worktree::base(Path::new(&run.root)).join("_target").join(&agent.slot));
+        let target = (agent.role == Role::Worker)
+            .then(|| worktree::base(Path::new(&run.root)).join("_target").join(&agent.slot));
         let spec = Launch {
             program: claude,
             args: launch::args(&agent, &files, resume),
@@ -765,7 +786,11 @@ impl Core {
                 }
                 if !told && since.elapsed() >= SLOW_START {
                     told = true;
-                    let text = format!("{} hasn't started after {} s. Look at its pane: Claude Code may be waiting for you there.", a.name, SLOW_START.as_secs());
+                    let text = format!(
+                        "{} hasn't started after {} s. Look at its pane: Claude Code may be waiting for you there.",
+                        a.name,
+                        SLOW_START.as_secs()
+                    );
                     me.edit(|st| st.log(&a.run_id, Some(&a.id), None, "agent.slow", text.clone(), false));
                     me.host.notice(&text, "warning");
                 }
@@ -779,7 +804,15 @@ impl Core {
     async fn ask_trust(self: Arc<Self>, agent: &Agent) {
         let (tx, mut rx) = oneshot::channel();
         let summary = format!("trust the folder {}", agent.cwd);
-        let q = self.new_request(agent, RequestKind::Permission, Some(TRUST_TOOL.into()), summary, Some(json!({ "folder": agent.cwd })), None, false);
+        let q = self.new_request(
+            agent,
+            RequestKind::Permission,
+            Some(TRUST_TOOL.into()),
+            summary,
+            Some(json!({ "folder": agent.cwd })),
+            None,
+            false,
+        );
         self.answers.lock().insert(q.id.clone(), tx);
         self.host.attention(&q, &agent.name);
         let answer = loop {
@@ -850,7 +883,9 @@ impl Core {
 
     /// The agent's trust prompt waits for the user (see `ask_trust`).
     fn trust_pending(&self, agent_id: &str) -> bool {
-        self.st.lock().requests.iter().any(|q| q.agent_id == agent_id && q.status == RequestStatus::Pending && q.tool.as_deref() == Some(TRUST_TOOL))
+        self.st.lock().requests.iter().any(|q| {
+            q.agent_id == agent_id && q.status == RequestStatus::Pending && q.tool.as_deref() == Some(TRUST_TOOL)
+        })
     }
 
     /// End an agent's process tree (marked stopped first, so its exit isn't reported as a crash).
@@ -894,7 +929,14 @@ impl Core {
             st.procs.remove(&a.id);
             // (Windows exit codes are often negative NTSTATUS-style values)
             let code = code.map(|c| format!(" (exit code {})", c as i32)).unwrap_or_default();
-            st.log(&a.run_id, Some(&a.id), a.task_id.as_deref(), "agent.exited", format!("{} exited{code}", a.name), lead);
+            st.log(
+                &a.run_id,
+                Some(&a.id),
+                a.task_id.as_deref(),
+                "agent.exited",
+                format!("{} exited{code}", a.name),
+                lead,
+            );
         });
     }
 
@@ -944,7 +986,14 @@ impl Core {
                 set_state(x, if pause { AgentState::Paused } else { AgentState::Idle });
             }
             let what = if pause { "Paused" } else { "Interrupted" };
-            st.log(&a.run_id, Some(agent_id), a.task_id.as_deref(), "agent.interrupt", format!("{what} {}", a.name), false);
+            st.log(
+                &a.run_id,
+                Some(agent_id),
+                a.task_id.as_deref(),
+                "agent.interrupt",
+                format!("{what} {}", a.name),
+                false,
+            );
         });
         if pause {
             let me = self.arc();
@@ -972,7 +1021,10 @@ impl Core {
         self.end_process(&a);
         let run = self.run(&a.run_id)?;
         self.edit(|st| {
-            for t in st.tasks.iter_mut().filter(|t| t.assignee.as_deref() == Some(agent_id) && matches!(t.status, TaskStatus::Assigned | TaskStatus::Working)) {
+            for t in st.tasks.iter_mut().filter(|t| {
+                t.assignee.as_deref() == Some(agent_id)
+                    && matches!(t.status, TaskStatus::Assigned | TaskStatus::Working)
+            }) {
                 t.status = TaskStatus::Queued;
                 t.assignee = None;
                 t.updated_at = now_ms();
@@ -998,7 +1050,13 @@ impl Core {
     // ── workers and tasks ───────────────────────────────────────────────────
 
     /// A new worker with its own worktree, in `slot` ("w2") or the next free one.
-    pub fn hire(&self, run_id: &str, model: Option<&str>, effort: Option<&str>, slot: Option<&str>) -> Result<Agent, String> {
+    pub fn hire(
+        &self,
+        run_id: &str,
+        model: Option<&str>,
+        effort: Option<&str>,
+        slot: Option<&str>,
+    ) -> Result<Agent, String> {
         let _one = self.hiring.lock();
         let run = self.run(run_id)?;
         if run.status != RunStatus::Active {
@@ -1008,7 +1066,10 @@ impl Core {
             let st = self.st.lock();
             st.may_hire(run_id)?;
             let used: Vec<String> = st.workers(run_id).map(|w| w.slot.clone()).collect();
-            let free = |s: &String| !used.contains(s) && s.trim_start_matches('w').parse::<usize>().is_ok_and(|n| (1..=MAX_WORKERS).contains(&n));
+            let free = |s: &String| {
+                !used.contains(s)
+                    && s.trim_start_matches('w').parse::<usize>().is_ok_and(|n| (1..=MAX_WORKERS).contains(&n))
+            };
             let wanted = slot.map(|s| s.trim().to_ascii_lowercase()).filter(free);
             let slot = wanted.or_else(|| (1..=MAX_WORKERS).map(|i| format!("w{i}")).find(free)).unwrap_or_default();
             let opus = st.workers(run_id).filter(|w| is_opus(&w.model)).count();
@@ -1048,7 +1109,14 @@ impl Core {
         };
         self.edit(|st| {
             st.agents.push(agent.clone());
-            st.log(run_id, Some(&agent.id), None, "agent.hired", format!("Started {} ({})", agent.name, agent.model), false);
+            st.log(
+                run_id,
+                Some(&agent.id),
+                None,
+                "agent.hired",
+                format!("Started {} ({})", agent.name, agent.model),
+                false,
+            );
         });
         if let Err(e) = self.launch(&agent.id) {
             self.edit(|st| st.agents.retain(|x| x.id != agent.id));
@@ -1058,7 +1126,14 @@ impl Core {
         Ok(agent)
     }
 
-    pub fn create_task(&self, run_id: &str, title: &str, description: &str, difficulty: u8, follow_up_of: Option<&str>) -> Result<Task, String> {
+    pub fn create_task(
+        &self,
+        run_id: &str,
+        title: &str,
+        description: &str,
+        difficulty: u8,
+        follow_up_of: Option<&str>,
+    ) -> Result<Task, String> {
         let run = self.run(run_id)?;
         if run.status != RunStatus::Active {
             return Err("This team was stopped.".into());
@@ -1111,11 +1186,16 @@ impl Core {
         let level = (task.difficulty + u8::from(task.failures >= 2)).min(5);
         let run = self.run(&task.run_id)?;
         // a follow-up goes back to whoever did the original, in the same conversation
-        let original = task.follow_up_of.as_deref().and_then(|f| self.st.lock().task(f).and_then(|t| t.assignee.clone()));
+        let original =
+            task.follow_up_of.as_deref().and_then(|f| self.st.lock().task(f).and_then(|t| t.assignee.clone()));
         let free = |a: &Agent| a.task_id.is_none() && !matches!(a.state, AgentState::Paused);
         let agent = match worker {
             // a slot nobody holds yet: start a worker there
-            Some(w) if self.find_agent(&run.id, w).is_err() && w.trim().len() == 2 && w.trim().to_ascii_lowercase().starts_with('w') => {
+            Some(w)
+                if self.find_agent(&run.id, w).is_err()
+                    && w.trim().len() == 2
+                    && w.trim().to_ascii_lowercase().starts_with('w') =>
+            {
                 let (c, _) = self.st.lock().route(level);
                 self.hire(&run.id, Some(&c.model), Some(&c.effort), Some(w))?
             }
@@ -1133,7 +1213,11 @@ impl Core {
                 let pick = {
                     let st = self.st.lock();
                     let workers: Vec<&Agent> = st.workers(&run.id).filter(|a| free(a)).collect();
-                    original.as_ref().and_then(|o| workers.iter().find(|a| &a.id == o)).or_else(|| workers.first()).map(|a| (*a).clone())
+                    original
+                        .as_ref()
+                        .and_then(|o| workers.iter().find(|a| &a.id == o))
+                        .or_else(|| workers.first())
+                        .map(|a| (*a).clone())
                 };
                 match pick {
                     Some(a) => a,
@@ -1144,7 +1228,8 @@ impl Core {
                 }
             }
         };
-        let follow_up = original.as_deref() == Some(agent.id.as_str()) && agent.last_task_id.as_deref() == task.follow_up_of.as_deref();
+        let follow_up = original.as_deref() == Some(agent.id.as_str())
+            && agent.last_task_id.as_deref() == task.follow_up_of.as_deref();
         // model: a follow-up stays on the conversation's model; a fresh task gets the one its
         // difficulty asks for, within the usage gate and the Opus cap
         let (mut model, effort, mut note) = if follow_up {
@@ -1155,7 +1240,8 @@ impl Core {
         };
         let opus_full = {
             let st = self.st.lock();
-            let others = st.workers(&run.id).filter(|w| w.id != agent.id && is_opus(&w.model) && w.task_id.is_some()).count();
+            let others =
+                st.workers(&run.id).filter(|w| w.id != agent.id && is_opus(&w.model) && w.task_id.is_some()).count();
             others >= st.routing.max_opus_workers as usize
         };
         if is_opus(&model) && opus_full && !follow_up {
@@ -1191,7 +1277,14 @@ impl Core {
                     a.effort = effort.clone();
                 }
             }
-            st.log(&run.id, Some(&agent.id), Some(&task.id), "task.assigned", format!("{} → {} ({model}{note})", task.id, agent.name), false);
+            st.log(
+                &run.id,
+                Some(&agent.id),
+                Some(&task.id),
+                "task.assigned",
+                format!("{} → {} ({model}{note})", task.id, agent.name),
+                false,
+            );
         });
         let me = self.arc();
         let (aid, tid) = (agent.id.clone(), task.id.clone());
@@ -1223,7 +1316,9 @@ impl Core {
                 self.host.write(&a.pane_id, "/clear")?;
                 tokio::time::sleep(Duration::from_millis(200)).await;
                 self.host.write(&a.pane_id, "\r")?;
-                tokio::time::timeout(Duration::from_secs(15), cleared).await.map_err(|_| "its conversation didn't clear".to_string())?;
+                tokio::time::timeout(Duration::from_secs(15), cleared)
+                    .await
+                    .map_err(|_| "its conversation didn't clear".to_string())?;
             }
             self.ready(&agent_id, Duration::from_secs(120)).await?;
             let text = {
@@ -1257,7 +1352,14 @@ impl Core {
                         a.task_id = None;
                     }
                 }
-                st.log(&run, Some(&agent_id), Some(&task_id), "task.undelivered", format!("Couldn't start {task_id} on {name}: {e}. It's queued again."), true);
+                st.log(
+                    &run,
+                    Some(&agent_id),
+                    Some(&task_id),
+                    "task.undelivered",
+                    format!("Couldn't start {task_id} on {name}: {e}. It's queued again."),
+                    true,
+                );
             }),
         }
     }
@@ -1308,7 +1410,10 @@ impl Core {
         }
         // once more: the first Enter can land while the paste is still being taken in
         self.host.write(&a.pane_id, "\r")?;
-        tokio::time::timeout(Duration::from_secs(3), submitted).await.map(|_| ()).map_err(|_| format!("{} didn't take the message", a.name))
+        tokio::time::timeout(Duration::from_secs(3), submitted)
+            .await
+            .map(|_| ())
+            .map_err(|_| format!("{} didn't take the message", a.name))
     }
 
     /// Type a message once the agent is ready (in the background).
@@ -1360,10 +1465,14 @@ impl Core {
             false
         } else {
             // unfinished work is kept on the task's branch, junk and all
-            worktree::commit_all(wt, &format!("{}: {} (unfinished work saved by Shellmosaic)", task.id, task.title)).unwrap_or(false)
+            worktree::commit_all(wt, &format!("{}: {} (unfinished work saved by Shellmosaic)", task.id, task.title))
+                .unwrap_or(false)
         };
-        let stats = task.branch.as_deref().and_then(|b| worktree::stats(Path::new(&self.run(&a.run_id).ok()?.root), b).ok());
-        let changes = stats.map(|s| format!(" [{} commit(s), {} file(s), +{} −{}]", s.commits, s.files, s.added, s.removed)).unwrap_or_default();
+        let stats =
+            task.branch.as_deref().and_then(|b| worktree::stats(Path::new(&self.run(&a.run_id).ok()?.root), b).ok());
+        let changes = stats
+            .map(|s| format!(" [{} commit(s), {} file(s), +{} −{}]", s.commits, s.files, s.added, s.removed))
+            .unwrap_or_default();
         self.edit(|st| {
             if let Some(t) = st.task_mut(&task_id) {
                 if new == TaskStatus::Failed {
@@ -1378,7 +1487,14 @@ impl Core {
                 x.last_task_id = Some(task_id.clone());
             }
             let note = if saved { " (Shellmosaic committed the unfinished changes)" } else { "" };
-            st.log(&a.run_id, Some(agent_id), Some(&task_id), kind, format!("{} {verb} {task_id} \"{}\"{changes}{note}: {}", a.name, task.title, short(summary, 1500)), true);
+            st.log(
+                &a.run_id,
+                Some(agent_id),
+                Some(&task_id),
+                kind,
+                format!("{} {verb} {task_id} \"{}\"{changes}{note}: {}", a.name, task.title, short(summary, 1500)),
+                true,
+            );
         });
         Ok(match new {
             TaskStatus::Review => "Thanks — the lead will review it. You can stop now.".into(),
@@ -1397,7 +1513,11 @@ impl Core {
             let worker = task.assignee.clone().ok_or("Nobody worked on that task.")?;
             let a = self.agent(&worker)?;
             if a.task_id.is_some() {
-                return Err(format!("{} is busy with {}; create a follow-up task instead.", a.name, a.task_id.unwrap_or_default()));
+                return Err(format!(
+                    "{} is busy with {}; create a follow-up task instead.",
+                    a.name,
+                    a.task_id.unwrap_or_default()
+                ));
             }
             self.edit(|st| {
                 if let Some(t) = st.task_mut(task_id) {
@@ -1409,7 +1529,14 @@ impl Core {
                 if let Some(x) = st.agent_mut(&worker) {
                     x.task_id = Some(task.id.clone());
                 }
-                st.log(&run.id, Some(&worker), Some(task_id), "task.rework", format!("{} sent back to {}: {}", task.id, a.name, short(note, 300)), false);
+                st.log(
+                    &run.id,
+                    Some(&worker),
+                    Some(task_id),
+                    "task.rework",
+                    format!("{} sent back to {}: {}", task.id, a.name, short(note, 300)),
+                    false,
+                );
             });
             let me = self.arc();
             let text = roles::rework_message(&task, note);
@@ -1421,7 +1548,8 @@ impl Core {
             return Ok(format!("Sent {} back to {}.", task.id, a.name));
         }
         let branch = task.branch.clone().ok_or("That task has no branch.")?;
-        let outcome = worktree::merge_into_integration(Path::new(&run.root), &branch, &format!("{}: {}", task.id, task.title))?;
+        let outcome =
+            worktree::merge_into_integration(Path::new(&run.root), &branch, &format!("{}: {}", task.id, task.title))?;
         let (status, msg) = match outcome {
             worktree::Merge::Merged => (TaskStatus::Done, format!("Merged {branch} into {}.", worktree::INTEGRATION)),
             worktree::Merge::Empty => (TaskStatus::Done, format!("{branch} had no commits; nothing to merge.")),
@@ -1439,7 +1567,14 @@ impl Core {
                 t.status = status;
                 t.updated_at = now_ms();
             }
-            st.log(&run.id, task.assignee.as_deref(), Some(task_id), "task.done", format!("Accepted {}: {msg}", task.id), false);
+            st.log(
+                &run.id,
+                task.assignee.as_deref(),
+                Some(task_id),
+                "task.done",
+                format!("Accepted {}: {msg}", task.id),
+                false,
+            );
         });
         Ok(msg)
     }
@@ -1452,13 +1587,17 @@ impl Core {
         let root = Path::new(&r.root);
         let s = worktree::stats(root, &b)?;
         let (diff, truncated) = worktree::diff(root, &b, 400_000)?;
-        Ok(json!({ "branch": b, "commits": s.commits, "files": s.files, "added": s.added, "removed": s.removed, "diff": diff, "truncated": truncated }))
+        Ok(
+            json!({ "branch": b, "commits": s.commits, "files": s.files, "added": s.added, "removed": s.removed, "diff": diff, "truncated": truncated }),
+        )
     }
 
     /// What merging the team's work into the user's branch would do.
     pub fn merge_preview(&self, run: &str) -> Result<Value, String> {
         let r = self.run(run)?;
-        let base = r.base_branch.ok_or("The repository was on a detached HEAD when the team started: merge orch/integration yourself.")?;
+        let base = r
+            .base_branch
+            .ok_or("The repository was on a detached HEAD when the team started: merge orch/integration yourself.")?;
         let p = worktree::base_preview(Path::new(&r.root), &base)?;
         Ok(json!({
             "base": base,
@@ -1493,7 +1632,8 @@ impl Core {
         }
         if let Some(w) = task.assignee.as_deref() {
             if let Ok(a) = self.agent(w) {
-                if a.task_id.as_deref() == Some(task_id) && matches!(a.state, AgentState::Working | AgentState::Waiting) {
+                if a.task_id.as_deref() == Some(task_id) && matches!(a.state, AgentState::Working | AgentState::Waiting)
+                {
                     let _ = self.interrupt(w, false);
                 }
             }
@@ -1507,14 +1647,30 @@ impl Core {
                 a.task_id = None;
                 a.last_task_id = Some(task_id.to_string());
             }
-            st.log(&task.run_id, task.assignee.as_deref(), Some(task_id), "task.cancelled", format!("Cancelled {}", task.id), true);
+            st.log(
+                &task.run_id,
+                task.assignee.as_deref(),
+                Some(task_id),
+                "task.cancelled",
+                format!("Cancelled {}", task.id),
+                true,
+            );
         });
         Ok(())
     }
 
     // ── requests ────────────────────────────────────────────────────────────
 
-    fn new_request(&self, agent: &Agent, kind: RequestKind, tool: Option<String>, summary: String, detail: Option<Value>, suggestions: Option<Value>, lead: bool) -> Request {
+    fn new_request(
+        &self,
+        agent: &Agent,
+        kind: RequestKind,
+        tool: Option<String>,
+        summary: String,
+        detail: Option<Value>,
+        suggestions: Option<Value>,
+        lead: bool,
+    ) -> Request {
         self.edit(|st| {
             st.next_req += 1;
             let q = Request {
@@ -1551,7 +1707,10 @@ impl Core {
     pub fn answer(&self, req_id: &str, answer: Answer, by: &str) -> Result<(), String> {
         let q = self.st.lock().requests.iter().find(|q| q.id == req_id).cloned().ok_or("There's no such request.")?;
         if q.status != RequestStatus::Pending {
-            return Err(format!("That request was already handled ({}).", q.answered_by.as_deref().unwrap_or("closed")));
+            return Err(format!(
+                "That request was already handled ({}).",
+                q.answered_by.as_deref().unwrap_or("closed")
+            ));
         }
         let tx = self.answers.lock().remove(req_id);
         let Some(tx) = tx else {
@@ -1574,7 +1733,10 @@ impl Core {
             if let Some(a) = st.agent_mut(&q.agent_id) {
                 if a.state == AgentState::Waiting {
                     // (the trust prompt comes before the session: it's still starting)
-                    set_state(a, if q.tool.as_deref() == Some(TRUST_TOOL) { AgentState::Starting } else { AgentState::Working });
+                    set_state(
+                        a,
+                        if q.tool.as_deref() == Some(TRUST_TOOL) { AgentState::Starting } else { AgentState::Working },
+                    );
                 }
             }
         });
@@ -1605,7 +1767,9 @@ impl Core {
             .lock()
             .requests
             .iter()
-            .filter(|q| q.agent_id == agent_id && q.kind == RequestKind::Permission && q.status == RequestStatus::Pending)
+            .filter(|q| {
+                q.agent_id == agent_id && q.kind == RequestKind::Permission && q.status == RequestStatus::Pending
+            })
             .map(|q| q.id.clone())
             .collect();
         for id in open {
@@ -1622,8 +1786,17 @@ impl Core {
         let tool_input = input.get("tool_input").cloned().unwrap_or(Value::Null);
         let summary = describe_tool(&tool, &tool_input);
         let (tx, rx) = oneshot::channel();
-        let suggestions = input.get("permission_suggestions").filter(|s| s.as_array().is_some_and(|a| !a.is_empty())).cloned();
-        let q = self.new_request(&agent, RequestKind::Permission, Some(tool), summary, Some(trimmed(&tool_input, 2000)), suggestions.clone(), false);
+        let suggestions =
+            input.get("permission_suggestions").filter(|s| s.as_array().is_some_and(|a| !a.is_empty())).cloned();
+        let q = self.new_request(
+            &agent,
+            RequestKind::Permission,
+            Some(tool),
+            summary,
+            Some(trimmed(&tool_input, 2000)),
+            suggestions.clone(),
+            false,
+        );
         self.answers.lock().insert(q.id.clone(), tx);
         self.host.attention(&q, &agent.name);
         // dropped with this future when Claude Code stops waiting (the pane's own dialog was used)
@@ -1635,7 +1808,9 @@ impl Core {
         }
         let _pending = Pending(self.clone(), q.id.clone());
         match rx.await {
-            Ok(Answer::Allow) => json!({ "hookSpecificOutput": { "hookEventName": "PermissionRequest", "decision": { "behavior": "allow" } } }),
+            Ok(Answer::Allow) => {
+                json!({ "hookSpecificOutput": { "hookEventName": "PermissionRequest", "decision": { "behavior": "allow" } } })
+            }
             Ok(Answer::AllowAlways) => {
                 let mut decision = json!({ "behavior": "allow" });
                 if let Some(s) = suggestions {
@@ -1681,7 +1856,8 @@ impl Core {
     pub fn take_lead_events(&self, run: &str) -> Vec<Activity> {
         let mut st = self.st.lock();
         let seen = st.lead_seen.get(run).copied().unwrap_or(0);
-        let out: Vec<Activity> = st.activity.iter().filter(|a| a.lead && a.run_id == run && a.seq > seen).cloned().collect();
+        let out: Vec<Activity> =
+            st.activity.iter().filter(|a| a.lead && a.run_id == run && a.seq > seen).cloned().collect();
         if let Some(last) = out.last() {
             st.lead_seen.insert(run.to_string(), last.seq);
         }
@@ -1807,7 +1983,14 @@ impl Core {
                     }
                     // the agents' own coordination calls are logged by the tools themselves
                     if !tool.starts_with("mcp__shellmosaic") && tool != "ToolSearch" {
-                        st.log(&a.run_id, Some(agent_id), a.task_id.as_deref(), "tool", format!("{}: {}", a.name, short(&what, 300)), false);
+                        st.log(
+                            &a.run_id,
+                            Some(agent_id),
+                            a.task_id.as_deref(),
+                            "tool",
+                            format!("{}: {}", a.name, short(&what, 300)),
+                            false,
+                        );
                     }
                 });
             }
@@ -1829,7 +2012,14 @@ impl Core {
                     // a worker that stops without complete_task: the lead decides what's next
                     if let (Some(t), Role::Worker, false) = (open_task, a.role, background) {
                         let said = last.as_deref().map(|m| format!(": \"{}\"", short(m, 600))).unwrap_or_default();
-                        st.log(&a.run_id, Some(agent_id), Some(&t), "agent.stopped", format!("{} stopped without finishing {t}{said}", a.name), true);
+                        st.log(
+                            &a.run_id,
+                            Some(agent_id),
+                            Some(&t),
+                            "agent.stopped",
+                            format!("{} stopped without finishing {t}{said}", a.name),
+                            true,
+                        );
                     }
                 });
                 if a.role == Role::Lead {
@@ -1900,13 +2090,24 @@ impl Core {
     pub fn notice(&self, agent_id: &str, text: &str) {
         let Ok(a) = self.agent(agent_id) else { return };
         self.host.notice(&format!("{}: {}", a.name, short(text, 300)), "info");
-        self.edit(|st| st.log(&a.run_id, Some(agent_id), None, "notice", format!("{}: {}", a.name, short(text, 1000)), false));
+        self.edit(|st| {
+            st.log(&a.run_id, Some(agent_id), None, "notice", format!("{}: {}", a.name, short(text, 1000)), false)
+        });
     }
 
     /// `report_progress`
     pub fn progress(&self, agent_id: &str, text: &str) {
         let Ok(a) = self.agent(agent_id) else { return };
-        self.edit(|st| st.log(&a.run_id, Some(agent_id), a.task_id.as_deref(), "progress", format!("{}: {}", a.name, short(text, 500)), false));
+        self.edit(|st| {
+            st.log(
+                &a.run_id,
+                Some(agent_id),
+                a.task_id.as_deref(),
+                "progress",
+                format!("{}: {}", a.name, short(text, 500)),
+                false,
+            )
+        });
     }
 
     /// Recent conversation of an agent, for the lead (its transcript; the screen as a fallback).
@@ -1929,22 +2130,34 @@ impl Core {
         for w in st.workers(run) {
             any = true;
             let task = w.task_id.as_deref().map(|t| format!(", on {t}")).unwrap_or_default();
-            s.push_str(&format!("- {} ({}): {:?}{task}, model {}\n", w.slot, w.name, w.state, w.model_id.as_deref().unwrap_or(&w.model)).to_lowercase());
+            s.push_str(
+                &format!(
+                    "- {} ({}): {:?}{task}, model {}\n",
+                    w.slot,
+                    w.name,
+                    w.state,
+                    w.model_id.as_deref().unwrap_or(&w.model)
+                )
+                .to_lowercase(),
+            );
         }
         if !any {
             s.push_str("- none yet (assign_task starts one)\n");
         }
         s.push_str("Tasks:\n");
         for t in st.tasks.iter().filter(|t| t.run_id == run) {
-            let who = t.assignee.as_deref().and_then(|a| st.agent(a)).map(|a| format!(" [{}]", a.slot)).unwrap_or_default();
+            let who =
+                t.assignee.as_deref().and_then(|a| st.agent(a)).map(|a| format!(" [{}]", a.slot)).unwrap_or_default();
             s.push_str(&format!("- {} {:?}{who}: {}\n", t.id, t.status, t.title));
         }
-        let pending: Vec<&Request> = st.requests.iter().filter(|q| q.run_id == run && q.status == RequestStatus::Pending).collect();
+        let pending: Vec<&Request> =
+            st.requests.iter().filter(|q| q.run_id == run && q.status == RequestStatus::Pending).collect();
         if !pending.is_empty() {
             s.push_str("Waiting:\n");
             for q in pending {
                 let who = st.agent(&q.agent_id).map(|a| a.slot.clone()).unwrap_or_default();
-                let kind = if q.kind == RequestKind::Question { "question for you" } else { "permission from the user" };
+                let kind =
+                    if q.kind == RequestKind::Question { "question for you" } else { "permission from the user" };
                 s.push_str(&format!("- {} ({who}, {kind}): {}\n", q.id, short(&q.summary, 200)));
             }
         }
@@ -1956,13 +2169,22 @@ impl Core {
     pub fn in_progress(&self, run: &str) -> bool {
         let st = self.st.lock();
         st.tasks.iter().any(|t| t.run_id == run && matches!(t.status, TaskStatus::Assigned | TaskStatus::Working))
-            || st.workers(run).any(|w| w.task_id.is_some() || matches!(w.state, AgentState::Starting | AgentState::Working | AgentState::Waiting))
+            || st.workers(run).any(|w| {
+                w.task_id.is_some()
+                    || matches!(w.state, AgentState::Starting | AgentState::Working | AgentState::Waiting)
+            })
             || st.requests.iter().any(|q| q.run_id == run && q.status == RequestStatus::Pending)
     }
 
     /// The branches of the tasks a worker did.
     fn branches_of(&self, agent_id: &str) -> Vec<String> {
-        self.st.lock().tasks.iter().filter(|t| t.assignee.as_deref() == Some(agent_id)).filter_map(|t| t.branch.clone()).collect()
+        self.st
+            .lock()
+            .tasks
+            .iter()
+            .filter(|t| t.assignee.as_deref() == Some(agent_id))
+            .filter_map(|t| t.branch.clone())
+            .collect()
     }
 
     /// Run of an agent (for tools).
@@ -1983,7 +2205,8 @@ impl Gate for Core {
         };
         let expected = expected.ok_or("unknown or stopped agent")?;
         // constant time: don't leak how much of a guessed token was right
-        let ok = expected.len() == token.len() && expected.bytes().zip(token.bytes()).fold(0u8, |acc, (a, b)| acc | (a ^ b)) == 0;
+        let ok = expected.len() == token.len()
+            && expected.bytes().zip(token.bytes()).fold(0u8, |acc, (a, b)| acc | (a ^ b)) == 0;
         if !ok {
             return Err("wrong token".into());
         }

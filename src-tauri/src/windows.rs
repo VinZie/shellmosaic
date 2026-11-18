@@ -61,9 +61,8 @@ pub fn build_window(app: &AppHandle, label: &str, effect: &str, title: &str) -> 
 /// model before calling this, keyed by the label.
 #[tauri::command]
 pub async fn window_create(app: AppHandle, label: String, effect: String, title: Option<String>) -> Result<(), String> {
-    let ok = label.starts_with("win-")
-        && label.len() <= 40
-        && label.chars().all(|c| c.is_ascii_alphanumeric() || c == '-');
+    let ok =
+        label.starts_with("win-") && label.len() <= 40 && label.chars().all(|c| c.is_ascii_alphanumeric() || c == '-');
     if !ok {
         return Err("invalid window label".into());
     }
@@ -95,7 +94,5 @@ pub fn window_labels(app: AppHandle) -> Vec<String> {
 #[tauri::command]
 pub fn window_set_effect(window: Window, effect: String, dark: bool) -> Result<(), String> {
     window.set_effects(effects_for(&effect)).s()?;
-    window
-        .set_theme(Some(if dark { Theme::Dark } else { Theme::Light }))
-        .s()
+    window.set_theme(Some(if dark { Theme::Dark } else { Theme::Light })).s()
 }

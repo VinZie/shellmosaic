@@ -13,9 +13,10 @@ use windows_sys::Win32::System::Threading::{
     GetPriorityClass, GetProcessAffinityMask, GetProcessMitigationPolicy, IsWow64Process2, ProcessASLRPolicy,
     ProcessChildProcessPolicy, ProcessControlFlowGuardPolicy, ProcessDEPPolicy, ProcessDynamicCodePolicy,
     ProcessExtensionPointDisablePolicy, ProcessFontDisablePolicy, ProcessImageLoadPolicy, ProcessSignaturePolicy,
-    ProcessStrictHandleCheckPolicy, ProcessSystemCallDisablePolicy, ProcessUserShadowStackPolicy, ABOVE_NORMAL_PRIORITY_CLASS,
-    BELOW_NORMAL_PRIORITY_CLASS, HIGH_PRIORITY_CLASS, IDLE_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS, PROCESS_MITIGATION_POLICY,
-    PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ, REALTIME_PRIORITY_CLASS,
+    ProcessStrictHandleCheckPolicy, ProcessSystemCallDisablePolicy, ProcessUserShadowStackPolicy,
+    ABOVE_NORMAL_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS, HIGH_PRIORITY_CLASS, IDLE_PRIORITY_CLASS,
+    NORMAL_PRIORITY_CLASS, PROCESS_MITIGATION_POLICY, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION,
+    PROCESS_VM_READ, REALTIME_PRIORITY_CLASS,
 };
 
 use super::modules::image_path;
@@ -255,7 +256,9 @@ fn listed_path(pid: u32) -> Option<Option<String>> {
 
 /// Err is the NTSTATUS.
 fn command_line(h: HANDLE) -> Result<Option<String>, i32> {
-    let buf = nt::query_var(4096, 1 << 20, |p, n, r| unsafe { nt::NtQueryInformationProcess(h, class::PROCESS_COMMAND_LINE, p, n, r) })?;
+    let buf = nt::query_var(4096, 1 << 20, |p, n, r| unsafe {
+        nt::NtQueryInformationProcess(h, class::PROCESS_COMMAND_LINE, p, n, r)
+    })?;
     Ok(buf.read::<UnicodeString>(0).and_then(|s| buf.ustr(&s)).filter(|c| !c.is_empty()))
 }
 
@@ -364,13 +367,24 @@ struct Policy {
 }
 
 const POLICIES: [Policy; 12] = [
-    Policy { id: "dep", name: "DEP", class: ProcessDEPPolicy, on: 0x1, flags: &[(0x2, "ATL thunk emulation disabled")] },
+    Policy {
+        id: "dep",
+        name: "DEP",
+        class: ProcessDEPPolicy,
+        on: 0x1,
+        flags: &[(0x2, "ATL thunk emulation disabled")],
+    },
     Policy {
         id: "aslr",
         name: "ASLR",
         class: ProcessASLRPolicy,
         on: 0x7,
-        flags: &[(0x1, "Bottom-up"), (0x2, "Force relocate images"), (0x4, "High entropy"), (0x8, "Disallow stripped images")],
+        flags: &[
+            (0x1, "Bottom-up"),
+            (0x2, "Force relocate images"),
+            (0x4, "High entropy"),
+            (0x8, "Disallow stripped images"),
+        ],
     },
     Policy {
         id: "dynamicCode",
@@ -391,9 +405,20 @@ const POLICIES: [Policy; 12] = [
         name: "System Call Disable",
         class: ProcessSystemCallDisablePolicy,
         on: 0x5,
-        flags: &[(0x1, "Win32k calls blocked"), (0x2, "Audit Win32k calls"), (0x4, "FSCTL calls blocked"), (0x8, "Audit FSCTL calls")],
+        flags: &[
+            (0x1, "Win32k calls blocked"),
+            (0x2, "Audit Win32k calls"),
+            (0x4, "FSCTL calls blocked"),
+            (0x8, "Audit FSCTL calls"),
+        ],
     },
-    Policy { id: "extensionPoints", name: "Extension Point Disable", class: ProcessExtensionPointDisablePolicy, on: 0x1, flags: &[] },
+    Policy {
+        id: "extensionPoints",
+        name: "Extension Point Disable",
+        class: ProcessExtensionPointDisablePolicy,
+        on: 0x1,
+        flags: &[],
+    },
     Policy {
         id: "cfg",
         name: "Control Flow Guard",
@@ -414,7 +439,13 @@ const POLICIES: [Policy; 12] = [
             (0x10, "Audit store signed only"),
         ],
     },
-    Policy { id: "fonts", name: "Non-System Font Block", class: ProcessFontDisablePolicy, on: 0x1, flags: &[(0x2, "Audit")] },
+    Policy {
+        id: "fonts",
+        name: "Non-System Font Block",
+        class: ProcessFontDisablePolicy,
+        on: 0x1,
+        flags: &[(0x2, "Audit")],
+    },
     Policy {
         id: "imageLoad",
         name: "Image Load Restriction",
@@ -468,7 +499,8 @@ fn mitigations(h: HANDLE) -> Result<Vec<Mitigation>, u32> {
             continue;
         }
         let flags = v[0];
-        let mut details: Vec<&'static str> = p.flags.iter().filter(|(bit, _)| flags & bit != 0).map(|(_, n)| *n).collect();
+        let mut details: Vec<&'static str> =
+            p.flags.iter().filter(|(bit, _)| flags & bit != 0).map(|(_, n)| *n).collect();
         if p.class == ProcessDEPPolicy && v[1] & 0xFF != 0 {
             details.push("Permanent");
         }

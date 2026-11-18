@@ -86,8 +86,8 @@ async fn read_credentials(app: &AppHandle) -> Result<OAuth, String> {
         }
         Err(e) => return Err(format!("Couldn't read Claude Code's sign-in: {e}")),
     };
-    let file: CredentialsFile =
-        serde_json::from_slice(bytes.as_slice()).map_err(|_| "Claude Code's sign-in file isn't valid JSON.".to_string())?;
+    let file: CredentialsFile = serde_json::from_slice(bytes.as_slice())
+        .map_err(|_| "Claude Code's sign-in file isn't valid JSON.".to_string())?;
     match file.oauth {
         Some(o) if !o.access_token.is_empty() => Ok(o),
         // signed in with an API key, or logged out
@@ -112,7 +112,8 @@ async fn fetch(app: &AppHandle, client: &reqwest::Client) -> (Result<Value, Stri
         Err(e) => return (Err(e), Outcome::Done),
     };
     if oauth.expires_at.is_some_and(|t| t <= now_ms()) {
-        let msg = "Your Claude sign-in has expired. Run `claude` once to refresh it; usage shows up again on the next check.";
+        let msg =
+            "Your Claude sign-in has expired. Run `claude` once to refresh it; usage shows up again on the next check.";
         return (Err(msg.into()), Outcome::Done);
     }
     let token = Zeroizing::new(std::mem::take(&mut oauth.access_token));
@@ -135,11 +136,8 @@ async fn fetch(app: &AppHandle, client: &reqwest::Client) -> (Result<Value, Stri
     };
     let status = resp.status();
     if status == StatusCode::TOO_MANY_REQUESTS {
-        let after = resp
-            .headers()
-            .get(RETRY_AFTER)
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| s.trim().parse::<u64>().ok());
+        let after =
+            resp.headers().get(RETRY_AFTER).and_then(|v| v.to_str().ok()).and_then(|s| s.trim().parse::<u64>().ok());
         return (Err(String::new()), Outcome::RateLimited(after));
     }
     if status == StatusCode::UNAUTHORIZED || status == StatusCode::FORBIDDEN {

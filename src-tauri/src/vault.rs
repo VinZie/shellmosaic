@@ -14,8 +14,8 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use base64::engine::general_purpose::STANDARD as B64;
 use base64::Engine;
-use chacha20poly1305::aead::{Aead, KeyInit, OsRng, Payload};
 use chacha20poly1305::aead::rand_core::RngCore;
+use chacha20poly1305::aead::{Aead, KeyInit, OsRng, Payload};
 use chacha20poly1305::{XChaCha20Poly1305, XNonce};
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
@@ -50,7 +50,11 @@ impl Kdf {
             && (8 * 1024..=1024 * 1024).contains(&self.m)
             && (1..=16).contains(&self.t)
             && (1..=8).contains(&self.p);
-        if ok { Ok(()) } else { Err("the vault file has unsupported key-derivation settings".into()) }
+        if ok {
+            Ok(())
+        } else {
+            Err("the vault file has unsupported key-derivation settings".into())
+        }
     }
 
     /// Bound into the ciphertext, so the header can't be swapped without failing to decrypt.
@@ -327,7 +331,8 @@ impl Vault {
         let ct = cipher
             .encrypt(XNonce::from_slice(&nonce), Payload { msg: &plain, aad: aad.as_bytes() })
             .map_err(|_| "encryption failed".to_string())?;
-        let file = VaultFile { format: FORMAT.into(), v: 1, kdf: kdf.clone(), nonce: B64.encode(nonce), data: B64.encode(ct) };
+        let file =
+            VaultFile { format: FORMAT.into(), v: 1, kdf: kdf.clone(), nonce: B64.encode(nonce), data: B64.encode(ct) };
         serde_json::to_vec_pretty(&file).s()
     }
 
@@ -514,7 +519,8 @@ impl Vault {
                     HostView::from(&*h)
                 }
                 None => {
-                    let source = input.copy_secrets_from.as_deref().and_then(|src| data.hosts.iter().find(|h| h.id == src));
+                    let source =
+                        input.copy_secrets_from.as_deref().and_then(|src| data.hosts.iter().find(|h| h.id == src));
                     let mut h = Host {
                         id: uuid::Uuid::new_v4().simple().to_string(),
                         created: now_ms(),

@@ -63,7 +63,9 @@ pub fn read(conn: &Connection) -> rusqlite::Result<Vec<SchemaObject>> {
          ORDER BY CASE type WHEN 'table' THEN 0 WHEN 'view' THEN 1 WHEN 'index' THEN 2 ELSE 3 END, name COLLATE NOCASE",
     )?;
     let entries = stmt
-        .query_map([], |r| Ok((text(r, 0)?.unwrap_or_default(), text(r, 1)?.unwrap_or_default(), text(r, 2)?, text(r, 3)?)))?
+        .query_map([], |r| {
+            Ok((text(r, 0)?.unwrap_or_default(), text(r, 1)?.unwrap_or_default(), text(r, 2)?, text(r, 3)?))
+        })?
         .collect::<rusqlite::Result<Vec<_>>>()?;
 
     let mut out = Vec::new();
@@ -130,7 +132,8 @@ fn creates_virtual(sql: &str) -> bool {
 /// `WITHOUT ROWID` among the table options after the column list's closing parenthesis.
 fn without_rowid(sql: &str) -> bool {
     let Some(close) = sql.rfind(')') else { return false };
-    let words: Vec<&str> = sql[close + 1..].split(|c: char| !c.is_ascii_alphanumeric() && c != '_').filter(|w| !w.is_empty()).collect();
+    let words: Vec<&str> =
+        sql[close + 1..].split(|c: char| !c.is_ascii_alphanumeric() && c != '_').filter(|w| !w.is_empty()).collect();
     words.windows(2).any(|w| w[0].eq_ignore_ascii_case("without") && w[1].eq_ignore_ascii_case("rowid"))
 }
 
@@ -153,8 +156,8 @@ fn columns(conn: &Connection, table: &str) -> rusqlite::Result<Vec<DbColumn>> {
 }
 
 fn indexes(conn: &Connection, table: &str) -> rusqlite::Result<Vec<DbIndex>> {
-    let mut list =
-        conn.prepare_cached(r#"SELECT name, "unique", origin, partial FROM pragma_index_list(?1, 'main') ORDER BY seq"#)?;
+    let mut list = conn
+        .prepare_cached(r#"SELECT name, "unique", origin, partial FROM pragma_index_list(?1, 'main') ORDER BY seq"#)?;
     let found = list
         .query_map([table], |r| {
             Ok(DbIndex {

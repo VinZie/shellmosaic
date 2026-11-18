@@ -244,10 +244,7 @@ fn kill(mon: &SysMon, pid: u32, tree: Option<bool>) -> Result<(), String> {
             return Err("refusing to end this tree: Shellmosaic runs inside it".into());
         }
         drop(g);
-        let out = hidden_command("taskkill")
-            .args(["/PID", &pid.to_string(), "/T", "/F"])
-            .output()
-            .s()?;
+        let out = hidden_command("taskkill").args(["/PID", &pid.to_string(), "/T", "/F"]).output().s()?;
         if !out.status.success() {
             return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
         }
@@ -282,20 +279,14 @@ pub async fn net_sockets(app: AppHandle) -> Result<Vec<SocketInfo>, String> {
 
 fn sockets(mon: &SysMon) -> Result<Vec<SocketInfo>, String> {
     use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo};
-    let sockets = get_sockets_info(
-        AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6,
-        ProtocolFlags::TCP | ProtocolFlags::UDP,
-    )
-    .s()?;
+    let sockets =
+        get_sockets_info(AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6, ProtocolFlags::TCP | ProtocolFlags::UDP)
+            .s()?;
 
     let names: HashMap<u32, String> = {
         let mut g = mon.inner.lock();
         g.refresh_procs();
-        g.sys
-            .processes()
-            .values()
-            .map(|p| (p.pid().as_u32(), p.name().to_string_lossy().into_owned()))
-            .collect()
+        g.sys.processes().values().map(|p| (p.pid().as_u32(), p.name().to_string_lossy().into_owned())).collect()
     };
 
     Ok(sockets

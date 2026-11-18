@@ -153,7 +153,14 @@ impl Sqlite {
         }
     }
 
-    pub fn query(&self, owner: &str, id: u32, sql: &str, params: &[Value], max_rows: Option<u32>) -> Result<QueryResult, String> {
+    pub fn query(
+        &self,
+        owner: &str,
+        id: u32,
+        sql: &str,
+        params: &[Value],
+        max_rows: Option<u32>,
+    ) -> Result<QueryResult, String> {
         let db = self.get(owner, id)?;
         let params = query::params(params)?;
         // before waiting for the connection: a cancel sent meanwhile is for this query
@@ -265,7 +272,8 @@ fn authorize(ctx: AuthContext<'_>, writable: bool) -> Authorization {
         // ATTACH of a computed file name: nothing to check
         AuthAction::Unknown { code: ffi::SQLITE_ATTACH, .. } => Authorization::Deny,
         AuthAction::Pragma { pragma_name, .. }
-            if pragma_name.eq_ignore_ascii_case("temp_store_directory") || pragma_name.eq_ignore_ascii_case("data_store_directory") =>
+            if pragma_name.eq_ignore_ascii_case("temp_store_directory")
+                || pragma_name.eq_ignore_ascii_case("data_store_directory") =>
         {
             Authorization::Deny
         }
@@ -282,7 +290,10 @@ fn in_use(e: &rusqlite::Error, writable: bool) -> bool {
         ErrorCode::ReadOnly => !writable,
         ErrorCode::SystemIoFailure => matches!(
             err.extended_code,
-            ffi::SQLITE_IOERR_SHMOPEN | ffi::SQLITE_IOERR_SHMSIZE | ffi::SQLITE_IOERR_SHMLOCK | ffi::SQLITE_IOERR_SHMMAP
+            ffi::SQLITE_IOERR_SHMOPEN
+                | ffi::SQLITE_IOERR_SHMSIZE
+                | ffi::SQLITE_IOERR_SHMLOCK
+                | ffi::SQLITE_IOERR_SHMMAP
         ),
         _ => false,
     }

@@ -87,7 +87,9 @@ pub fn params(values: &[Value]) -> Result<Vec<SqlValue>, String> {
                 },
                 Value::String(s) => SqlValue::Text(s.clone()),
                 Value::Object(o) if o.len() == 1 => match o.get("$blob") {
-                    Some(Value::String(h)) => SqlValue::Blob(unhex(h).ok_or("A {$blob} parameter must be hexadecimal text.")?),
+                    Some(Value::String(h)) => {
+                        SqlValue::Blob(unhex(h).ok_or("A {$blob} parameter must be hexadecimal text.")?)
+                    }
                     _ => return Err(BAD.to_string()),
                 },
                 _ => return Err(BAD.to_string()),
@@ -208,7 +210,13 @@ fn cell(v: ValueRef<'_>) -> (Cell, usize) {
         ValueRef::Integer(i) => (Cell::BigInt { int: i.to_string() }, 32),
         ValueRef::Real(f) if f.is_finite() => (Cell::Real(f), 24),
         ValueRef::Real(f) => {
-            let real = if f.is_nan() { "NaN" } else if f > 0.0 { "inf" } else { "-inf" };
+            let real = if f.is_nan() {
+                "NaN"
+            } else if f > 0.0 {
+                "inf"
+            } else {
+                "-inf"
+            };
             (Cell::NonFinite { real }, 16)
         }
         ValueRef::Text(b) => {

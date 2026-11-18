@@ -54,10 +54,8 @@ pub enum CommitResult {
 impl ModelStore {
     pub fn load(path: PathBuf) -> Self {
         let bytes = fs::read(&path).ok();
-        let mut model = bytes
-            .as_deref()
-            .and_then(|bytes| serde_json::from_slice::<Value>(bytes).ok())
-            .unwrap_or(Value::Null);
+        let mut model =
+            bytes.as_deref().and_then(|bytes| serde_json::from_slice::<Value>(bytes).ok()).unwrap_or(Value::Null);
         if model.is_null() && bytes.is_some_and(|b| !b.is_empty()) {
             // unreadable: the UI is about to replace it with a fresh model, so keep a copy
             let _ = fs::copy(&path, path.with_extension("json.bad"));
@@ -66,15 +64,7 @@ impl ModelStore {
         if let Some(windows) = model.get_mut("windows").and_then(Value::as_object_mut) {
             windows.retain(|label, _| label == "main");
         }
-        Self {
-            inner: Mutex::new(Inner {
-                version: 1,
-                model,
-                dirty: false,
-            }),
-            path,
-            writing: Mutex::new(()),
-        }
+        Self { inner: Mutex::new(Inner { version: 1, model, dirty: false }), path, writing: Mutex::new(()) }
     }
 
     pub fn flush(&self) {
@@ -99,20 +89,14 @@ impl ModelStore {
     /// model (missing or unreadable state.json) to compare against.
     pub fn pane_ids(&self) -> Option<HashSet<String>> {
         let g = self.inner.lock();
-        g.model
-            .get("panes")
-            .and_then(Value::as_object)
-            .map(|m| m.keys().cloned().collect())
+        g.model.get("panes").and_then(Value::as_object).map(|m| m.keys().cloned().collect())
     }
 }
 
 #[tauri::command]
 pub fn state_get(store: State<'_, ModelStore>) -> Snapshot {
     let g = store.inner.lock();
-    Snapshot {
-        version: g.version,
-        model: g.model.clone(),
-    }
+    Snapshot { version: g.version, model: g.model.clone() }
 }
 
 #[tauri::command]
@@ -125,20 +109,13 @@ pub fn state_commit(
 ) -> CommitResult {
     let mut g = store.inner.lock();
     if base_version != g.version {
-        return CommitResult::Conflict {
-            version: g.version,
-            model: g.model.clone(),
-        };
+        return CommitResult::Conflict { version: g.version, model: g.model.clone() };
     }
     g.version += 1;
     g.model = model;
     g.dirty = true;
     let version = g.version;
-    let event = ChangeEvent {
-        version,
-        model: g.model.clone(),
-        source,
-    };
+    let event = ChangeEvent { version, model: g.model.clone(), source };
     drop(g);
     let _ = app.emit("model://changed", event);
     CommitResult::Ok { version }

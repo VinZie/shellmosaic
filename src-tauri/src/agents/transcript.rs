@@ -84,7 +84,8 @@ pub fn recent(path: &Path, max_entries: usize, max_chars: usize) -> String {
     if start > 0 {
         lines.next(); // (cut in the middle)
     }
-    let mut out: Vec<String> = lines.filter_map(|l| serde_json::from_str::<Value>(l).ok()).flat_map(|v| entry_lines(&v)).collect();
+    let mut out: Vec<String> =
+        lines.filter_map(|l| serde_json::from_str::<Value>(l).ok()).flat_map(|v| entry_lines(&v)).collect();
     if out.len() > max_entries {
         out.drain(..out.len() - max_entries);
     }

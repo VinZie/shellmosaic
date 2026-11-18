@@ -314,7 +314,14 @@ pub struct Snapshot {
 #[serde(rename_all = "camelCase", rename_all_fields = "camelCase", tag = "op")]
 pub enum PaneRequest {
     /// put an existing agent's pane into the run's tab (creating the tab if needed)
-    Add { run_id: String, workspace_id: String, tab_id: Option<String>, pane_id: String, agent_id: String, title: String },
+    Add {
+        run_id: String,
+        workspace_id: String,
+        tab_id: Option<String>,
+        pane_id: String,
+        agent_id: String,
+        title: String,
+    },
     /// the agent is gone: close its pane
     Remove { pane_id: String },
 }

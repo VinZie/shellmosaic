@@ -118,7 +118,10 @@ fn worker_tools() -> Vec<Tool> {
 }
 
 fn s<'a>(args: &'a Value, key: &str) -> Result<&'a str, String> {
-    args.get(key).and_then(Value::as_str).filter(|v| !v.trim().is_empty()).ok_or_else(|| format!("\"{key}\" is required"))
+    args.get(key)
+        .and_then(Value::as_str)
+        .filter(|v| !v.trim().is_empty())
+        .ok_or_else(|| format!("\"{key}\" is required"))
 }
 
 fn opt<'a>(args: &'a Value, key: &str) -> Option<&'a str> {
@@ -138,7 +141,13 @@ impl AgentTools {
             "status" => Ok(core.status_text(&run)),
             "create_task" => {
                 let difficulty = args.get("difficulty").and_then(Value::as_u64).unwrap_or(2).clamp(1, 5) as u8;
-                let t = core.create_task(&run, s(&args, "title")?, s(&args, "description")?, difficulty, opt(&args, "follow_up_of"))?;
+                let t = core.create_task(
+                    &run,
+                    s(&args, "title")?,
+                    s(&args, "description")?,
+                    difficulty,
+                    opt(&args, "follow_up_of"),
+                )?;
                 Ok(format!("Created {} (difficulty {}). Assign it with assign_task.", t.id, t.difficulty))
             }
             "assign_task" => {
@@ -147,7 +156,13 @@ impl AgentTools {
                 let c = core.clone();
                 let id = blocking(move || c.assign(&task, worker.as_deref())).await?;
                 let a = core.find_agent(&run, &id)?;
-                Ok(format!("{} goes to {} ({}, {}). It starts in the background; call wait for the result.", s(&args, "task_id")?, a.name, a.slot, a.model))
+                Ok(format!(
+                    "{} goes to {} ({}, {}). It starts in the background; call wait for the result.",
+                    s(&args, "task_id")?,
+                    a.name,
+                    a.slot,
+                    a.model
+                ))
             }
             "wait" => {
                 let secs = args.get("timeout_s").and_then(Value::as_u64).unwrap_or(300).clamp(5, 1500);
@@ -163,7 +178,9 @@ impl AgentTools {
                 }
                 match core.wait_events(&run, Duration::from_secs(secs), &ctx).await {
                     None => Err("cancelled".into()),
-                    Some(events) if events.is_empty() => Ok(format!("Nothing new in {secs} s. {}", core.status_text(&run))),
+                    Some(events) if events.is_empty() => {
+                        Ok(format!("Nothing new in {secs} s. {}", core.status_text(&run)))
+                    }
                     Some(events) => {
                         let mut out: Vec<String> = events.iter().map(|e| format!("- {}", e.text)).collect();
                         out.push(String::new());
@@ -185,7 +202,9 @@ impl AgentTools {
             "answer_question" => {
                 let id = s(&args, "request_id")?.trim().to_string();
                 if !core.questions_of_run(&run, &id) {
-                    return Err(format!("{id} isn't a question from your team (permission requests are the user's to answer)."));
+                    return Err(format!(
+                        "{id} isn't a question from your team (permission requests are the user's to answer)."
+                    ));
                 }
                 core.answer(&id, Answer::Text(s(&args, "answer")?.to_string()), "lead")?;
                 Ok(format!("Answered {id}."))

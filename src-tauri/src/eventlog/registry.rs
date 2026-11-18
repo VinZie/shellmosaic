@@ -213,7 +213,13 @@ impl EventLogs {
         }
     }
 
-    pub fn subscribe(&self, owner: &str, channel: &str, xpath: Option<&str>, text: Option<&str>) -> Result<u32, String> {
+    pub fn subscribe(
+        &self,
+        owner: &str,
+        channel: &str,
+        xpath: Option<&str>,
+        text: Option<&str>,
+    ) -> Result<u32, String> {
         let sub = Subscription::open(channel, xpath, text)?;
         Ok(self.with(|t, trash| {
             let id = t.new_id();

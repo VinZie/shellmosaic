@@ -46,7 +46,13 @@ pub async fn log_open(
     blocking(move || open_tail(&app.state::<LogTails>(), label, path, tail_bytes, on_event)).await?
 }
 
-fn open_tail(tails: &LogTails, label: String, path: String, tail_bytes: Option<u64>, on_event: Channel<serde_json::Value>) -> Result<u64, String> {
+fn open_tail(
+    tails: &LogTails,
+    label: String,
+    path: String,
+    tail_bytes: Option<u64>,
+    on_event: Channel<serde_json::Value>,
+) -> Result<u64, String> {
     let mut file = File::open(&path).s()?;
     let len = file.metadata().s()?.len();
     let start = len.saturating_sub(tail_bytes.unwrap_or(256 * 1024));

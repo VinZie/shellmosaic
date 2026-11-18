@@ -15,11 +15,14 @@ use windows_sys::Win32::Security::Cryptography::Catalog::{
 };
 use windows_sys::Win32::Security::Cryptography::{CertGetNameStringW, CERT_NAME_SIMPLE_DISPLAY_TYPE};
 use windows_sys::Win32::Security::WinTrust::{
-    WinVerifyTrust, CRYPT_PROVIDER_SGNR, DRIVER_ACTION_VERIFY, WINTRUST_ACTION_GENERIC_VERIFY_V2, WINTRUST_CATALOG_INFO,
-    WINTRUST_DATA, WINTRUST_DATA_0, WINTRUST_FILE_INFO, WTD_CACHE_ONLY_URL_RETRIEVAL, WTD_CHOICE_CATALOG, WTD_CHOICE_FILE,
-    WTD_REVOCATION_CHECK_NONE, WTD_REVOKE_NONE, WTD_STATEACTION_CLOSE, WTD_STATEACTION_VERIFY, WTD_UI_NONE,
+    WinVerifyTrust, CRYPT_PROVIDER_SGNR, DRIVER_ACTION_VERIFY, WINTRUST_ACTION_GENERIC_VERIFY_V2,
+    WINTRUST_CATALOG_INFO, WINTRUST_DATA, WINTRUST_DATA_0, WINTRUST_FILE_INFO, WTD_CACHE_ONLY_URL_RETRIEVAL,
+    WTD_CHOICE_CATALOG, WTD_CHOICE_FILE, WTD_REVOCATION_CHECK_NONE, WTD_REVOKE_NONE, WTD_STATEACTION_CLOSE,
+    WTD_STATEACTION_VERIFY, WTD_UI_NONE,
 };
-use windows_sys::Win32::Storage::FileSystem::{CreateFileW, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING};
+use windows_sys::Win32::Storage::FileSystem::{
+    CreateFileW, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
+};
 
 use super::modules::FileCache;
 use crate::winutil::{from_wide, is_local_path, wide, Handle};
@@ -81,7 +84,9 @@ fn verify(path: &str) -> Signature {
     };
     let (code, signer) = win_verify(WTD_CHOICE_FILE, WINTRUST_DATA_0 { pFile: &mut file });
     match code {
-        TRUST_E_NOSIGNATURE | TRUST_E_SUBJECT_FORM_UNKNOWN => catalog(&wpath).unwrap_or_else(|| result(code, None, false)),
+        TRUST_E_NOSIGNATURE | TRUST_E_SUBJECT_FORM_UNKNOWN => {
+            catalog(&wpath).unwrap_or_else(|| result(code, None, false))
+        }
         _ => result(code, signer, false),
     }
 }
@@ -92,7 +97,9 @@ fn result(code: u32, signer: Option<String>, catalog: bool) -> Signature {
         TRUST_E_NOSIGNATURE | TRUST_E_SUBJECT_FORM_UNKNOWN => ("unsigned", "Not signed".into()),
         TRUST_E_BAD_DIGEST => ("invalid", "The file was changed after it was signed".into()),
         CERT_E_EXPIRED => ("invalid", "The certificate has expired".into()),
-        CERT_E_UNTRUSTEDROOT | CERT_E_CHAINING | CERT_E_UNTRUSTEDTESTROOT => ("invalid", "Not trusted on this computer".into()),
+        CERT_E_UNTRUSTEDROOT | CERT_E_CHAINING | CERT_E_UNTRUSTEDTESTROOT => {
+            ("invalid", "Not trusted on this computer".into())
+        }
         TRUST_E_EXPLICIT_DISTRUST => ("invalid", "Explicitly distrusted".into()),
         CERT_E_REVOKED => ("invalid", "The certificate was revoked".into()),
         CRYPT_E_FILE_ERROR => ("unknown", "Couldn't read the file".into()),

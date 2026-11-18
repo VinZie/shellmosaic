@@ -5,7 +5,9 @@ use std::ptr::null_mut;
 
 use serde::Serialize;
 use windows_sys::Win32::Foundation::LocalFree;
-use windows_sys::Win32::System::Threading::{GetThreadDescription, THREAD_QUERY_INFORMATION, THREAD_QUERY_LIMITED_INFORMATION};
+use windows_sys::Win32::System::Threading::{
+    GetThreadDescription, THREAD_QUERY_INFORMATION, THREAD_QUERY_LIMITED_INFORMATION,
+};
 
 use super::modules::Symbols;
 use super::nt::{self, class, hex, Snapshot, ThreadEntry, EXITED, THREAD_WAITING};
@@ -44,7 +46,11 @@ fn thread(t: &ThreadEntry, symbols: &Symbols) -> ProcThread {
     let mut suspend_count = None;
     let mut description = None;
     // the Idle process's threads all have ID 0
-    let opened = if t.tid == 0 { None } else { nt::open_thread(t.tid, &[THREAD_QUERY_INFORMATION, THREAD_QUERY_LIMITED_INFORMATION]) };
+    let opened = if t.tid == 0 {
+        None
+    } else {
+        nt::open_thread(t.tid, &[THREAD_QUERY_INFORMATION, THREAD_QUERY_LIMITED_INFORMATION])
+    };
     if let Some((h, _)) = opened {
         win32_start = nt::query_thread::<usize>(h.0, class::THREAD_WIN32_START).ok().map(|a| a as u64);
         suspend_count = nt::query_thread::<u32>(h.0, class::THREAD_SUSPEND_COUNT).ok();

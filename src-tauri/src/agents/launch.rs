@@ -90,7 +90,8 @@ fn mcp_config(shim: &Path) -> Value {
 pub fn write_files(dir: &Path, shim: &Path, role_text: &str) -> Result<Files, String> {
     std::fs::create_dir_all(dir).map_err(|e| format!("Couldn't create {}: {e}", dir.display()))?;
     let files = Files { mcp: dir.join("mcp.json"), settings: dir.join("settings.json"), role: dir.join("role.md") };
-    let write = |p: &Path, data: &[u8]| write_atomic(p, data).map_err(|e| format!("Couldn't write {}: {e}", p.display()));
+    let write =
+        |p: &Path, data: &[u8]| write_atomic(p, data).map_err(|e| format!("Couldn't write {}: {e}", p.display()));
     write(&files.mcp, serde_json::to_string_pretty(&mcp_config(shim)).unwrap_or_default().as_bytes())?;
     write(&files.settings, serde_json::to_string_pretty(&settings(shim)).unwrap_or_default().as_bytes())?;
     write(&files.role, role_text.as_bytes())?;
@@ -129,12 +130,22 @@ pub fn args(agent: &Agent, files: &Files, resume: bool) -> Vec<String> {
 /// The agent's environment: `base` (the user's fresh environment) minus anything from a
 /// Claude Code session Shellmosaic itself may have been started from, plus what the shim
 /// and the guards need.
-pub fn env(base: Vec<(String, String)>, agent: &Agent, pipe: &str, token: &str, target_dir: Option<&Path>) -> Vec<(String, String)> {
+pub fn env(
+    base: Vec<(String, String)>,
+    agent: &Agent,
+    pipe: &str,
+    token: &str,
+    target_dir: Option<&Path>,
+) -> Vec<(String, String)> {
     let mut env: Vec<(String, String)> = base
         .into_iter()
         .filter(|(k, _)| {
             let k = k.to_ascii_uppercase();
-            !(k == "CLAUDECODE" || k.starts_with("CLAUDE_CODE_") || k == "CLAUDE_PID" || k.starts_with("SHELLMOSAIC_") || k.starts_with("GIT_CONFIG_"))
+            !(k == "CLAUDECODE"
+                || k.starts_with("CLAUDE_CODE_")
+                || k == "CLAUDE_PID"
+                || k.starts_with("SHELLMOSAIC_")
+                || k.starts_with("GIT_CONFIG_"))
         })
         .collect();
     let mut set = |k: &str, v: String| env.push((k.to_string(), v));
@@ -221,7 +232,11 @@ mod tests {
         assert!(a.windows(2).any(|w| w[0] == "--resume"));
         assert!(!a.contains(&"AskUserQuestion".to_string()));
 
-        let base = vec![("PATH".into(), "x".into()), ("CLAUDECODE".into(), "1".into()), ("CLAUDE_CODE_SESSION_ID".into(), "s".into())];
+        let base = vec![
+            ("PATH".into(), "x".into()),
+            ("CLAUDECODE".into(), "1".into()),
+            ("CLAUDE_CODE_SESSION_ID".into(), "s".into()),
+        ];
         let e = env(base, &agent(Role::Lead), "pipe", "tok", None);
         assert!(!e.iter().any(|(k, _)| k == "CLAUDECODE" || k == "CLAUDE_CODE_SESSION_ID"));
         assert!(e.iter().any(|(k, v)| k == "CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS" && v == "0"));

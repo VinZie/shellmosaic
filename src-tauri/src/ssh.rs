@@ -31,7 +31,11 @@ fn printable(s: &str) -> String {
 }
 
 fn host_label(host: &str, port: u16) -> String {
-    if port == 22 { host.to_string() } else { format!("[{host}]:{port}") }
+    if port == 22 {
+        host.to_string()
+    } else {
+        format!("[{host}]:{port}")
+    }
 }
 
 // ── prompting ───────────────────────────────────────────────────────────
@@ -131,10 +135,9 @@ impl DialogPrompter {
         let id = prompts.next.fetch_add(1, Ordering::Relaxed) + 1;
         let (tx, rx) = oneshot::channel();
         prompts.pending.lock().insert(id, tx);
-        let _ = self.app.emit(
-            "ssh://prompt",
-            json!({ "id": id, "paneId": self.pane_id, "kind": kind, "message": message }),
-        );
+        let _ = self
+            .app
+            .emit("ssh://prompt", json!({ "id": id, "paneId": self.pane_id, "kind": kind, "message": message }));
         let answer = tokio::time::timeout(Duration::from_secs(300), rx).await;
         prompts.pending.lock().remove(&id);
         answer.ok().and_then(|r| r.ok()).flatten().map(Zeroizing::new)
@@ -308,16 +311,24 @@ async fn ensure_unlocked(app: &AppHandle, p: &Prompter) -> Result<(), String> {
 }
 
 /// Connect to a saved host and authenticate. The vault is unlocked first if needed.
-pub async fn connect(app: &AppHandle, host_id: &str, p: Arc<Prompter>) -> Result<(client::Handle<Client>, HostSecrets), String> {
+pub async fn connect(
+    app: &AppHandle,
+    host_id: &str,
+    p: Arc<Prompter>,
+) -> Result<(client::Handle<Client>, HostSecrets), String> {
     ensure_unlocked(app, &p).await?;
     let host = app.state::<Vault>().host(host_id)?;
     let who = if host.user.is_empty() { host.host.clone() } else { format!("{}@{}", host.user, host.host) };
-    p.say(&format!("\x1b[2mConnecting to {who}{}…\x1b[0m", if host.port == 22 { String::new() } else { format!(":{}", host.port) }));
+    p.say(&format!(
+        "\x1b[2mConnecting to {who}{}…\x1b[0m",
+        if host.port == 22 { String::new() } else { format!(":{}", host.port) }
+    ));
 
-    let tcp = tokio::time::timeout(Duration::from_secs(15), tokio::net::TcpStream::connect((host.host.as_str(), host.port)))
-        .await
-        .map_err(|_| format!("timed out connecting to {}:{}", host.host, host.port))?
-        .map_err(|e| format!("can't reach {}:{}: {e}", host.host, host.port))?;
+    let tcp =
+        tokio::time::timeout(Duration::from_secs(15), tokio::net::TcpStream::connect((host.host.as_str(), host.port)))
+            .await
+            .map_err(|_| format!("timed out connecting to {}:{}", host.host, host.port))?
+            .map_err(|e| format!("can't reach {}:{}: {e}", host.host, host.port))?;
     let _ = tcp.set_nodelay(true);
 
     let mut config = client::Config::default();
@@ -395,7 +406,12 @@ async fn load_key(host: &Host, p: &Prompter) -> Result<Option<PrivateKey>, Strin
 
 /// Like OpenSSH: ask "none" first to learn the methods, then key, saved password,
 /// keyboard-interactive (2FA), and finally password prompts.
-async fn authenticate(app: &AppHandle, h: &mut client::Handle<Client>, host: &Host, p: &Prompter) -> Result<(), String> {
+async fn authenticate(
+    app: &AppHandle,
+    h: &mut client::Handle<Client>,
+    host: &Host,
+    p: &Prompter,
+) -> Result<(), String> {
     let user = if host.user.is_empty() {
         let u = p.ask("login as: ", true).await.ok_or("cancelled")?;
         u.trim().to_string()
@@ -414,7 +430,11 @@ async fn authenticate(app: &AppHandle, h: &mut client::Handle<Client>, host: &Ho
     let has_key = host.key_data.is_some() || host.key_path.is_some();
     if host.auth != "password" && has_key && allows(&methods, MethodKind::PublicKey) {
         if let Some(key) = load_key(host, p).await? {
-            let hash = if key.algorithm().is_rsa() { h.best_supported_rsa_hash().await.ok().flatten().flatten() } else { None };
+            let hash = if key.algorithm().is_rsa() {
+                h.best_supported_rsa_hash().await.ok().flatten().flatten()
+            } else {
+                None
+            };
             match h.authenticate_publickey(&user, PrivateKeyWithHashAlg::new(Arc::new(key), hash)).await.s()? {
                 AuthResult::Success => return Ok(()),
                 AuthResult::Failure { remaining_methods, partial_success } => {
@@ -480,7 +500,12 @@ async fn authenticate(app: &AppHandle, h: &mut client::Handle<Client>, host: &Ho
 
 /// Answer the server's questions (PAM password prompts, OTP codes…). The saved password,
 /// if any, answers the first hidden prompt that asks for a password.
-async fn keyboard_interactive(h: &mut client::Handle<Client>, user: &str, stored: Option<&str>, p: &Prompter) -> Result<bool, String> {
+async fn keyboard_interactive(
+    h: &mut client::Handle<Client>,
+    user: &str,
+    stored: Option<&str>,
+    p: &Prompter,
+) -> Result<bool, String> {
     let mut stored = stored;
     let mut resp = h.authenticate_keyboard_interactive_start(user, None::<String>).await.s()?;
     for _ in 0..12 {
@@ -542,7 +567,12 @@ pub fn start_terminal(app: AppHandle, host_id: String, io: TermIo, on_end: impl 
     });
 }
 
-async fn run_terminal(app: &AppHandle, host_id: &str, p: Arc<Prompter>, mut size: watch::Receiver<(u16, u16)>) -> Result<Option<u32>, String> {
+async fn run_terminal(
+    app: &AppHandle,
+    host_id: &str,
+    p: Arc<Prompter>,
+    mut size: watch::Receiver<(u16, u16)>,
+) -> Result<Option<u32>, String> {
     let (handle, _host) = connect(app, host_id, p.clone()).await?;
     let channel = handle.channel_open_session().await.s()?;
     let (cols, rows) = *size.borrow_and_update();

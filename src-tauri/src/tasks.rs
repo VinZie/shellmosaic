@@ -57,7 +57,12 @@ fn package_json(dir: &Path) -> Option<TaskGroup> {
             tasks.push(task(name, format!("{runner} run {name}"), cmd.as_str().map(str::to_string)));
         }
     }
-    Some(TaskGroup { source: format!("{runner} scripts"), file: path.to_string_lossy().into(), icon: "package".into(), tasks })
+    Some(TaskGroup {
+        source: format!("{runner} scripts"),
+        file: path.to_string_lossy().into(),
+        icon: "package".into(),
+        tasks,
+    })
 }
 
 fn cargo(dir: &Path) -> Option<TaskGroup> {
@@ -98,7 +103,12 @@ fn makefile(dir: &Path) -> Option<TaskGroup> {
         .filter(|n| safe_name(n))
         .map(|n| task(&n, format!("make {n}"), None))
         .collect::<Vec<_>>();
-    (!tasks.is_empty()).then(|| TaskGroup { source: "make".into(), file: path.to_string_lossy().into(), icon: "hammer".into(), tasks })
+    (!tasks.is_empty()).then(|| TaskGroup {
+        source: "make".into(),
+        file: path.to_string_lossy().into(),
+        icon: "hammer".into(),
+        tasks,
+    })
 }
 
 fn justfile(dir: &Path) -> Option<TaskGroup> {
@@ -106,7 +116,13 @@ fn justfile(dir: &Path) -> Option<TaskGroup> {
     let text = fs::read_to_string(&path).ok()?;
     let tasks = text
         .lines()
-        .filter(|l| !l.starts_with([' ', '\t', '#', '[']) && !l.starts_with("set ") && !l.starts_with("alias ") && !l.starts_with("import ") && !l.starts_with("mod "))
+        .filter(|l| {
+            !l.starts_with([' ', '\t', '#', '['])
+                && !l.starts_with("set ")
+                && !l.starts_with("alias ")
+                && !l.starts_with("import ")
+                && !l.starts_with("mod ")
+        })
         .filter_map(|l| {
             let (head, rest) = l.split_once(':')?;
             if rest.starts_with('=') {
@@ -117,7 +133,12 @@ fn justfile(dir: &Path) -> Option<TaskGroup> {
         })
         .map(|n| task(&n, format!("just {n}"), None))
         .collect::<Vec<_>>();
-    (!tasks.is_empty()).then(|| TaskGroup { source: "just".into(), file: path.to_string_lossy().into(), icon: "list-checks".into(), tasks })
+    (!tasks.is_empty()).then(|| TaskGroup {
+        source: "just".into(),
+        file: path.to_string_lossy().into(),
+        icon: "list-checks".into(),
+        tasks,
+    })
 }
 
 fn compose(dir: &Path) -> Option<TaskGroup> {
@@ -135,7 +156,12 @@ fn compose(dir: &Path) -> Option<TaskGroup> {
     .iter()
     .map(|(n, c)| task(n, c.to_string(), None))
     .collect();
-    Some(TaskGroup { source: "docker compose".into(), file: path.to_string_lossy().into(), icon: "container".into(), tasks })
+    Some(TaskGroup {
+        source: "docker compose".into(),
+        file: path.to_string_lossy().into(),
+        icon: "container".into(),
+        tasks,
+    })
 }
 
 fn gomod(dir: &Path) -> Option<TaskGroup> {
@@ -143,10 +169,16 @@ fn gomod(dir: &Path) -> Option<TaskGroup> {
     if !path.exists() {
         return None;
     }
-    let tasks = [("build", "go build ./..."), ("run", "go run ."), ("test", "go test ./..."), ("vet", "go vet ./..."), ("tidy", "go mod tidy")]
-        .iter()
-        .map(|(n, c)| task(n, c.to_string(), None))
-        .collect();
+    let tasks = [
+        ("build", "go build ./..."),
+        ("run", "go run ."),
+        ("test", "go test ./..."),
+        ("vet", "go vet ./..."),
+        ("tidy", "go mod tidy"),
+    ]
+    .iter()
+    .map(|(n, c)| task(n, c.to_string(), None))
+    .collect();
     Some(TaskGroup { source: "go".into(), file: path.to_string_lossy().into(), icon: "box".into(), tasks })
 }
 
@@ -170,7 +202,12 @@ fn scripts(dir: &Path) -> Option<TaskGroup> {
         }
     }
     tasks.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
-    (!tasks.is_empty()).then(|| TaskGroup { source: "scripts".into(), file: dir.to_string_lossy().into(), icon: "file-code".into(), tasks })
+    (!tasks.is_empty()).then(|| TaskGroup {
+        source: "scripts".into(),
+        file: dir.to_string_lossy().into(),
+        icon: "file-code".into(),
+        tasks,
+    })
 }
 
 #[tauri::command]
